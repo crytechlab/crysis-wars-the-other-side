@@ -334,19 +334,16 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestExecuteOrder)
 		SmartScriptTable executorInfo;
 		SmartScriptTable orderInfo;
 
-		executorInfo.Create(gEnv->pScriptSystem);
-		orderInfo.Create(gEnv->pScriptSystem);
+		executorInfo.Create(pSS);
+		orderInfo.Create(pSS);
 
-		CScriptSetGetChain executorChain(executorInfo);
-		CScriptSetGetChain orderChain(orderInfo);
-
-		executorChain.SetValue("entityId", params.id);
-		executorChain.SetValue("maxCount", params.maxCount); // макс. кол-во исполнителей
-		executorChain.SetValue("index", params.index); // текущий номер исполнителя
+		executorInfo->SetValue("entityId", params.id);
+		executorInfo->SetValue("maxCount", params.maxCount); // макс. кол-во исполнителей
+		executorInfo->SetValue("index", params.index); // текущий номер исполнителя
 		
-		orderChain.SetValue("goalPipeId", params.id); // так надо
-		orderChain.SetValue("pos", params.pos);
-		orderChain.SetValue("targetId", params.targetId);
+		orderInfo->SetValue("goalPipeId", params.id); // так надо
+		orderInfo->SetValue("pos", params.pos);
+		orderInfo->SetValue("targetId", params.targetId);
 
 		pSS->BeginCall("HandleOrder");
 		pSS->PushFuncParam(executorInfo);

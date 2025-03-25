@@ -124,14 +124,16 @@ function LogError(fmt, ...)
 	System.Log("[ERROR] $4"..string.format(fmt, ...));
 end
 
-
 function LogWarning(fmt, ...)
 	System.Log("[WARNING] $6"..string.format(fmt, ...));
 end
 
+function LogDebug(fmt, ...)
+	System.Log("[DEBUG] "..string.format(fmt, ...));
+end
 
 function Log(fmt, ...)
-	System.Log("[INFO]"..string.format(fmt, ...));
+	System.Log("[INFO] "..string.format(fmt, ...));
 end
 
 
@@ -293,6 +295,6 @@ function TableToString(tbl)
 	  return result
 	end
   
-	return "table: "..serialize(tbl)
+	return serialize(tbl)
   end
 --TheOtherSide

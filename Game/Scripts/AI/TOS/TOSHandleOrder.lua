@@ -11,9 +11,11 @@ Script.ReloadScript("Scripts/TOSDebug.lua")
 ---@param orderTable table данные о приказе
 ---@return integer
 function HandleOrder(executorTable, orderTable)
-    
-    local outputOrderType = 0
 
+    LogDebug("executorTable:"..TableToString(executorTable))
+    LogDebug("orderTable:"..TableToString(orderTable))
+
+    local outputOrderType = 0
     local executor = System.GetEntity(executorTable.entityId)
     if not executor then
         LogError("<HandleOrder> executor not defined")
