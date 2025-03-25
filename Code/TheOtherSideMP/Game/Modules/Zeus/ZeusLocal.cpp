@@ -862,8 +862,9 @@ bool CTOSZeusModule::Local::ExecuteCommand(ECommand command)
 			const auto pEntity = TOS_GET_ENTITY(id);
 			if (pEntity)
 			{
-				auto& method = CTOSZeusSynchronizer::SvRequestSpawnEntity();
+				auto& method = CTOSZeusSynchronizer::SvRequestCopyEntity();
 				auto netParams = CTOSZeusSynchronizer::NetSpawnParams();
+				netParams.playerChannelId = g_pGame->GetIGameFramework()->GetClientActor()->GetChannelId();
 				netParams.className = pEntity->GetClass()->GetName();
 				netParams.pos = pEntity->GetWorldPos();
 				netParams.dir = pEntity->GetWorldRotation().GetColumn1();
@@ -874,32 +875,28 @@ bool CTOSZeusModule::Local::ExecuteCommand(ECommand command)
 		}
 		case ECommand::OrderSelected:
 		{
-			auto pAI = TOS_GET_ENTITY(id)->GetAI();
-			if (pAI && pAI->IsEnabled())
-			{
-				MouseProjectToWorld(m_mouseRay, m_worldMousePos, m_mouseRayEntityFlags, false);
-				m_orderPos = m_mouseRay.pt;
+			MouseProjectToWorld(m_mouseRay, m_worldMousePos, m_mouseRayEntityFlags, false);
+			m_orderPos = m_mouseRay.pt;
 
-				m_orderTargetId = GetMouseEntityId();
-				auto pOrderTargetEnt = TOS_GET_ENTITY(m_orderTargetId);
-				if (pOrderTargetEnt)
-					m_orderPos = pOrderTargetEnt->GetWorldPos();
+			m_orderTargetId = GetMouseEntityId();
+			auto pOrderTargetEnt = TOS_GET_ENTITY(m_orderTargetId);
+			if (pOrderTargetEnt)
+				m_orderPos = pOrderTargetEnt->GetWorldPos();
 
-				SOrder order;
-				order.pos = m_orderPos;
-				order.targetId = m_orderTargetId;
-				CreateOrder(id, order);
+			SOrder order;
+			order.pos = m_orderPos;
+			order.targetId = m_orderTargetId;
+			CreateOrder(id, order);
 
-				auto& method = CTOSZeusSynchronizer::SvRequestExecuteOrder();
-				auto netParams = CTOSZeusSynchronizer::NetExecuteOrderParams();
-				netParams.id = id;
-				netParams.maxCount = int(m_selectedEntities.size());
-				netParams.index = int(index);
-				netParams.goalPipeId = id;
-				netParams.pos = order.pos;
-				netParams.targetId = order.targetId;
-				pParent->GetSynchronizer()->RMISend(method, netParams, eRMI_ToServer);
-			}
+			auto& method = CTOSZeusSynchronizer::SvRequestExecuteOrder();
+			auto netParams = CTOSZeusSynchronizer::NetExecuteOrderParams();
+			netParams.id = id;
+			netParams.maxCount = int(m_selectedEntities.size());
+			netParams.index = int(index);
+			netParams.goalPipeId = id;
+			netParams.pos = order.pos;
+			netParams.targetId = order.targetId;
+			pParent->GetSynchronizer()->RMISend(method, netParams, eRMI_ToServer);
 
 			break;
 		}

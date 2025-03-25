@@ -343,7 +343,7 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
 
     if (g_pControlSystem->GetAbilitiesSystem()->m_isDebugLog)
     {
-        CryLogAlways("[C++][Actor %s][Activate Ability %s]",
+        CryLogAlways("<C++>[Actor %s][Activate Ability %s]",
                      pOwnerActor->GetEntity()->GetName(), GetAbility(index)->GetName().c_str());
     }
 

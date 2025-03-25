@@ -359,20 +359,19 @@ IEntity* CTOSEntitySpawnModule::SpawnEntity(STOSEntitySpawnParams& params, bool 
 		TOS_RECORD_EVENT(entityId, STOSGameEvent(eEGE_TOSEntityScheduleDelegateAuthority, plName, true, false, nullptr, 0.0f, forceStartControl));
 	}
 
-	if (params.hide)
-	{
-		CTOSZeusSynchronizer::NetHideParams hideParams;
-		hideParams.bHide = true;
-		hideParams.id = pSpawned->GetId();
+	pSpawned->Hide(params.hide);
+	pSpawned->EnablePhysics(!params.hide);
 
-		auto pZeusModule = g_pTOSGame->GetZeusModule();
-		if (pZeusModule)
-		{
-			auto pSync = pZeusModule->GetSynchronizer();
-			if (pSync)
-				pSync->RMISend(CTOSZeusSynchronizer::ClHideEntity(), hideParams, eRMI_ToAllClients | eRMI_NoLocalCalls);
-		}
-			
+	CTOSZeusSynchronizer::NetHideParams hideParams;
+	hideParams.bHide = params.hide;
+	hideParams.id = pSpawned->GetId();
+
+	auto pZeusModule = g_pTOSGame->GetZeusModule();
+	if (pZeusModule)
+	{
+		auto pSync = pZeusModule->GetSynchronizer();
+		if (pSync)
+			pSync->RMISend(CTOSZeusSynchronizer::ClHideEntity(), hideParams, eRMI_ToAllClients | eRMI_NoLocalCalls);
 	}
 
 	return pSpawned;
@@ -403,7 +402,7 @@ bool CTOSEntitySpawnModule::SpawnEntityDelay(STOSEntityDelaySpawnParams& params,
 		if (alreadyHaveSaved)
 		{
 			if (gEnv->pSystem->IsDevMode())
-				CryLogAlways("%s[C++][SpawnEntityDelay] Warning!!! The system already has a saved slave(id:%i) for player %s",
+				CryLogAlways("%s<C++>[SpawnEntityDelay] Warning!!! The system already has a saved slave(id:%i) for player %s",
 							 TOS_COLOR_YELLOW, savedIter->first, params.authorityPlayerName);
 
 			return false;

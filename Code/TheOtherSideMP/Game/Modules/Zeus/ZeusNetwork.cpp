@@ -46,6 +46,7 @@ void CTOSZeusModule::Network::ServerEntitySpawned(EntityId id, const Vec3& pos, 
 {
 	auto pSpawned = TOS_GET_ENTITY(id);
 	assert(pSpawned != nullptr);
+	assert(clientChannelId > 0);
 
 	char buffer[64];
 	sprintf(buffer, "%d", id);
@@ -71,6 +72,7 @@ void CTOSZeusModule::Network::ServerEntityCopied(EntityId id, const Vec3& pos, i
 {
 	auto pSpawned = TOS_GET_ENTITY(id);
 	assert(pSpawned != nullptr);
+	assert(clientChannelId > 0);
 
 	char buffer[64];
 	sprintf(buffer, "%d", id);

@@ -73,12 +73,12 @@ void CTOSPlayer::InitClient(const int channelId)
 	//if (gEnv->bServer)
 	//{
 	//	CryLogAlways(" ");
-	//	CryLogAlways("[C++][SERVER][FUNC CALL][CPlayer::InitClient] channelId: %i, ThisPlayer: %s", channelId, GetEntity()->GetName());
+	//	CryLogAlways("<C++>[SERVER][FUNC CALL][CPlayer::InitClient] channelId: %i, ThisPlayer: %s", channelId, GetEntity()->GetName());
 	//}
 	//else if(gEnv->bClient)
 	//{
 	//	CryLogAlways(" ");
-	//	CryLogAlways("[C++][CLIENT][FUNC CALL][CPlayer::InitClient] channelId: %i, ThisPlayer: %s", channelId, GetEntity()->GetName());
+	//	CryLogAlways("<C++>[CLIENT][FUNC CALL][CPlayer::InitClient] channelId: %i, ThisPlayer: %s", channelId, GetEntity()->GetName());
 	//}
 
 	//Case 3

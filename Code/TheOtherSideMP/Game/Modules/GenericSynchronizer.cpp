@@ -133,7 +133,7 @@ IMPLEMENT_RMI(CTOSGenericSynchronizer, SvRequestPintest)
 
 	if (gEnv->bServer)
 	{
-		CryLogAlways("[C++][%s][%s][SvRequestPintest] Game channel = %i, from %s",
+		CryLogAlways("<C++>[%s][%s][SvRequestPintest] Game channel = %i, from %s",
 			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), channelId, params.commentary.c_str());
 	}
 
@@ -149,7 +149,7 @@ IMPLEMENT_RMI(CTOSGenericSynchronizer, ClPintest)
 
 	if (gEnv->bClient)
 	{
-		CryLogAlways("[C++][%s][%s][ClPintest] Game channel = %i, from %s",
+		CryLogAlways("<C++>[%s][%s][ClPintest] Game channel = %i, from %s",
 			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), channelId, params.commentary.c_str());
 	}
 

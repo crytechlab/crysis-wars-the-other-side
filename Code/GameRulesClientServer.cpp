@@ -1240,7 +1240,7 @@ IMPLEMENT_RMI(CGameRules, ClEnteredGame)
 			m_pGameplayRecorder->Event(pActor->GetEntity(), GameplayEvent(eGE_Connected, 0, 0, (void*)status));
 
 			//TheOtherSide
-			//CryLogAlways("[C++][%s][%s][ClEnteredGame] LocalPlayerNick = %s",
+			//CryLogAlways("<C++>[%s][%s][ClEnteredGame] LocalPlayerNick = %s",
 				//TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), pActor->GetEntity()->GetName());
 
 

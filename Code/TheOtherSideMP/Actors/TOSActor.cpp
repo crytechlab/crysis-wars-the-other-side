@@ -64,7 +64,7 @@ bool CTOSActor::Init(IGameObject* pGameObject)
 
 void CTOSActor::PostInit(IGameObject* pGameObject)
 {
-	//CryLogAlways("[C++][%s][%s][CTOSActor::PostInit] Actor: %s|%i",
+	//CryLogAlways("<C++>[%s][%s][CTOSActor::PostInit] Actor: %s|%i",
 	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
 
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorPostInit, "", true));
@@ -95,7 +95,7 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 
 void CTOSActor::InitClient(const int channelId)
 {
-	//CryLogAlways("[C++][%s][%s][CTOSActor::InitClient] Actor: %s|%i|ch:%i",
+	//CryLogAlways("<C++>[%s][%s][CTOSActor::InitClient] Actor: %s|%i|ch:%i",
 	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId(), channelId);
 
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_InitClient, "", true, false, nullptr, 0.0f, channelId));
@@ -308,7 +308,7 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 
 void CTOSActor::Release()
 {
-	//CryLogAlways("[C++][%s][%s][CTOSActor::Release] Actor: %s|%i",
+	//CryLogAlways("<C++>[%s][%s][CTOSActor::Release] Actor: %s|%i",
 	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
 
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorRelease, "", true));

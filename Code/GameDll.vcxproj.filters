@@ -181,6 +181,33 @@
     <Filter Include="TheOtherSideMP\Game\Events">
       <UniqueIdentifier>{9e7a312b-859a-4358-87db-a93bc062b983}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Coop">
+      <UniqueIdentifier>{1adcb0f3-7909-4da9-addb-90a20bb63031}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Coop\Actors">
+      <UniqueIdentifier>{336700c3-a5fe-41f7-b27c-4ed28b5c4a81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Coop\DialogSystem">
+      <UniqueIdentifier>{07e495ec-41b0-4aa6-8667-637b26847713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Coop\Entities">
+      <UniqueIdentifier>{50056388-43cf-4cf1-8deb-2f6bbe4de1b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Coop\Nodes">
+      <UniqueIdentifier>{f3a5980f-e660-42d3-a305-c6de5bfb061b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Coop\Sound">
+      <UniqueIdentifier>{96307de6-8314-4a7a-afcb-f155554d2563}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Coop\Utilities">
+      <UniqueIdentifier>{ce5c2e14-1e56-4a3b-8f9b-459cfb8960e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Coop\Actors\Movement">
+      <UniqueIdentifier>{59fc7e6a-b7ef-40b5-85f1-af6f975082ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Coop\Actors\Animation">
+      <UniqueIdentifier>{8cd8e0d3-2099-4014-9452-d92987e06080}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp">
@@ -918,6 +945,15 @@
     <ClCompile Include="TheOtherSideMP\Actors\TOSActorRMI.cpp">
       <Filter>TheOtherSideMP\Actors</Filter>
     </ClCompile>
+    <ClCompile Include="Coop\CoopCutsceneSystem.cpp">
+      <Filter>Coop</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\CoopReadability.cpp">
+      <Filter>Coop</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\CoopSystem.cpp">
+      <Filter>Coop</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -1615,6 +1651,15 @@
     </ClInclude>
     <ClInclude Include="TheOtherSideMP\Game\Modules\Zeus\ZeusSynchronizer.h">
       <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\CoopCutsceneSystem.h">
+      <Filter>Coop</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\CoopReadability.h">
+      <Filter>Coop</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\CoopSystem.h">
+      <Filter>Coop</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

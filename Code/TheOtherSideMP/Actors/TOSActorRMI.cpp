@@ -33,7 +33,7 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 		pGraphState->SetInput(mode.c_str(), params.animation.c_str());
 	}
 
-	//CryLogAlways("[C++][%s][%s][%s] mode = %s, animation = %s", 
+	//CryLogAlways("<C++>[%s][%s][%s] mode = %s, animation = %s", 
 	//	TOS_Debug::GetEnv(), 
 	//	TOS_Debug::GetAct(3), 
 	//	__FUNCTION__, 
@@ -51,7 +51,7 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 //
 //	GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
 //
-//	CryLog("[C++][%s][%s][%s][%s] mark as master = %i",
+//	CryLog("<C++>[%s][%s][%s][%s] mark as master = %i",
 //		TOS_Debug::GetEnv(),
 //		TOS_Debug::GetAct(3),
 //		__FUNCTION__,
@@ -68,7 +68,7 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 //
 //	m_isMaster = params.value;
 //
-//	CryLog("[C++][%s][%s][%s][%s] mark as master = %i",
+//	CryLog("<C++>[%s][%s][%s][%s] mark as master = %i",
 //		TOS_Debug::GetEnv(),
 //		TOS_Debug::GetAct(3),
 //		__FUNCTION__,
@@ -86,7 +86,7 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 //
 //	GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
 //
-//	CryLog("[C++][%s][%s][%s][%s] mark as slave = %i",
+//	CryLog("<C++>[%s][%s][%s][%s] mark as slave = %i",
 //		TOS_Debug::GetEnv(),
 //		TOS_Debug::GetAct(3),
 //		__FUNCTION__,
@@ -103,7 +103,7 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 //
 //	m_isSlave = params.value;
 //
-//	CryLog("[C++][%s][%s][%s][%s] mark as slave = %i",
+//	CryLog("<C++>[%s][%s][%s][%s] mark as slave = %i",
 //		TOS_Debug::GetEnv(),
 //		TOS_Debug::GetAct(3),
 //		__FUNCTION__,
@@ -197,7 +197,7 @@ IMPLEMENT_RMI(CTOSActor, SvRequestAttachChild)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSActor, ClClearInventory)
 {
-	CryLog("[C++][%s][%s][ClClearInventory]",
+	CryLog("<C++>[%s][%s][ClClearInventory]",
 		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
 
 	RemoveAllItems();

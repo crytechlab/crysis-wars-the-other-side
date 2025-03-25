@@ -837,7 +837,7 @@ void CAbilitiesSystem::OnGameRulesReset()
 {
     Reset();
 
-    //CryLogAlways("[C++][CAbilitiesSystem][OnGameRulesReset]");
+    //CryLogAlways("<C++>[CAbilitiesSystem][OnGameRulesReset]");
 }
 
 void CAbilitiesSystem::OnActorDeath(IActor* pActor)
@@ -1046,7 +1046,7 @@ void CAbilitiesSystem::OnAddingAbility(const char* abilityName, const EntityId o
             {
                 const auto pScout = static_cast<CScout*>(g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(ownerId));
                 if (!pScout->InitSearchBeam())
-                    CryLogAlways("%s[C++][Error][Scout %s][Can't init search beam]", STR_RED,
+                    CryLogAlways("%s<C++>[Error][Scout %s][Can't init search beam]", STR_RED,
                                  pScout->GetEntity()->GetName());
             }
         }
