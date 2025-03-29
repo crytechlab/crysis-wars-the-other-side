@@ -7,6 +7,9 @@ Copyright (C), AlienKeeper, 2024.
 
 #include "Actor.h"
 #include "ITOSMasterControllable.h"
+// Crysis Co-op
+#include <TheOtherSideMP/Actors/Animation/AnimationGraphState.h>
+// ~Crysis Co-op
 
 class CTOSEnergyConsumer;
 
@@ -106,9 +109,9 @@ struct STOSNetBodyInfo
 		//alertness(ZERO), grunt штука
 		stance(ZERO),
 		//suitMode(ZERO),
-		hidden(false)
+		hidden(false),
+		hasAimTarget(false)
 		//allowStrafing(false), grunt штука
-		//hasAimTarget(false) grunt штука
 	{ }
 
 	void Serialize(IEntity* pInfoOwnerEntity, TSerialize ser)
@@ -129,6 +132,7 @@ struct STOSNetBodyInfo
 
 		// GameServerStatic в коопе был
 		ser.Value("hidden", hidden, 'bool');
+		ser.Value("hasAimTarget", hasAimTarget, 'bool');
 
 		if (ser.IsReading())
 			pInfoOwnerEntity->Hide(hidden);
@@ -180,6 +184,7 @@ struct STOSNetBodyInfo
 	//int suitMode;
 
 	bool hidden;
+	bool hasAimTarget;
 	//bool m_allowStrafing;
 	//bool m_hasAimTarget;
 };
@@ -275,36 +280,6 @@ public:
 
 	void RemoveAllItems();
 
-	//Новые функции сюда
-	//const Vec3& FilterDeltaMovement(const Vec3& deltaMov);
-
-	//const STOSSlaveStats& ReadSlaveStats() const { return m_slaveStats; } ///< Считать статистику раба. Изменять нельзя.
-
-	// Скопировано из CActor в Crysis Co-op
-	//struct SQueuedAnimEvent
-	//{
-	//	SQueuedAnimEvent() : sAnimEventName(""), fEventTime(0.f), fElapsed(0.f) {};
-	//	SQueuedAnimEvent(const string& name, const float eventTime) : sAnimEventName(name), fEventTime(eventTime), fElapsed(0.f) {};
-	//	string sAnimEventName;
-	//	float fEventTime;
-	//	float fElapsed;
-	//};
-
-	//virtual bool IsAnimEvent(const char* sAnimSignal, string* sAnimEventName, float* fEventTime)
-	//{
-	//	*sAnimEventName = "";
-	//	*fEventTime = 0.f;
-	//	return false;
-	//};
-
-	//void QueueAnimationEvent(const SQueuedAnimEvent& sEvent);
-	//void UpdateAnimEvents(float fFrameTime);
-
-	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, float value, TAnimationGraphQueryID* pQueryID);
-	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, int value, TAnimationGraphQueryID* pQueryID);
-	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID);
-	// ~Скопировано из CActor в Crysis Co-op
-
 	STOSSlaveStats& GetSlaveStats() { return m_slaveStats; } ///< Получить статистику раба. Изменять можно.
 	bool IsSlave() const {return m_isSlave;}
 	bool IsMaster() const {return m_isMaster;}
@@ -317,6 +292,181 @@ public:
 	bool UpdateLastMPSpawnPointRotation(const Quat& rotation);
 	bool UpdateLastShooterId(const EntityId id);
 
+	// Crysis Co-op
+
+	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, float value, TAnimationGraphQueryID* pQueryID);
+	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, int value, TAnimationGraphQueryID* pQueryID);
+	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID);
+	IAnimationGraphState* GetAnimationGraphState();
+
+	void RegisterMultiplayerAI();
+	struct PlayReadabilitySoundParams
+	{
+	public:
+		PlayReadabilitySoundParams() : sSoundEventName("") {};
+		PlayReadabilitySoundParams(string s) : sSoundEventName(s) { }
+
+		string sSoundEventName;
+
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("name", sSoundEventName);
+		}
+	};
+
+	struct SPlayNetworkedSoundEvent
+	{
+	public:
+		SPlayNetworkedSoundEvent() {};
+		SPlayNetworkedSoundEvent(const char* sSoundOrEventName, Vec3 vOffset, Vec3 vDirection, uint32 nSoundFlags, uint32 nSemantic)
+			: sSoundOrEventName(sSoundOrEventName), vOffset(vOffset), vDirection(vDirection), nSoundFlags(nSoundFlags), nSemantic(nSemantic)
+		{ }
+
+		string sSoundOrEventName;
+		Vec3 vOffset;
+		Vec3 vDirection;
+		uint32 nSoundFlags;
+		uint32 nSemantic;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("sSoundOrEventName", sSoundOrEventName);
+			ser.Value("vOffset", vOffset);
+			ser.Value("vDirection", vDirection);
+			ser.Value("nSoundFlags", nSoundFlags);
+			ser.Value("nSemantic", nSemantic);
+		}
+	};
+
+	struct SNetworkedAttachmentEffect
+	{
+		SNetworkedAttachmentEffect() {};
+		SNetworkedAttachmentEffect(int characterSlot, const char* attachmentName, const char* effectName, Vec3 offset, Vec3 dir, float scale, int flags)
+			: characterSlot(characterSlot), attachmentName(attachmentName), effectName(effectName), offset(offset), dir(dir), scale(scale), flags(flags)
+		{ }
+
+		int characterSlot;
+		string attachmentName;
+		string effectName;
+		Vec3 offset;
+		Vec3 dir;
+		float scale;
+		int flags;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("characterSlot", characterSlot);
+			ser.Value("attachmentName", attachmentName);
+			ser.Value("effectName", effectName);
+			ser.Value("offset", offset);
+			ser.Value("dir", dir);
+			ser.Value("scale", scale);
+			ser.Value("flags", flags);
+		}
+	};
+
+	struct SLooseHelmetParams
+	{
+		SLooseHelmetParams() {};
+		SLooseHelmetParams(Vec3 dir, Vec3 pos) :
+			hitDir(dir),
+			hitPos(pos)
+		{};
+
+		Vec3 hitDir;
+		Vec3 hitPos;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("hitDir", hitDir, 'wrld');
+			ser.Value("hitPos", hitPos, 'wrld');
+		}
+	};
+
+	CAnimationGraphState* m_pAnimationGraphStateWrapper;
+
+	struct SPlayNetworkedAnimationParams
+	{
+		SPlayNetworkedAnimationParams() {};
+		SPlayNetworkedAnimationParams(int Mode, const string& Animation) :
+			nMode(Mode),
+			sAnimation(Animation)
+		{};
+
+		// Type of the animation (EAnimationMode as integer)
+		int nMode;
+		// Animation name.
+		string sAnimation;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("nMode", nMode);
+			ser.Value("sAnimation", sAnimation);
+		}
+	};
+
+	struct SAISelectItemParams
+	{
+		SAISelectItemParams() {
+
+		}
+
+		SAISelectItemParams(EntityId id, bool holsterOnly, bool holstered)
+		{
+			itemId = id;
+			select = !holsterOnly;
+			isHolstered = holstered;
+		}
+
+		EntityId itemId;
+		bool select;
+		bool isHolstered;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("item", itemId, 'eid');
+			ser.Value("select", select);
+			ser.Value("holstered", isHolstered);
+		}
+	};
+
+	static const EEntityAspects ASPECT_COOP_ALIVE = eEA_GameServerDynamic;
+	static const EEntityAspects ASPECT_COOP_HIDE = eEA_GameServerStatic;
+
+	DECLARE_CLIENT_RMI_PREATTACH(ClAISelectItem, SAISelectItemParams, eNRT_ReliableUnordered);
+	DECLARE_CLIENT_RMI_PREATTACH(ClPlayNetworkedAnimation, SPlayNetworkedAnimationParams, eNRT_ReliableOrdered);
+	DECLARE_CLIENT_RMI_PREATTACH(ClLooseHelmet, SLooseHelmetParams, eNRT_ReliableUnordered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClPlayNetworkedSoundEvent, SPlayNetworkedSoundEvent, eNRT_ReliableUnordered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClSetNetworkedAttachmentEffect, SNetworkedAttachmentEffect, eNRT_ReliableUnordered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClPlayReadabilitySound, PlayReadabilitySoundParams, eNRT_ReliableOrdered);
+	
+
+public:
+	struct SQueuedAnimEvent
+	{
+		SQueuedAnimEvent() : sAnimEventName(""), fEventTime(0.f), fElapsed(0.f) {};
+		SQueuedAnimEvent(string name, float eventTime) : sAnimEventName(name), fEventTime(eventTime), fElapsed(0.f) {};
+		string sAnimEventName;
+		float fEventTime;
+		float fElapsed;
+	};
+
+	virtual bool IsAnimEvent(const char* sAnimSignal, string* sAnimEventName, float* fEventTime)
+	{
+		*sAnimEventName = "";
+		*fEventTime = 0.f;
+		return false;
+	};
+	void QueueAnimationEvent(SQueuedAnimEvent sEvent);
+	bool SetAnimationInput(const char* inputID, const char* value);
+	void UpdateAnimEvents(float fFrameTime);
+
+private:
+	std::list<SQueuedAnimEvent> m_AnimEventQueue;
+	string m_sLastNetworkedAnim;
+	// ~Crysis Co-op
+
 protected:
 	// Сделать мастером или рабом на стороне сервера
 	bool SetMeSlave(bool value);
@@ -328,10 +478,9 @@ private:
 	// Скрыть актера на стороне клиента
 	bool HideMe(bool value);
 
-	string m_sLastNetworkedAnim;
-
 	Quat m_lastSpawnPointRotation;
 	EntityId m_lastShooterId;
+	bool m_isHidden;
 	bool m_isZeus;
 	bool m_isSlave; // сериализованное по сети значение, является ли актёр рабом
 	bool m_isMaster; // сериализованное по сети значение, является ли актёр мастером

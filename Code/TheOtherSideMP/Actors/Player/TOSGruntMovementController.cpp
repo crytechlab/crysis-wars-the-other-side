@@ -12,6 +12,10 @@ Copyright (C), Crysis Co-op
 #include <TheOtherSideMP\Actors\DummyTargetPointVerifier.h>
 
 // Summary:
+//	Dummy target point verifier to prevent AI system based crashes on client.
+CDummyTargetPointVerifier CDummyTargetPointVerifier::Instance = CDummyTargetPointVerifier();
+
+// Summary:
 //	Constructs a CCoopGruntMovementController class instance for the specified CCoopGrunt class instance.
 CTOSGruntMovementController::CTOSGruntMovementController(CTOSGrunt* pGrunt)
 	: CPlayerMovementController(pGrunt)

@@ -11,9 +11,12 @@ Copyright (C), Crysis Co-op
 #include "IVehicleSystem.h"
 #include "Weapon.h"
 #include "TOSGruntMovementController.h"
-#include <TheOtherSideMP\Utilities\DedicatedServerHackScope.h>
 #include <Item.h>
 #include "TOSGrunt.h"
+
+//Crysis Co-op
+#include <Coop\Utilities\DedicatedServerHackScope.h>
+//~Crysis Co-op
 
 CTOSGrunt::CTOSGrunt() :
 	m_nStance(STANCE_RELAXED),

@@ -12,9 +12,8 @@ namespace Utils
 	namespace VTables
 	{
 		/// @brief Получить указатель на VTable по адресу экземпляра класса.
-		/// ПРИМЕР: void** pVTable = GetVTable(0x000000003121c290);
-		/// @param address0x - адрес экземпляра класса.
-		/// @return указатель на VTable
+		/// @param address0x - адрес экземпляра класса
+		/// @return указатель на VTable: void** pVTable = GetVTable(0x000000003121c290);
 		inline void** GetVTableFromAddress(size_t address0x)
 		{
 			return reinterpret_cast<void**>(address0x);

@@ -102,7 +102,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\;..\..\..\Code\CryEngine\CryCommon;..\..\..\Code\CryEngine\CryAction;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\..\Code\CryEngine\CryCooperativeInterfaces;..\..\..\Code\CryEngine\CryCommon;..\..\..\Code\CryEngine\CryAction;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GAMEDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -140,7 +140,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\;..\..\..\Code\CryEngine\CryCommon;..\..\..\Code\CryEngine\CryAction;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\..\Code\CryEngine\CryCooperativeInterfaces;..\..\..\Code\CryEngine\CryCommon;..\..\..\Code\CryEngine\CryAction;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GAMEDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -176,7 +176,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>.\;..\..\..\Code\CryEngine\CryCommon;..\..\..\Code\CryEngine\CryAction;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\..\Code\CryEngine\CryCooperativeInterfaces;..\..\..\Code\CryEngine\CryCommon;..\..\..\Code\CryEngine\CryAction;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GAMEDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling />
@@ -218,7 +218,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>.\;..\..\..\Code\CryEngine\CryCommon;..\..\..\Code\CryEngine\CryAction;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\..\Code\CryEngine\CryCooperativeInterfaces;..\..\..\Code\CryEngine\CryCommon;..\..\..\Code\CryEngine\CryAction;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GAMEDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -268,24 +268,27 @@
     <ClCompile Include="Claymore.cpp" />
     <ClCompile Include="ClientSynchedStorage.cpp" />
     <ClCompile Include="CompatibilityAlienMovementController.cpp" />
-    <ClCompile Include="Coop\CoopCutsceneSystem.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Coop\CoopReadability.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Coop\CoopSystem.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="Coop\CoopCutsceneSystem.cpp" />
+    <ClCompile Include="Coop\CoopReadability.cpp" />
+    <ClCompile Include="Coop\CoopSystem.cpp" />
+    <ClCompile Include="Coop\DialogSystem\DialogActorContext.cpp" />
+    <ClCompile Include="Coop\DialogSystem\DialogLoader.cpp" />
+    <ClCompile Include="Coop\DialogSystem\DialogLoaderMK2.cpp" />
+    <ClCompile Include="Coop\DialogSystem\DialogScript.cpp" />
+    <ClCompile Include="Coop\DialogSystem\DialogSession.cpp" />
+    <ClCompile Include="Coop\DialogSystem\DialogSystem.cpp" />
+    <ClCompile Include="Coop\Entities\DialogSynchronizer.cpp" />
+    <ClCompile Include="Coop\Entities\EventSynchronizer.cpp" />
+    <ClCompile Include="Coop\Entities\HUDSynchronizer.cpp" />
+    <ClCompile Include="Coop\Entities\SequenceSynchronizer.cpp" />
+    <ClCompile Include="Coop\Nodes\CoopDialogNode.cpp" />
+    <ClCompile Include="Coop\Nodes\CoopGetPlayersInVehicle.cpp" />
+    <ClCompile Include="Coop\Nodes\CoopHudNodes.cpp" />
+    <ClCompile Include="Coop\Nodes\CoopSequenceNodes.cpp" />
+    <ClCompile Include="Coop\Nodes\CoopSpawnArchetype.cpp" />
+    <ClCompile Include="Coop\Sound\CoopSound.cpp" />
+    <ClCompile Include="Coop\Sound\CoopSoundSystem.cpp" />
+    <ClCompile Include="Coop\Utilities\DedicatedServerHackScope.cpp" />
     <ClCompile Include="CryMP\Library\StringTools.cpp" />
     <ClCompile Include="CryMP\Library\WinAPI.cpp" />
     <ClCompile Include="DebugGun.cpp" />
@@ -444,6 +447,8 @@
     <ClCompile Include="TagBullet.cpp" />
     <ClCompile Include="TheOtherSideMP\Actors\Aliens\TOSAlien.cpp" />
     <ClCompile Include="TheOtherSideMP\Actors\Aliens\TOSAlienMovementController.cpp" />
+    <ClCompile Include="TheOtherSideMP\Actors\Aliens\TOSHunter.cpp" />
+    <ClCompile Include="TheOtherSideMP\Actors\Aliens\TOSScout.cpp" />
     <ClCompile Include="TheOtherSideMP\Actors\Aliens\TOSTrooper.cpp" />
     <ClCompile Include="TheOtherSideMP\Actors\Animation\AnimationGraphState.cpp" />
     <ClCompile Include="TheOtherSideMP\Actors\Player\TOSGrunt.cpp" />
@@ -513,7 +518,6 @@
     <ClCompile Include="TheOtherSideMP\Nodes\FlowMasterClientNodes.cpp" />
     <ClCompile Include="TheOtherSideMP\Nodes\FlowScriptNodes.cpp" />
     <ClCompile Include="TheOtherSideMP\Nodes\FlowNewVehicleNodes.cpp" />
-    <ClCompile Include="TheOtherSideMP\Utilities\DedicatedServerHackScope.cpp" />
     <ClCompile Include="TheOtherSideMP\Utilities\IndexFinder.cpp" />
     <ClCompile Include="Throw.cpp" />
     <ClCompile Include="ThrowableWeapon.cpp" />
@@ -569,24 +573,24 @@
     <ClInclude Include="Claymore.h" />
     <ClInclude Include="ClientSynchedStorage.h" />
     <ClInclude Include="CompatibilityAlienMovementController.h" />
-    <ClInclude Include="Coop\CoopCutsceneSystem.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Coop\CoopReadability.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Coop\CoopSystem.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Coop\CoopCutsceneSystem.h" />
+    <ClInclude Include="Coop\CoopReadability.h" />
+    <ClInclude Include="Coop\CoopSystem.h" />
+    <ClInclude Include="Coop\DialogSystem\DialogActorContext.h" />
+    <ClInclude Include="Coop\DialogSystem\DialogCommon.h" />
+    <ClInclude Include="Coop\DialogSystem\DialogLoader.h" />
+    <ClInclude Include="Coop\DialogSystem\DialogLoaderMK2.h" />
+    <ClInclude Include="Coop\DialogSystem\DialogScript.h" />
+    <ClInclude Include="Coop\DialogSystem\DialogSession.h" />
+    <ClInclude Include="Coop\DialogSystem\DialogSystem.h" />
+    <ClInclude Include="Coop\Entities\DialogPlayer.h" />
+    <ClInclude Include="Coop\Entities\DialogSynchronizer.h" />
+    <ClInclude Include="Coop\Entities\EventSynchronizer.h" />
+    <ClInclude Include="Coop\Entities\HUDSynchronizer.h" />
+    <ClInclude Include="Coop\Entities\SequenceSynchronizer.h" />
+    <ClInclude Include="Coop\Sound\CoopSound.h" />
+    <ClInclude Include="Coop\Sound\CoopSoundSystem.h" />
+    <ClInclude Include="Coop\Utilities\DedicatedServerHackScope.h" />
     <ClInclude Include="CryMP\Library\StringTools.h" />
     <ClInclude Include="CryMP\Library\WinAPI.h" />
     <ClInclude Include="DebugGun.h" />
@@ -721,6 +725,8 @@
     <ClInclude Include="TagBullet.h" />
     <ClInclude Include="TheOtherSideMP\Actors\Aliens\TOSAlien.h" />
     <ClInclude Include="TheOtherSideMP\Actors\Aliens\TOSAlienMovementController.h" />
+    <ClInclude Include="TheOtherSideMP\Actors\Aliens\TOSHunter.h" />
+    <ClInclude Include="TheOtherSideMP\Actors\Aliens\TOSScout.h" />
     <ClInclude Include="TheOtherSideMP\Actors\Aliens\TOSTrooper.h" />
     <ClInclude Include="TheOtherSideMP\Actors\Animation\AnimationGraphState.h" />
     <ClInclude Include="TheOtherSideMP\Actors\DummyTargetPointVerifier.h" />
@@ -793,7 +799,6 @@
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_Version.h" />
     <ClInclude Include="TheOtherSideMP\HUD\TOSCrosshair.h" />
     <ClInclude Include="TheOtherSideMP\TOSSmartStruct.h" />
-    <ClInclude Include="TheOtherSideMP\Utilities\DedicatedServerHackScope.h" />
     <ClInclude Include="TheOtherSideMP\Utilities\IndexFinder.h" />
     <ClInclude Include="TheOtherSideMP\Utilities\VTables.h" />
     <ClInclude Include="Throw.h" />

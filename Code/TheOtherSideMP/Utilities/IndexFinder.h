@@ -1,6 +1,8 @@
 /*************************************************************************
 AlienKeeper Source File.
 Copyright (C), AlienKeeper, 2024.
+MSVC: работает
+GNU: не проверено 29.03.2025
 **************************************************************************/
 
 #pragma once
@@ -9,28 +11,33 @@ Copyright (C), AlienKeeper, 2024.
 
 class IndexFinder
 {
-	typedef int (IndexFinder::* method_pointer)();
+	typedef int (IndexFinder::* method_pointer_type)();
 public:
+
 	template<typename _MethodPtr>
-	static size_t getIndexOf(_MethodPtr ptr)
+	static size_t getIndexOf(_MethodPtr pFuncPointer)
 	{
-		/*
-		reinterpret_cast<IndexFinder*>(&fake_vtable_ptr) - преобразует fake_vtable_ptr в указатель на IndexFinder.
-		fake_vtable_ptr должен быть указателем на искусственно созданную структуру, которая имитирует виртуальную таблицу класса IndexFinder.
-		*((IndexFinder::method_pointer*)(&ptr)) - получает значение указателя на метод ptr и преобразует его в указатель на функцию-член IndexFinder::method_pointer.
-		**(...)(): разыменовывает полученный указатель на функцию-член, вызывая ее.
-		return (...)(); - возвращает значение, возвращенное вызываемым методом.
+		/* Теперь pFakeObj – это фиктивный объект, 
+		чей первый член(vptr) указывает на fake_vtable. */
+		IndexFinder* pFakeObj = reinterpret_cast<IndexFinder*>(&fake_vtable_ptr);
+
+		/* С помощью приведения типов мы извлекаем «сырой» указатель на метод 
+		IndexFinder. Внутреннее представление указателя pFuncPointer
+		уже содержит информацию о номере слота метода в pFuncPointer в 
+		виртуальной таблице его класса.
 		*/
+		method_pointer_type* method_pointer = (method_pointer*)(&pFuncPointer);
 
-		IndexFinder* indexFinderPtr = reinterpret_cast<IndexFinder*>(&fake_vtable_ptr);
-		IndexFinder::method_pointer* method_pointer = (IndexFinder::method_pointer*)(&ptr);
-		IndexFinder::method_pointer method = *(method_pointer);
+		//Получаем метод из его указателя
+		method_pointer_type method = *(method_pointer);
 
-		return (indexFinderPtr->*method)();
+		//Извлекаем индекс, вызывая метод
+		int index = (pFakeObj->*method)();
+		return index;
 	}
 
-	typedef method_pointer fake_vtable_t[201];
-	static fake_vtable_t   fake_vtable;
+	typedef method_pointer_type fake_vtable_type[201];
+	static fake_vtable_type fake_vtable;
 	static void* fake_vtable_ptr;
 
 protected:

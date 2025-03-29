@@ -163,9 +163,6 @@
     <Filter Include="FGPS">
       <UniqueIdentifier>{a6f80983-a3b3-4d1b-904c-fa688b56d13f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="TheOtherSideMP\AI">
-      <UniqueIdentifier>{c066d497-3276-4b9e-b620-64dedf146c3f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="TheOtherSideMP\Actors">
       <UniqueIdentifier>{9c15a8d5-e10f-4dce-9b4d-835c97230a4f}</UniqueIdentifier>
     </Filter>
@@ -175,17 +172,11 @@
     <Filter Include="TheOtherSideMP\Actors\player">
       <UniqueIdentifier>{80f2a524-f64c-4877-b6d4-c9976bff1110}</UniqueIdentifier>
     </Filter>
-    <Filter Include="TheOtherSideMP\Actors\animation">
-      <UniqueIdentifier>{8839ffbb-fce8-4f95-9efa-942480b24ae1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="TheOtherSideMP\Game\Events">
       <UniqueIdentifier>{9e7a312b-859a-4358-87db-a93bc062b983}</UniqueIdentifier>
     </Filter>
     <Filter Include="Coop">
       <UniqueIdentifier>{1adcb0f3-7909-4da9-addb-90a20bb63031}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Coop\Actors">
-      <UniqueIdentifier>{336700c3-a5fe-41f7-b27c-4ed28b5c4a81}</UniqueIdentifier>
     </Filter>
     <Filter Include="Coop\DialogSystem">
       <UniqueIdentifier>{07e495ec-41b0-4aa6-8667-637b26847713}</UniqueIdentifier>
@@ -202,11 +193,8 @@
     <Filter Include="Coop\Utilities">
       <UniqueIdentifier>{ce5c2e14-1e56-4a3b-8f9b-459cfb8960e4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Coop\Actors\Movement">
-      <UniqueIdentifier>{59fc7e6a-b7ef-40b5-85f1-af6f975082ef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Coop\Actors\Animation">
-      <UniqueIdentifier>{8cd8e0d3-2099-4014-9452-d92987e06080}</UniqueIdentifier>
+    <Filter Include="TheOtherSideMP\Actors\animation">
+      <UniqueIdentifier>{34136f8a-189a-4079-848f-600d57256d28}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -864,9 +852,6 @@
     <ClCompile Include="TheOtherSideMP\HUD\TOSCrosshair.cpp">
       <Filter>TheOtherSideMP\HUD</Filter>
     </ClCompile>
-    <ClCompile Include="TheOtherSideMP\Actors\Animation\AnimationGraphState.cpp">
-      <Filter>TheOtherSideMP\Actors\animation</Filter>
-    </ClCompile>
     <ClCompile Include="TheOtherSideMP\Extensions\EnergyConsumer.cpp">
       <Filter>TheOtherSideMP\Extensions</Filter>
     </ClCompile>
@@ -875,9 +860,6 @@
     </ClCompile>
     <ClCompile Include="TheOtherSideMP\Actors\Player\TOSGrunt.cpp">
       <Filter>TheOtherSideMP\Actors\player</Filter>
-    </ClCompile>
-    <ClCompile Include="TheOtherSideMP\Utilities\DedicatedServerHackScope.cpp">
-      <Filter>TheOtherSideMP\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="TheOtherSideMP\Actors\Player\TOSGruntMovementController.cpp">
       <Filter>TheOtherSideMP\Actors\player</Filter>
@@ -953,6 +935,69 @@
     </ClCompile>
     <ClCompile Include="Coop\CoopSystem.cpp">
       <Filter>Coop</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\DialogSystem\DialogActorContext.cpp">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\DialogSystem\DialogLoader.cpp">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\DialogSystem\DialogLoaderMK2.cpp">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\DialogSystem\DialogScript.cpp">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\DialogSystem\DialogSession.cpp">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\DialogSystem\DialogSystem.cpp">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Entities\DialogSynchronizer.cpp">
+      <Filter>Coop\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Entities\EventSynchronizer.cpp">
+      <Filter>Coop\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Entities\HUDSynchronizer.cpp">
+      <Filter>Coop\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Entities\SequenceSynchronizer.cpp">
+      <Filter>Coop\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Nodes\CoopDialogNode.cpp">
+      <Filter>Coop\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Nodes\CoopGetPlayersInVehicle.cpp">
+      <Filter>Coop\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Nodes\CoopHudNodes.cpp">
+      <Filter>Coop\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Nodes\CoopSequenceNodes.cpp">
+      <Filter>Coop\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Nodes\CoopSpawnArchetype.cpp">
+      <Filter>Coop\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Sound\CoopSound.cpp">
+      <Filter>Coop\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Sound\CoopSoundSystem.cpp">
+      <Filter>Coop\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="Coop\Utilities\DedicatedServerHackScope.cpp">
+      <Filter>Coop\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Actors\Aliens\TOSHunter.cpp">
+      <Filter>TheOtherSideMP\Actors\aliens</Filter>
+    </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Actors\Aliens\TOSScout.cpp">
+      <Filter>TheOtherSideMP\Actors\aliens</Filter>
+    </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Actors\Animation\AnimationGraphState.cpp">
+      <Filter>TheOtherSideMP\Actors\animation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1577,9 +1622,6 @@
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_NET.h">
       <Filter>TheOtherSideMP\Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="TheOtherSideMP\Actors\Animation\AnimationGraphState.h">
-      <Filter>TheOtherSideMP\Actors\animation</Filter>
-    </ClInclude>
     <ClInclude Include="TheOtherSideMP\Extensions\EnergyConsumer.h">
       <Filter>TheOtherSideMP\Extensions</Filter>
     </ClInclude>
@@ -1591,9 +1633,6 @@
     </ClInclude>
     <ClInclude Include="TheOtherSideMP\Actors\Player\TOSGrunt.h">
       <Filter>TheOtherSideMP\Actors\player</Filter>
-    </ClInclude>
-    <ClInclude Include="TheOtherSideMP\Utilities\DedicatedServerHackScope.h">
-      <Filter>TheOtherSideMP\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="TheOtherSideMP\Actors\Player\TOSGruntMovementController.h">
       <Filter>TheOtherSideMP\Actors\player</Filter>
@@ -1660,6 +1699,60 @@
     </ClInclude>
     <ClInclude Include="Coop\CoopSystem.h">
       <Filter>Coop</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\DialogSystem\DialogActorContext.h">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\DialogSystem\DialogCommon.h">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\DialogSystem\DialogLoader.h">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\DialogSystem\DialogLoaderMK2.h">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\DialogSystem\DialogScript.h">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\DialogSystem\DialogSession.h">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\DialogSystem\DialogSystem.h">
+      <Filter>Coop\DialogSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\Entities\DialogPlayer.h">
+      <Filter>Coop\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\Entities\DialogSynchronizer.h">
+      <Filter>Coop\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\Entities\EventSynchronizer.h">
+      <Filter>Coop\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\Entities\HUDSynchronizer.h">
+      <Filter>Coop\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\Entities\SequenceSynchronizer.h">
+      <Filter>Coop\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\Sound\CoopSound.h">
+      <Filter>Coop\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\Sound\CoopSoundSystem.h">
+      <Filter>Coop\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="Coop\Utilities\DedicatedServerHackScope.h">
+      <Filter>Coop\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Actors\Aliens\TOSHunter.h">
+      <Filter>TheOtherSideMP\Actors\aliens</Filter>
+    </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Actors\Aliens\TOSScout.h">
+      <Filter>TheOtherSideMP\Actors\aliens</Filter>
+    </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Actors\Animation\AnimationGraphState.h">
+      <Filter>TheOtherSideMP\Actors\animation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

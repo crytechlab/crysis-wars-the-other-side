@@ -1051,9 +1051,12 @@ void CHUDRadar::UpdateRadarEntities(CActor* pActor, float& fRadius, Matrix34& pl
 						bool enableMPThreat = true;
 						auto pOtherPlayer = static_cast<CTOSPlayer*>(tempActor);
 
-						if (pOtherPlayer)
+						if (pOtherPlayer && 
+							pOtherPlayer->GetNanoSuit())
 						{
-							enableMPThreat = pOtherPlayer->GetNanoSuit() && pOtherPlayer->GetNanoSuit()->GetCloak()->GetState() == 0;
+							auto pCloak = pOtherPlayer->GetNanoSuit()->GetCloak();
+							if (pCloak)
+								enableMPThreat = pCloak->GetState() == 0;
 						}
 
 						if (enableMPThreat)

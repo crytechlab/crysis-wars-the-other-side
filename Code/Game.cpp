@@ -385,6 +385,9 @@ bool CGame::Init(IGameFramework* pFramework)
 	}
 
 	m_pFramework->RegisterListener(this, "Game", FRAMEWORKLISTENERPRIORITY_GAME);
+	//Crysis co-op
+	CCoopSystem::GetInstance()->Initialize();
+	//~Crysis co-op
 
 #ifdef GAME_DEBUG_MEM
 	DumpMemInfo("CGame::Init end");
@@ -437,6 +440,10 @@ bool CGame::CompleteInit()
 			pFactory = pFactory->m_pNext;
 		}
 	}
+
+	//Crysis co-op
+	CCoopSystem::GetInstance()->CompleteInit();
+	//~Crysis co-op
 
 #ifdef GAME_DEBUG_MEM
 	DumpMemInfo("CGame::CompleteInit");
@@ -598,9 +605,12 @@ void CGame::Shutdown()
 	//TheOtherSide
 	g_pTOSGame->Shutdown();
 	g_pTOSGame = nullptr;
-
 	SAFE_DELETE(g_pTOSGameCvars);
 	//TheOtherSide
+
+	//Crysis co-op
+	CCoopSystem::GetInstance()->Shutdown();
+	//~Crysis co-op
 
 	if (m_pPlayerProfileManager)
 	{
@@ -624,7 +634,11 @@ const char* CGame::GetName()
 }
 
 void CGame::OnPostUpdate(float fDeltaTime)
-{}
+{
+	//Crysis co-op
+	CCoopSystem::GetInstance()->Update(fDeltaTime);
+	//~Crysis co-op
+}
 
 void CGame::OnSaveGame(ISaveGame* pSaveGame)
 {

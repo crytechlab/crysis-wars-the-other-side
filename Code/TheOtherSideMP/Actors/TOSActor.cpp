@@ -28,20 +28,19 @@ Copyright (C), AlienKeeper, 2024.
 #include "HUD/HUDTagNames.h"
 
 #include "TheOtherSideMP/Control/ControlSystem.h"
-#include "DummyTargetPointVerifier.h"
 #include <stdexcept>
-
-CDummyTargetPointVerifier CDummyTargetPointVerifier::Instance = CDummyTargetPointVerifier();
 
 CTOSActor::CTOSActor()
 	:
 	//m_filteredDeltaMovement(ZERO),
+	m_isHidden(false),
 	m_isSlave(false),
 	m_isMaster(false),
 	m_isZeus(false),
 	m_chargingJump(false),
 	m_lastShooterId(0),
-	m_pEnergyConsumer(nullptr)
+	m_pEnergyConsumer(nullptr),
+	m_pAnimationGraphStateWrapper(nullptr)
 {
 	
 }
@@ -70,6 +69,11 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorPostInit, "", true));
 
 	CActor::PostInit(pGameObject);
+
+	//Crysis Co-op
+	pGameObject->SetAIActivation(eGOAIAM_Always);
+	//~Crysis Co-op
+
 
 	m_netBodyInfo.Reset();
 	m_slaveStats = STOSSlaveStats();
@@ -134,6 +138,29 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 	//	
 	//	break;
 	//}
+
+	case ENTITY_EVENT_HIDE:
+	{
+		if (gEnv->bServer)
+		{
+			GetInventory()->Clear();
+			m_isHidden = true;
+			GetGameObject()->ChangedNetworkState(ASPECT_COOP_HIDE);
+		}
+
+		break;
+	}
+	case ENTITY_EVENT_UNHIDE:
+	{
+		if (gEnv->bServer)
+		{
+			GetEntity()->SetTimer(eMPTIMER_REMOVEWEAPONSDELAY, 1000);
+			m_isHidden = false;
+			GetGameObject()->ChangedNetworkState(ASPECT_COOP_HIDE);
+		}
+
+		break;
+	}
 	case ENTITY_EVENT_TIMER:
 	{
 		// Фикс бага #29
@@ -154,31 +181,40 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		}
 		else if (event.nParam[0] == eMPTIMER_GIVEWEAPONDELAY)
 		{
-			string       equipName;
-			const string actorClass = GetEntity()->GetClass()->GetName();
+			//string       equipName;
+			//const string actorClass = GetEntity()->GetClass()->GetName();
 
-			if (actorClass == "Trooper")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_TrooperMPEquipPack")->GetString();
-			}
-			else if (actorClass == "Scout")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_ScoutMPEquipPack")->GetString();
-			}
-			else if (actorClass == "Alien")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_AlienMPEquipPack")->GetString();
-			}
-			else if (actorClass == "Hunter")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HunterMPEquipPack")->GetString();
-			}
-			else if (actorClass == "Grunt")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HumanGruntMPEquipPack")->GetString();
-			}
+			//if (actorClass == "Trooper")
+			//{
+			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_TrooperMPEquipPack")->GetString();
+			//}
+			//else if (actorClass == "Scout")
+			//{
+			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_ScoutMPEquipPack")->GetString();
+			//}
+			//else if (actorClass == "Alien")
+			//{
+			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_AlienMPEquipPack")->GetString();
+			//}
+			//else if (actorClass == "Hunter")
+			//{
+			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HunterMPEquipPack")->GetString();
+			//}
+			//else if (actorClass == "Grunt")
+			//{
+			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HumanGruntMPEquipPack")->GetString();
+			//}
 
-			TOS_Inventory::GiveEquipmentPack(this, equipName, false);
+			IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
+			SmartScriptTable props;
+			if (pScriptTable->GetValue("Properties", props))
+			{
+				char* equip;
+				if (props->GetValue("equip_EquipmentPack", equip))
+				{
+					TOS_Inventory::GiveEquipmentPack(this, string(equip), false);
+				}
+			}
 		}
 	}
 	default: 
@@ -206,7 +242,18 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 			if (m_isZeus)
 				RemoveAllItems();
 		}
+	}
 
+	if (aspect == ASPECT_COOP_HIDE)
+	{
+		ser.Value("bHide", m_isHidden, 'bool');
+
+		if (ser.IsReading())
+		{
+			GetEntity()->Hide(m_isHidden);
+			HideMe(m_isHidden);
+		}
+			
 	}
 	return true;
 }
@@ -265,6 +312,13 @@ void CTOSActor::SelectItem(const EntityId itemId, const bool keepHistory)
 void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 {
 	CActor::Update(ctx, updateSlot);
+
+	//Crysis Co-op
+	// Register AI System in MP
+	if (gEnv->bServer && !gEnv->bEditor)
+		RegisterMultiplayerAI();
+	
+	//~Crysis Co-op
 
 	//Отладка потребителя энергии в виде вывода инф. на экран
 	if (gEnv->bClient && IsClient())
@@ -678,46 +732,6 @@ void CTOSActor::RemoveAllItems()
 //	}
 //}
 
-void CTOSActor::OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, float value, TAnimationGraphQueryID* pQueryID)
-{
-	
-}
-
-void CTOSActor::OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, int value, TAnimationGraphQueryID* pQueryID)
-{
-	
-}
-
-void CTOSActor::OnAGSetInput(const bool bSucceeded, const IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID)
-{
-	//TODO:
-	//20/10/2023 Не уверен, что это вообще работает
-	//21/10/2023 Брейкпоинты так и не вызывались
-
-	IAnimationGraphState* pState = m_pAnimatedCharacter ? m_pAnimatedCharacter->GetAnimationGraphState() : nullptr;
-	if (bSucceeded && gEnv->bServer && !this->IsPlayer())
-	{
-		if (strcmp(value, m_sLastNetworkedAnim) != 0)
-		{
-			if (pState->GetInputId("Action") == id)
-				GetGameObject()->InvokeRMI(ClPlayAnimation(), NetPlayAnimationParams(AIANIM_ACTION, value), eRMI_ToRemoteClients);
-			if (pState->GetInputId("Signal") == id)
-				GetGameObject()->InvokeRMI(ClPlayAnimation(), NetPlayAnimationParams(AIANIM_SIGNAL, value), eRMI_ToRemoteClients);
-
-			m_sLastNetworkedAnim = value;
-		}
-		//SQueuedAnimEvent sAnimEvent = SQueuedAnimEvent();
-
-		//if (this->IsAnimEvent(value, &sAnimEvent.sAnimEventName, &sAnimEvent.fEventTime))
-		//{
-		//	QueueAnimationEvent(sAnimEvent);
-		//}
-
-		//GetAnimationGraphState()->GetInputName(id);
-	}
-
-}
-
 bool CTOSActor::IsLocalSlave() const
 {
 	const auto pMC = g_pTOSGame->GetMasterModule()->GetMasterClient();
@@ -745,6 +759,34 @@ bool CTOSActor::UpdateLastShooterId(const EntityId id)
 	m_lastShooterId = id;
 
 	return true;
+}
+
+void CTOSActor::RegisterMultiplayerAI()
+{
+	if (GetHealth() <= 0 && GetEntity()->GetAI())
+	{
+		gEnv->bMultiplayer = false;
+
+		IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
+		gEnv->pScriptSystem->BeginCall(pScriptTable, "UnregisterAI");
+		gEnv->pScriptSystem->PushFuncParam(pScriptTable);
+		gEnv->pScriptSystem->EndCall(pScriptTable);
+		CryLogAlways("AI Unregistered for Actor %s", GetEntity()->GetName());
+
+		gEnv->bMultiplayer = true;
+	}
+	else if (!GetEntity()->GetAI() && GetHealth() > 0)
+	{
+		gEnv->bMultiplayer = false;
+
+		IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
+		gEnv->pScriptSystem->BeginCall(pScriptTable, "RegisterAI");
+		gEnv->pScriptSystem->PushFuncParam(pScriptTable);
+		gEnv->pScriptSystem->EndCall(pScriptTable);
+		CryLogAlways("AI Registered for Actor %s", GetEntity()->GetName());
+
+		gEnv->bMultiplayer = true;
+	}
 }
 
 bool CTOSActor::HideMe(bool value)
@@ -845,3 +887,154 @@ bool CTOSActor::SetMeZeus(bool value)
 //
 //	return m_filteredDeltaMovement;
 //}
+
+// Crysis Co-op
+
+void CTOSActor::UpdateAnimEvents(float fFrameTime)
+{
+	if (!gEnv->bServer)
+		return;
+
+	std::list<SQueuedAnimEvent>::iterator iterator;
+	for (iterator = m_AnimEventQueue.begin(); iterator != m_AnimEventQueue.end(); ++iterator)
+	{
+		SQueuedAnimEvent& animEvent = (*iterator);
+
+		animEvent.fElapsed += fFrameTime;
+
+		if (animEvent.fElapsed > animEvent.fEventTime)
+		{
+			//this->CreateScriptEvent("animationevent", 0.f, animEvent.sAnimEventName);
+
+			AnimEventInstance sEvent;
+			sEvent.m_EventName = animEvent.sAnimEventName;
+
+			this->AnimationEvent(GetEntity()->GetCharacter(0), sEvent);
+
+			m_AnimEventQueue.erase(iterator);
+
+			if (CCoopSystem::GetInstance()->GetDebugLog() > 1)
+				CryLogAlways("[CActor::UpdateAnimEvents] Animation Event Played %s", animEvent.sAnimEventName);
+
+			break;
+		}
+	}
+}
+
+void CTOSActor::QueueAnimationEvent(SQueuedAnimEvent sEvent)
+{
+	if (!gEnv->bServer || gEnv->bEditor)
+		return;
+
+	if (CCoopSystem::GetInstance()->GetDebugLog() > 1)
+		CryLogAlways("[CTOSActor::QueueAnimationEvent] Animation Event Queued %s", sEvent.sAnimEventName);
+
+	m_AnimEventQueue.push_back(sEvent);
+}
+
+bool CTOSActor::SetAnimationInput(const char* inputID, const char* value)
+{
+	if (CCoopSystem::GetInstance()->GetDebugLog() > 1)
+		CryLogAlways("[%s] Animation input %s received with animation %s.", GetEntity()->GetName(), inputID, value);
+
+	bool	bSignal = strcmp(inputID, "Signal") == 0;
+	bool	bAction = strcmp(inputID, "Action") == 0;
+
+	if (strcmp(value, m_sLastNetworkedAnim) != 0)
+	{
+		this->GetGameObject()->InvokeRMI(ClPlayNetworkedAnimation(), SPlayNetworkedAnimationParams(bSignal ? EAnimationMode::AIANIM_SIGNAL : EAnimationMode::AIANIM_ACTION, value), eRMI_ToRemoteClients);
+		m_sLastNetworkedAnim = value;
+	}
+
+	// Handle action and signal inputs via AIproxy, since the AI system and
+	// the AI agent behavior depend on those inputs.
+	if (IEntity* pEntity = GetEntity())
+		if (IAIObject* pAI = pEntity->GetAI())
+			if (IUnknownProxy* pProxy = pAI->GetProxy())
+			{
+				if (pProxy->IsEnabled())
+				{
+					if (bSignal)
+					{
+						return pProxy->SetAGInput(AIAG_SIGNAL, value);
+					}
+					else if (bAction)
+					{
+						// Dejan: actions should not go through the ai proxy anymore!
+						/*
+						if(_stricmp(value, "idle") == 0)
+						return pProxy->ResetAGInput( AIAG_ACTION );
+						else
+						{
+						return pProxy->SetAGInput( AIAG_ACTION, value );
+						}
+						*/
+					}
+				}
+			}
+
+	if (IAnimationGraphState* pState = GetAnimationGraphState())
+	{
+		pState->SetInput(pState->GetInputId(inputID), value);
+		return true;
+	}
+
+	return false;
+}
+
+void CTOSActor::OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, float value, TAnimationGraphQueryID* pQueryID)
+{
+
+}
+
+void CTOSActor::OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, int value, TAnimationGraphQueryID* pQueryID)
+{
+
+}
+
+void CTOSActor::OnAGSetInput(const bool bSucceeded, const IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID)
+{
+	//TODO:
+	//20/10/2023 Не уверен, что это вообще работает
+	//21/10/2023 Брейкпоинты так и не вызывались
+
+	IAnimationGraphState* pState = m_pAnimatedCharacter ? m_pAnimatedCharacter->GetAnimationGraphState() : nullptr;
+	if (bSucceeded && gEnv->bServer && !this->IsPlayer())
+	{
+		if (strcmp(value, m_sLastNetworkedAnim) != 0)
+		{
+			if (pState->GetInputId("Action") == id)
+				GetGameObject()->InvokeRMI(ClPlayAnimation(), NetPlayAnimationParams(AIANIM_ACTION, value), eRMI_ToRemoteClients);
+			if (pState->GetInputId("Signal") == id)
+				GetGameObject()->InvokeRMI(ClPlayAnimation(), NetPlayAnimationParams(AIANIM_SIGNAL, value), eRMI_ToRemoteClients);
+
+			m_sLastNetworkedAnim = value;
+		}
+		//SQueuedAnimEvent sAnimEvent = SQueuedAnimEvent();
+
+		//if (this->IsAnimEvent(value, &sAnimEvent.sAnimEventName, &sAnimEvent.fEventTime))
+		//{
+		//	QueueAnimationEvent(sAnimEvent);
+		//}
+
+		//GetAnimationGraphState()->GetInputName(id);
+	}
+
+}
+
+IAnimationGraphState* CTOSActor::GetAnimationGraphState()
+{
+	if (!m_pAnimationGraphStateWrapper)
+		m_pAnimationGraphStateWrapper = new CAnimationGraphState(this, 0);
+
+	if (m_pAnimatedCharacter)
+	{
+		m_pAnimationGraphStateWrapper->m_pAnimationGraphState = m_pAnimatedCharacter->GetAnimationGraphState();
+		return gEnv->bServer ? m_pAnimationGraphStateWrapper : m_pAnimatedCharacter->GetAnimationGraphState();
+	}
+	else
+	{
+		m_pAnimationGraphStateWrapper->m_pAnimationGraphState = 0;
+		return NULL;
+	}
+}

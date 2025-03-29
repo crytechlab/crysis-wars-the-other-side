@@ -74,12 +74,13 @@ void CTOSGame::Init()
 	m_pFGPluginLoader = new CFGPluginLoader(gEnv->pConsole, g_pGameCVars);
 	m_pFGPluginLoader->RegisterPlugins();
 
-	// Исправление бага https://github.com/akeeperctl/crysis-wars-the-other-side/issues/8
+	// Исправление бага 
+	// https://github.com/akeeperctl/crysis-wars-the-other-side/issues/8
 	g_pGameCVars->hud_enableAlienInterference = 0;
 
 	CryLogAlways("[TOS] Starting modules initialization...");
 	CryLogAlways("---------------------------");
-	for (std::vector<ITOSGameModule*>::iterator it = m_modules.begin(); it != m_modules.end(); ++it)
+	for (auto it = m_modules.begin(); it != m_modules.end(); ++it)
 	{
 		ITOSGameModule* pModule = *it;
 		if (pModule)
@@ -123,7 +124,7 @@ void CTOSGame::Update(const float frameTime, int frameId)
 		}
 	}
 
-	for (std::vector<ITOSGameModule*>::iterator it = m_modules.begin(); it != m_modules.end(); ++it)
+	for (auto it = m_modules.begin(); it != m_modules.end(); ++it)
 	{
 		ITOSGameModule* pModule = *it;
 		if (pModule)

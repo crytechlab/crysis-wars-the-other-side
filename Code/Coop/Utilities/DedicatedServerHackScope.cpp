@@ -1,13 +1,6 @@
-/*************************************************************************
-Crysis Co-op Source File.
-Copyright (C), Crysis Co-op
-**************************************************************************/
-// Created by Crysis Co-op Developers
-
 #include <StdAfx.h>
 #include "DedicatedServerHackScope.h"
 #include <Cry_Camera.h>
-
 
 void CDedicatedServerHackScope::Enter()
 {

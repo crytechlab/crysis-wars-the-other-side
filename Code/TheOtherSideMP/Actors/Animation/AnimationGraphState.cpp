@@ -4,8 +4,9 @@ Copyright (C), Crysis Co-op
 **************************************************************************/
 
 #include <StdAfx.h>
-#include "AnimationGraphState.h"
 #include "../TOSActor.h"
+#include "TheOtherSideMP/Actors/Animation/AnimationGraphState.h"
+
 
 // Forward to owner actor.
 

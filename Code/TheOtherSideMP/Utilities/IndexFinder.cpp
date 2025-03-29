@@ -7,7 +7,7 @@ Copyright (C), AlienKeeper, 2024.
 #include "IndexFinder.h"
 
 // In the cpp file
-IndexFinder::fake_vtable_t IndexFinder::fake_vtable = {
+IndexFinder::fake_vtable_type IndexFinder::fake_vtable = {
 	&IndexFinder::method0 ,
 	&IndexFinder::method1 ,
 	&IndexFinder::method2 ,

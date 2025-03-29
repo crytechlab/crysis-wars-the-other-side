@@ -81,17 +81,24 @@
 #include <IGameRulesSystem.h>
 
 //TheOtherSide
-#include "TheOtherSideMP/Actors/player/TOSGrunt.h"
 #include "TheOtherSideMP/Actors/player/TOSPlayer.h"
+#include "TheOtherSideMP/Actors/player/TOSGrunt.h"
 #include "TheOtherSideMP/Actors/aliens/TOSAlien.h"
 #include "TheOtherSideMP/Actors/aliens/TOSTrooper.h"
+#include "TheOtherSideMP/Actors/aliens/TOSScout.h"
+#include "TheOtherSideMP/Actors/aliens/TOSHunter.h"
 #include "TheOtherSideMP/Extensions/EnergyСonsumer.h"
 #include "TheOtherSideMP/Game/Modules/Master/MasterSynchronizer.h"
 #include "TheOtherSideMP/Game/Modules/Zeus/ZeusSynchronizer.h"
-
 #undef GetClassNameA
 //~TheOtherSide
 
+//Crysis Co-op
+#include "Coop/Entities/EventSynchronizer.h"
+#include "Coop/Entities/DialogSynchronizer.h"
+#include "Coop/Entities/HudSynchronizer.h"
+#include "Coop/Entities/SequenceSynchronizer.h"
+//~Crysis Co-op
 
 
 #define HIDE_FROM_EDITOR(className)																																				\
@@ -147,6 +154,12 @@ void InitGameFactory(IGameFramework *pFramework)
   REGISTER_FACTORY(pFramework, "Civilian", CTOSGrunt, true);
   //~TheOtherSide
 
+	// Crysis Co-op
+  REGISTER_GAME_OBJECT(pFramework, SequenceSynchronizer, "Scripts/Entities/Coop/SequenceSynchronizer.lua");
+  REGISTER_GAME_OBJECT(pFramework, EventSynchronizer, "Scripts/Entities/Coop/EventSynchronizer.lua");
+  REGISTER_GAME_OBJECT(pFramework, DialogSynchronizer, "Scripts/Entities/Coop/DialogSynchronizer.lua");
+  REGISTER_GAME_OBJECT(pFramework, HUDSynchronizer, "Scripts/Entities/Coop/HUDSynchronizer.lua");
+  //~Crysis Co-op
 
   // Items
   REGISTER_FACTORY(pFramework, "Item", CItem, false);
@@ -198,19 +211,14 @@ void InitGameFactory(IGameFramework *pFramework)
   REGISTER_FACTORY(pVehicleSystem, "Amphibious", CVehicleMovementAmphibious, false);
 
 #ifndef SP_DEMO
-  //aliens
-  REGISTER_FACTORY(pFramework, "AlienPlayer", CTOSAlien, false);
-//  REGISTER_FACTORY(pFramework, "Aliens/Observer", CObserver, true);
-  
   //TheOtherSide
-  //REGISTER_FACTORY(pFramework, "Aliens/Alien", CAlien, true);
-  //REGISTER_FACTORY(pFramework, "Aliens/Trooper", CTrooper, true);
+  REGISTER_FACTORY(pFramework, "AlienPlayer", CTOSAlien, false);
   REGISTER_FACTORY(pFramework, "Aliens/Alien", CTOSAlien, true);
   REGISTER_FACTORY(pFramework, "Aliens/Trooper", CTOSTrooper, true);
+  REGISTER_FACTORY(pFramework, "Aliens/Scout", CTOSScout, true);
+  REGISTER_FACTORY(pFramework, "Aliens/Hunter", CTOSHunter, true);
   //~TheOtherSide
 
-  REGISTER_FACTORY(pFramework, "Aliens/Scout", CScout, true);
-  REGISTER_FACTORY(pFramework, "Aliens/Hunter", CHunter, true);
   REGISTER_FACTORY(pFramework, "Misc/Shark", CShark, true);
   //	REGISTER_FACTORY(m_pFramework, "Aliens/Warrior", CDrone, true);
   //REGISTER_FACTORY(pFramework, "Aliens/Coordinator", CObserver, true);

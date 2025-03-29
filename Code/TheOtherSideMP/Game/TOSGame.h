@@ -14,6 +14,9 @@ Copyright (C), AlienKeeper, 2024.
 #include "ScriptBinds\ScriptBind_Custom.h"
 #include "FGPS\FGPluginLoader.h"
 #include "ScriptBinds/ScriptBind_Zeus.h"
+//Crysis co-op
+#include <Coop/CoopSystem.h>
+//~Crysis co-op
 
 class CGameFlashAnimation;
 
@@ -32,9 +35,8 @@ struct IHardwareMouseEventListener;
 struct IHitListener;
 
 // ReSharper disable once CppInconsistentNaming
-/**
- * \brief указатель на функцию
- */
+
+/* указатель на функцию */
 typedef void (*func)();
 
 //enum EExtraGameplayEvent;
