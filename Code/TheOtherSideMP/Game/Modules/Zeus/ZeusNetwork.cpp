@@ -97,8 +97,27 @@ void CTOSZeusModule::Network::MakeZeus(IActor* pPlayer, bool bMake)
 
 	if (gEnv->bClient)
 	{
+
+		CGameRules* pGameRules = g_pGame->GetGameRules();
+		if (pGameRules)
+		{
+			const int teamCount = pGameRules->GetTeamCount();
+			if (teamCount > 0)
+			{
+				pGameRules->ChangeTeam(pPlayer, "zeus");
+			}
+			else
+			{
+				auto pTOSPlayer = static_cast<CTOSActor*>(pPlayer);
+				pGameRules->ChangeSpectatorMode(pTOSPlayer, 0, 0, true);
+			}
+		}
+
 		auto pSync = static_cast<CTOSZeusSynchronizer*>(pParent->GetSynchronizer());
-		pSync->GetGameObject()->InvokeRMI(CTOSZeusSynchronizer::SvRequestMakeZeus(), params, eRMI_ToServer);
+		pSync->GetGameObject()->InvokeRMI(
+			CTOSZeusSynchronizer::SvRequestMakeZeus(), 
+			params, 
+			eRMI_ToServer);
 	}
 
 	//// Сбрасываем статы

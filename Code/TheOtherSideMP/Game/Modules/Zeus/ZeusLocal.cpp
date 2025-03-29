@@ -141,7 +141,8 @@ EntityId CTOSZeusModule::Local::GetMouseEntityId() const
 	const unsigned int flags = rwi_stop_at_pierceable | rwi_colltype_any;
 	const float fRange = gEnv->p3DEngine->GetMaxViewDistance();
 
-	if (gEnv->pPhysicalWorld && gEnv->pPhysicalWorld->RayWorldIntersection(vCamPos, vDir * fRange, queryFlags, flags, &hit, 1, pPhys))
+	if (gEnv->pPhysicalWorld && gEnv->pPhysicalWorld->RayWorldIntersection(
+		vCamPos, vDir * fRange, queryFlags, flags, &hit, 1, pPhys))
 	{
 		if (gEnv->p3DEngine->RefineRayHit(&hit, vDir * fRange))
 		{
@@ -661,6 +662,16 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 
 			if (pActor)
 			{
+				auto pTable = pActor->GetEntity()->GetScriptTable();
+				SmartScriptTable props;
+
+				if (pTable && pTable->GetValue("Properties", props))
+				{
+					const char* equipName = 0;
+					props->GetValue("equip_EquipmentPack", equipName);
+					pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 2), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Equipment = %s", equipName);
+				}
+
 				pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 0), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Health = %i", pActor->GetHealth());
 				pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 1), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Stance = %i", int(pActor->GetStance()));
 			}

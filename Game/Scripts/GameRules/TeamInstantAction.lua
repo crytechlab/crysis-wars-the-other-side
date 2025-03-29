@@ -42,7 +42,7 @@ TeamInstantAction.SCORE_TEAMKILLS_KEY 		= InstantAction.SCORE_LAST_KEY+1;
 TeamInstantAction.SCORE_SELFKILLS_KEY 		= InstantAction.SCORE_LAST_KEY+2;
 
 ----------------------------------------------------------------------------------------------------
-TeamInstantAction.teamName={ "tan", "black", "aliens" };
+TeamInstantAction.teamName={ "tan", "black", "aliens", "zeus" };
 TeamInstantAction.teamModel=
 {
 	black =
@@ -66,6 +66,16 @@ TeamInstantAction.teamModel=
 	},
 
 	aliens =
+	{
+		{
+			"objects/characters/human/us/nanosuit/nanosuit_us_multiplayer.cdf",
+			"objects/weapons/arms_global/arms_nanosuit_us.chr",
+			"objects/characters/human/asian/nk_soldier/nk_soldier_frozen_scatter.cgf",
+			"objects/characters/human/us/nanosuit/nanosuit_us_fp3p.cdf",
+		},
+	},
+	
+	zeus =
 	{
 		{
 			"objects/characters/human/us/nanosuit/nanosuit_us_multiplayer.cdf",
