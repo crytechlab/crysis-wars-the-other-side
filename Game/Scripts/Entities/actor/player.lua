@@ -1447,6 +1447,15 @@ function Player:CurrentItemChanged(newItemId,lastItemId)
 	end
 end
 
+-- Crysis co-op
+function Player:CoopForceAI()
+	AI.RegisterWithAI(self.id, AIOBJECT_PLAYER, self.Properties, self.PropertiesInstance);
+end
+
+function Player:CoopRemoveAI()
+	AI.RegisterWithAI(self.id, 0, self.Properties, self.PropertiesInstance);
+end
+-- Crysis co-op
 
 CreateActor(Player);
 Player:Expose();

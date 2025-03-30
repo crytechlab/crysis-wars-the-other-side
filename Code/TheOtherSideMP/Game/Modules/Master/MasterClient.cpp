@@ -923,7 +923,7 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 			g_pGameActions->FilterMasterControlSlave()->Enable(true);
         }
 
-		m_pLocalDude->GetGameObject()->InvokeRMI(CTOSActor::SvRequestHideMe(), NetHideMeParams(true), eRMI_ToServer);
+		// m_pLocalDude->GetGameObject()->InvokeRMI(CTOSActor::SvRequestHideMe(), NetHideMeParams(true), eRMI_ToServer);
 
 		if (dudeFlags & TOS_DUDE_FLAG_BEAM_MODEL)
 		{
@@ -981,7 +981,7 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 		bool zeus = m_pLocalDude->IsZeus();
 		if (!zeus)
 		{
-			m_pLocalDude->GetGameObject()->InvokeRMI(CTOSActor::SvRequestHideMe(), NetHideMeParams(false), eRMI_ToServer);
+			//m_pLocalDude->GetGameObject()->InvokeRMI(CTOSActor::SvRequestHideMe(), NetHideMeParams(false), eRMI_ToServer);
 		}
 
 		if (dudeFlags & TOS_DUDE_FLAG_BEAM_MODEL)

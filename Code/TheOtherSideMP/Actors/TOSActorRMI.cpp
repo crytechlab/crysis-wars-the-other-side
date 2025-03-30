@@ -112,29 +112,21 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 //
 //	return true;
 //}
-
-IMPLEMENT_RMI(CTOSActor, SvRequestHideMe)
-{
-	// Описываем здесь всё, что будет выполняться на сервере
-
-	// 13.01.2024 Akeeper: Не уверен на счёт этих строк, но пусть они тут будут (519-521)
-	const auto* pFists = static_cast<CFists*>(GetItemByClass(CItem::sFistsClass));
-	if (pFists)
-		g_pGame->GetIGameFramework()->GetIItemSystem()->SetActorItem(this, pFists->GetEntityId());
-
-	GetGameObject()->SetAspectProfile(eEA_Physics, GetSpectatorMode() != 0 || params.hide ? eAP_Spectator : eAP_Alive);
-	GetGameObject()->InvokeRMI(ClMarkHideMe(), params, eRMI_ToAllClients);
-
-	return true;
-}
-
-IMPLEMENT_RMI(CTOSActor, ClMarkHideMe)
-{
-	// Описываем здесь всё, что будет выполняться на клиенте
-
-	HideMe(params.hide);
-	return true;
-}
+//
+//IMPLEMENT_RMI(CTOSActor, SvRequestHideMe)
+//{
+//	// Описываем здесь всё, что будет выполняться на сервере
+//
+//	// 13.01.2024 Akeeper: Не уверен на счёт этих строк, но пусть они тут будут (519-521)
+//	const auto* pFists = static_cast<CFists*>(GetItemByClass(CItem::sFistsClass));
+//	if (pFists)
+//		g_pGame->GetIGameFramework()->GetIItemSystem()->SetActorItem(this, pFists->GetEntityId());
+//
+//	GetGameObject()->SetAspectProfile(eEA_Physics, GetSpectatorMode() != 0 || params.hide ? eAP_Spectator : eAP_Alive);
+//	GetGameObject()->InvokeRMI(ClMarkHideMe(), params, eRMI_ToAllClients);
+//
+//	return true;
+//}
 
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSActor, ClTOSJump)

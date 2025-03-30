@@ -42,7 +42,8 @@ TeamInstantAction.SCORE_TEAMKILLS_KEY 		= InstantAction.SCORE_LAST_KEY+1;
 TeamInstantAction.SCORE_SELFKILLS_KEY 		= InstantAction.SCORE_LAST_KEY+2;
 
 ----------------------------------------------------------------------------------------------------
-TeamInstantAction.teamName={ "tan", "black", "aliens", "zeus" };
+ZEUS_TEAM_NAME = "zeus"
+TeamInstantAction.teamName={ "tan", "black", "aliens", ZEUS_TEAM_NAME };
 TeamInstantAction.teamModel=
 {
 	black =
@@ -161,16 +162,21 @@ function TeamInstantAction:AutoTeamBalanceCheck()
 		local tmax, tmin;
 		local pmax, pmin;
 		for i,teamId in pairs(self.teamId) do
-			local c=self.game:GetTeamPlayerCount(teamId);
-			if ((not pmax) or (c>pmax)) then
-				pmax=c;
-				tmax=teamId;
+
+			--TheOtherSide
+			if self.game:GetTeamName(teamId) ~= ZEUS_TEAM_NAME then
+				local c=self.game:GetTeamPlayerCount(teamId);
+				if ((not pmax) or (c>pmax)) then
+					pmax=c;
+					tmax=teamId;
+				end
+				
+				if ((not pmin) or (c<pmin)) then
+					pmin=c;
+					tmin=teamId;
+				end
 			end
-			
-			if ((not pmin) or (c<pmin)) then
-				pmin=c;
-				tmin=teamId;
-			end
+			--~TheOtherSide
 		end
 		
 		local diff=pmax-pmin;
@@ -220,16 +226,21 @@ function TeamInstantAction:UpdateAutoTeamBalance()
 		local pmax, pmin;
 		
 		for i,teamId in pairs(self.teamId) do
-			local c=self.game:GetTeamPlayerCount(teamId);
-			if ((not pmax) or (c>pmax)) then
-				pmax=c;
-				tmax=teamId;
+
+			--TheOtherSide
+			if self.game:GetTeamName(teamId) ~= ZEUS_TEAM_NAME then
+				local c=self.game:GetTeamPlayerCount(teamId);
+				if ((not pmax) or (c>pmax)) then
+					pmax=c;
+					tmax=teamId;
+				end
+				
+				if ((not pmin) or (c<pmin)) then
+					pmin=c;
+					tmin=teamId;
+				end
 			end
-			
-			if ((not pmin) or (c<pmin)) then
-				pmin=c;
-				tmin=teamId;
-			end
+			--~TheOtherSide
 		end
 		
 		if ((not pmax) or (not pmin) or (pmax-pmin<=1)) then
@@ -470,10 +481,15 @@ function TeamInstantAction:PlayerCountOk()
 	local preGame=self:GetState()=="PreGame";
 	
 	for i,teamName in ipairs(self.teamName) do
-		local teamId = self.game:GetTeamId(teamName);
-		if (self.game:GetTeamChannelCount(teamId, preGame) < self.game:GetMinTeamLimit()) then
-			return false;
-		end
+
+		--TheOtherSide
+		if teamName ~= ZEUS_TEAM_NAME then
+			local teamId = self.game:GetTeamId(teamName);
+			if (self.game:GetTeamChannelCount(teamId, preGame) < self.game:GetMinTeamLimit()) then
+				return false;
+			end
+	    end
+		--~TheOtherSide
 	end
 	
 	return true;
@@ -551,11 +567,16 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function TeamInstantAction.Server:OnChangeTeam(playerId, teamId)
+
+	--TheOtherSide
+	local isZeusTeam = self.game:GetTeamName(teamId) == ZEUS_TEAM_NAME;
+	--~TheOtherSide
+
 	if (teamId ~= self.game:GetTeam(playerId)) then
 		local player=System.GetEntity(playerId);
 		if (player) then
 		
-			if (player.last_team_change and teamId~=0) then
+			if (not isZeusTeam and player.last_team_change and teamId~=0) then
 				if (self:GetState()=="InGame") then
 					if (_time-player.last_team_change<self.TEAM_CHANGE_MIN_TIME) then
 						if ((not player.last_team_change_warning) or (_time-player.last_team_change_warning>=4)) then
@@ -578,6 +599,7 @@ function TeamInstantAction.Server:OnChangeTeam(playerId, teamId)
 		
 			if (player.actor:GetHealth()>0 and player.actor:GetSpectatorMode()==0) then
 				self:KillPlayer(player);
+				--TODO: Unmake ZEUS player
 			end
 
 			self.game:SetTeam(teamId, playerId);
@@ -635,19 +657,25 @@ end
 
 ----------------------------------------------------------------------------------------------------
 function TeamInstantAction:AutoAssignTeam(player, forceTeamId)
-	if (forcedTeamId and forcedTeamId~=0) then
-		self.game:SetTeam(forcedTeamId, player.id);
+	if (forceTeamId and forceTeamId~=0) then
+		self.game:SetTeam(forceTeamId, player.id);
 	else
-		teamId=self.teamId[1];
+		local teamId=self.teamId[1];
 		local teamIdCount=self.game:GetTeamChannelCount(teamId);
+
 		for i,v in pairs(self.teamId) do
-			if (teamId ~= v) then
-				local c1=self.game:GetTeamChannelCount(v);
-				if (c1<teamIdCount) then
-					teamId=v;
-					teamIdCount=c1;
+
+			--TheOtherSide
+			if self.game:GetTeamName(v) ~= ZEUS_TEAM_NAME then
+				if (teamId ~= v) then
+					local c1=self.game:GetTeamChannelCount(v);
+					if (c1<teamIdCount) then
+						teamId=v;
+						teamIdCount=c1;
+					end
 				end
 			end
+			--~TheOtherSide
 		end
 		
 		if (teamId and teamId~=0) then
@@ -1054,6 +1082,12 @@ end
 
 ----------------------------------------------------------------------------------------------------
 function TeamInstantAction:IsTeamLocked(teamId, playerId)
+	--TheOtherSide
+	if (self.game:GetTeamName(teamId) == ZEUS_TEAM_NAME) then
+		return false;
+	end
+	--~TheOtherSide
+
 	local lock=self.game:GetTeamLock();
 	if (lock<=0) then
 		return false;

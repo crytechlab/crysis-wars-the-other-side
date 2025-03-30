@@ -150,6 +150,12 @@ function BasicAI:RegisterAIasPlayer()
 	AI.RegisterWithAI(self.id, AIOBJECT_PLAYER, self.Properties, self.PropertiesInstance, self.AIMovementAbility,self.melee);
 end
 --TheOtherSide
+
+--Crysis co-op
+function BasicAI:UnregisterAI()
+	AI.RegisterWithAI(self.id, AIOBJECT_DUMMY, self.Properties, self.PropertiesInstance, self.AIMovementAbility,self.melee);
+end
+--~Crysis co-op
 -----------------------------------------------------------------------------------------------------
 function BasicAI:RegisterAI()
 

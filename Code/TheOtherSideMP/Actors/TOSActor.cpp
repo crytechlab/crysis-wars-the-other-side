@@ -29,11 +29,12 @@ Copyright (C), AlienKeeper, 2024.
 
 #include "TheOtherSideMP/Control/ControlSystem.h"
 #include <stdexcept>
+#include <TheOtherSideMP/Helpers/TOS_Entity.h>
 
 CTOSActor::CTOSActor()
 	:
 	//m_filteredDeltaMovement(ZERO),
-	m_isHidden(false),
+	m_isEntityHidden(false),
 	m_isSlave(false),
 	m_isMaster(false),
 	m_isZeus(false),
@@ -52,8 +53,8 @@ bool CTOSActor::Init(IGameObject* pGameObject)
 	if (!CActor::Init(pGameObject))
 		return false;
 
-	m_pEnergyConsumer = static_cast<CTOSEnergyConsumer*>(GetGameObject()->AcquireExtension("TOSEnergyConsumer"));
-	assert(m_pEnergyConsumer);
+	auto pExtension = GetGameObject()->AcquireExtension("TOSEnergyConsumer");
+	m_pEnergyConsumer = static_cast<CTOSEnergyConsumer*>(pExtension);
 	m_pEnergyConsumer->Reset();
 
 	m_debugName = GetEntity()->GetName();
@@ -74,12 +75,11 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 	pGameObject->SetAIActivation(eGOAIAM_Always);
 	//~Crysis Co-op
 
-
 	m_netBodyInfo.Reset();
 	m_slaveStats = STOSSlaveStats();
 
 	// Факт: если оружие выдаётся на сервере, оно выдаётся и на всех клиентах тоже.
-	ResetActorWeapons(1000);
+	//ResetActorWeapons(1000);
 
 	// 30.11.2023 Akeeper: Это я оставлю здесь на всякий случай.
 	// Но к сожалению это не позволяет включить PrePhysicsUpdate в одиночной игре 
@@ -102,9 +102,22 @@ void CTOSActor::InitClient(const int channelId)
 	//CryLogAlways("<C++>[%s][%s][CTOSActor::InitClient] Actor: %s|%i|ch:%i",
 	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId(), channelId);
 
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_InitClient, "", true, false, nullptr, 0.0f, channelId));
+	TOS_RECORD_EVENT(GetEntityId(), 
+		STOSGameEvent(eEGE_InitClient, "", true, false, nullptr, 0.0f, channelId));
 
 	CActor::InitClient(channelId);
+}
+
+void CTOSActor::PostInitClient(const int channelId)
+{
+	if (gEnv->bMultiplayer)
+	{
+		if (!IsPlayer())
+		{
+			GiveEquipmentPack();
+			TOS_Inventory::SelectPrimary(this);
+		}
+	}
 }
 
 void CTOSActor::ProcessEvent(SEntityEvent& event)
@@ -117,34 +130,12 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 
 	switch (event.event)
 	{
-	//case ENTITY_EVENT_XFORM:
-	//{
-	//	auto flag = event.nParam[0];
-
-	//	if (gEnv->bServer && IsPlayer() && (flag & ENTITY_XFORM_POS))
-	//	{
-	//		auto pSlaveEntity = g_pTOSGame->GetMasterModule()->GetCurrentSlave(GetEntity());
-	//		if (pSlaveEntity)
-	//		{
-	//			const Vec3 slavePos = pSlaveEntity->GetWorldPos();
-	//			const Quat slaveRot = pSlaveEntity->GetWorldRotation();
-
-	//			if ((this->GetEntity()->GetWorldPos() - slavePos).len() > 1.0f)
-	//			{
-	//				this->GetEntity()->SetWorldTM(Matrix34::CreateTranslationMat(slavePos), 0);
-	//			}
-	//		}
-	//	}
-	//	
-	//	break;
-	//}
-
 	case ENTITY_EVENT_HIDE:
 	{
 		if (gEnv->bServer)
 		{
 			GetInventory()->Clear();
-			m_isHidden = true;
+			m_isEntityHidden = true;
 			GetGameObject()->ChangedNetworkState(ASPECT_COOP_HIDE);
 		}
 
@@ -154,8 +145,19 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 	{
 		if (gEnv->bServer)
 		{
-			GetEntity()->SetTimer(eMPTIMER_REMOVEWEAPONSDELAY, 1000);
-			m_isHidden = false;
+			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
+			m_isEntityHidden = false;
+			GetGameObject()->ChangedNetworkState(ASPECT_COOP_HIDE);
+		}
+
+		break;
+	}
+	case ENTITY_EVENT_START_LEVEL:
+	{
+		if (gEnv->bServer)
+		{
+			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
+			m_isEntityHidden = false;
 			GetGameObject()->ChangedNetworkState(ASPECT_COOP_HIDE);
 		}
 
@@ -172,12 +174,9 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 				pInventory->HolsterItem(true);
 				pInventory->RemoveAllItems();
 				pInventory->Clear();
-
-				if (gEnv->bServer && gEnv->bMultiplayer && !IsPlayer())
-				{
-					GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
-				}
 			}
+
+			// ResetActorWeapons(1000);
 		}
 		else if (event.nParam[0] == eMPTIMER_GIVEWEAPONDELAY)
 		{
@@ -204,17 +203,6 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 			//{
 			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HumanGruntMPEquipPack")->GetString();
 			//}
-
-			IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
-			SmartScriptTable props;
-			if (pScriptTable->GetValue("Properties", props))
-			{
-				char* equip;
-				if (props->GetValue("equip_EquipmentPack", equip))
-				{
-					TOS_Inventory::GiveEquipmentPack(this, string(equip), false);
-				}
-			}
 		}
 	}
 	default: 
@@ -246,12 +234,12 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 
 	if (aspect == ASPECT_COOP_HIDE)
 	{
-		ser.Value("bHide", m_isHidden, 'bool');
+		ser.Value("bHide", m_isEntityHidden, 'bool');
 
 		if (ser.IsReading())
 		{
-			GetEntity()->Hide(m_isHidden);
-			HideMe(m_isHidden);
+			GetEntity()->Hide(m_isEntityHidden);
+			HideMe(m_isEntityHidden);
 		}
 			
 	}
@@ -313,28 +301,32 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 {
 	CActor::Update(ctx, updateSlot);
 
-	//Crysis Co-op
-	// Register AI System in MP
-	if (gEnv->bServer && !gEnv->bEditor)
-		RegisterMultiplayerAI();
-	
-	//~Crysis Co-op
+	bool ghostMode = m_isZeus || m_isMaster;
+	if (ghostMode)
+	{
+		HideMe(true);
+		if (GetGameObject()->GetAspectProfile(eEA_Physics) != eAP_Spectator)
+			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
+	}
 
 	//Отладка потребителя энергии в виде вывода инф. на экран
 	if (gEnv->bClient && IsClient())
 	{
-		const auto pDebugEntity = gEnv->pEntitySystem->FindEntityByName(CTOSEnergyConsumer::s_debugEntityName);
+		const char* debugName = CTOSEnergyConsumer::s_debugEntityName;
+		const auto pDebugEntity = gEnv->pEntitySystem->FindEntityByName(debugName);
 		if (pDebugEntity)
 		{
-			const auto pDebugActor = static_cast<CTOSActor*>(g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pDebugEntity->GetId()));
+			const auto pDebugActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pDebugEntity->GetId()));
 			if (pDebugActor)
 			{
-				const float energy    = pDebugActor->m_pEnergyConsumer->GetEnergy();
-				const float maxEnergy = pDebugActor->m_pEnergyConsumer->GetMaxEnergy();
-				const float drain     = pDebugActor->m_pEnergyConsumer->GetDrainValue();
-				const bool  updating  = pDebugActor->m_pEnergyConsumer->IsUpdating();
+				const auto pEnergyConsumer = pDebugActor->GetEnergyConsumer();
+				const float energy    = pEnergyConsumer->GetEnergy();
+				const float maxEnergy = pEnergyConsumer->GetMaxEnergy();
+				const float drain	  = pEnergyConsumer->GetDrainValue();
+				const bool  updating  = pEnergyConsumer->IsUpdating();
 
-				DRAW_2D_TEXT(40, 200, 1.3f, "--- Energy Consumer (%s) ---", pDebugEntity->GetName());
+				DRAW_2D_TEXT(40, 200, 1.3f, "--- Energy Consumer (%s) ---", 
+					pDebugEntity->GetName());
 				DRAW_2D_TEXT(40, 215, 1.3f, "Updating:   %i", updating);
 				DRAW_2D_TEXT(40, 230, 1.3f, "Energy:     %1.f", energy);
 				DRAW_2D_TEXT(40, 245, 1.3f, "MaxEnergy:  %1.f", maxEnergy);
@@ -342,18 +334,6 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 			}
 		}
 	}
-
-	//int clTeamId = -1;
-	//int svTeamId = -1;
-
-	//if (gEnv->bClient)
-	//{
-	//	clTeamId = g_pGame->GetGameRules()->GetTeam(GetEntityId());
-	//}
-	//if (gEnv->bServer)
-	//{
-	//	svTeamId = g_pGame->GetGameRules()->GetTeam(GetEntityId());
-	//}
 
 	NETINPUT_TRACE(GetEntityId(), m_isMaster);
 	NETINPUT_TRACE(GetEntityId(), m_isSlave);
@@ -380,7 +360,7 @@ void CTOSActor::Revive(const bool fromInit)
 
 		if (gEnv->bClient)
 		{
-			GetGameObject()->InvokeRMI(SvRequestHideMe(), NetHideMeParams(true), eRMI_ToServer);
+			// GetGameObject()->InvokeRMI(SvRequestHideMe(), NetHideMeParams(true), eRMI_ToServer);
 		}
 		else if (gEnv->bServer)
 		{
@@ -388,7 +368,7 @@ void CTOSActor::Revive(const bool fromInit)
 			if (pFists)
 				g_pGame->GetIGameFramework()->GetIItemSystem()->SetActorItem(this, pFists->GetEntityId());
 
-			GetGameObject()->InvokeRMI(ClMarkHideMe(), NetHideMeParams(true), eRMI_ToAllClients);
+			// GetGameObject()->InvokeRMI(ClMarkHideMe(), NetHideMeParams(true), eRMI_ToAllClients);
 		}
 
 		if (IsClient())
@@ -624,16 +604,16 @@ void CTOSActor::NetSimpleKill()
 	Kill();
 }
 
-bool CTOSActor::ResetActorWeapons(int delayMilliseconds)
-{
-	if (gEnv->bServer && gEnv->bMultiplayer && !IsPlayer())
-	{
-		GetEntity()->SetTimer(eMPTIMER_REMOVEWEAPONSDELAY, 1000);
-		return true;
-	}
-
-	return false;
-}
+//bool CTOSActor::ResetActorWeapons(int delayMilliseconds)
+//{
+//	if (gEnv->bServer && gEnv->bMultiplayer && !IsPlayer())
+//	{
+//		GetEntity()->SetTimer(eMPTIMER_REMOVEWEAPONSDELAY, delayMilliseconds);
+//		return true;
+//	}
+//
+//	return false;
+//}
 
 bool CTOSActor::ShouldUsePhysicsMovement()
 {
@@ -761,31 +741,18 @@ bool CTOSActor::UpdateLastShooterId(const EntityId id)
 	return true;
 }
 
-void CTOSActor::RegisterMultiplayerAI()
+void CTOSActor::GiveEquipmentPack()
 {
-	if (GetHealth() <= 0 && GetEntity()->GetAI())
+	IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
+	SmartScriptTable props;
+	if (pScriptTable->GetValue("Properties", props))
 	{
-		gEnv->bMultiplayer = false;
-
-		IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
-		gEnv->pScriptSystem->BeginCall(pScriptTable, "UnregisterAI");
-		gEnv->pScriptSystem->PushFuncParam(pScriptTable);
-		gEnv->pScriptSystem->EndCall(pScriptTable);
-		CryLogAlways("AI Unregistered for Actor %s", GetEntity()->GetName());
-
-		gEnv->bMultiplayer = true;
-	}
-	else if (!GetEntity()->GetAI() && GetHealth() > 0)
-	{
-		gEnv->bMultiplayer = false;
-
-		IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
-		gEnv->pScriptSystem->BeginCall(pScriptTable, "RegisterAI");
-		gEnv->pScriptSystem->PushFuncParam(pScriptTable);
-		gEnv->pScriptSystem->EndCall(pScriptTable);
-		CryLogAlways("AI Registered for Actor %s", GetEntity()->GetName());
-
-		gEnv->bMultiplayer = true;
+		char* equip;
+		if (props->GetValue("equip_EquipmentPack", equip))
+		{
+			TOS_Inventory::GiveEquipmentPack(this, string(equip), false);
+			CryLogAlways("[%s] acquired equipment pack %s", GetEntity()->GetName(), equip);
+		}
 	}
 }
 
@@ -825,6 +792,7 @@ bool CTOSActor::SetMeMaster(bool value)
 bool CTOSActor::SetMeZeus(bool value)
 {
 	m_isZeus = value;
+	GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
 	return true;
 }
 
@@ -926,23 +894,30 @@ void CTOSActor::QueueAnimationEvent(SQueuedAnimEvent sEvent)
 	if (!gEnv->bServer || gEnv->bEditor)
 		return;
 
-	if (CCoopSystem::GetInstance()->GetDebugLog() > 1)
-		CryLogAlways("[CTOSActor::QueueAnimationEvent] Animation Event Queued %s", sEvent.sAnimEventName);
+	CryLog("[CTOSActor::QueueAnimationEvent] Animation Event Queued %s", sEvent.sAnimEventName);
 
 	m_AnimEventQueue.push_back(sEvent);
 }
 
 bool CTOSActor::SetAnimationInput(const char* inputID, const char* value)
 {
-	if (CCoopSystem::GetInstance()->GetDebugLog() > 1)
-		CryLogAlways("[%s] Animation input %s received with animation %s.", GetEntity()->GetName(), inputID, value);
+	if (!gEnv->bServer)
+		return false;
+
+	CryLog("[%s] Animation input %s received with animation %s.", GetEntity()->GetName(), inputID, value);
 
 	bool	bSignal = strcmp(inputID, "Signal") == 0;
 	bool	bAction = strcmp(inputID, "Action") == 0;
 
 	if (strcmp(value, m_sLastNetworkedAnim) != 0)
 	{
-		this->GetGameObject()->InvokeRMI(ClPlayNetworkedAnimation(), SPlayNetworkedAnimationParams(bSignal ? EAnimationMode::AIANIM_SIGNAL : EAnimationMode::AIANIM_ACTION, value), eRMI_ToRemoteClients);
+		this->GetGameObject()->InvokeRMI(ClPlayNetworkedAnimation(), 
+			SPlayNetworkedAnimationParams(
+				bSignal ? 
+				EAnimationMode::AIANIM_SIGNAL : 
+				EAnimationMode::AIANIM_ACTION, 
+				value), 
+			eRMI_ToRemoteClients);
 		m_sLastNetworkedAnim = value;
 	}
 

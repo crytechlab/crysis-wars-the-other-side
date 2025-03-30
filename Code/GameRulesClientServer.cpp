@@ -868,7 +868,10 @@ IMPLEMENT_RMI(CGameRules, SvRequestSpectatorMode)
 	if (!pActor)
 		return true;
 
-	ChangeSpectatorMode(pActor, params.mode, params.targetId, params.resetAll);
+	ChangeSpectatorMode(pActor, 
+		params.mode, 
+		params.targetId, 
+		params.resetAll);
 
 	return true;
 }

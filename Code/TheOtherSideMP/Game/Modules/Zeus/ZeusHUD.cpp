@@ -116,7 +116,10 @@ void CTOSZeusModule::HandleFSCommand(const char* pCommand, const char* pArgs)
 		netParams.spawnedName = string("zeus_") + sArgs;
 		netParams.pos = spawnPos;
 		netParams.playerChannelId = GetPlayer()->GetChannelId();
-		pSync->GetGameObject()->InvokeRMI(CTOSZeusSynchronizer::SvRequestSpawnEntity(), netParams, eRMI_ToServer);
+		pSync->GetGameObject()->InvokeRMI(
+			CTOSZeusSynchronizer::SvRequestSpawnEntity(), 
+			netParams, 
+			eRMI_ToServer);
 
 		//STOSEntitySpawnParams params;
 		//params.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)

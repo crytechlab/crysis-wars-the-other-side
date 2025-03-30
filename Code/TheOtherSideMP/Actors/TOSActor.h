@@ -244,6 +244,7 @@ public:
 	bool Init(IGameObject* pGameObject) ;
 	void PostInit( IGameObject * pGameObject ) ;
 	void InitClient(int channelId ) ;
+	void PostInitClient(const int channelId);
 	void ProcessEvent(SEntityEvent& event) ;
 	bool NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profile, int flags) ;
 	void SelectNextItem(int direction, bool keepHistory, const char* category) ;
@@ -269,7 +270,7 @@ public:
 	void ApplyMasterMovement(const Vec3& delta)  {};
 	//~ITOSMasterControllable
 
-	bool ResetActorWeapons(int delayMilliseconds);
+	// bool ResetActorWeapons(int delayMilliseconds);
 
 	virtual Matrix33 GetViewMtx() { return Matrix33(); };
 	virtual Matrix33 GetBaseMtx() { return Matrix33(); };
@@ -291,6 +292,7 @@ public:
 
 	bool UpdateLastMPSpawnPointRotation(const Quat& rotation);
 	bool UpdateLastShooterId(const EntityId id);
+	void GiveEquipmentPack();
 
 	// Crysis Co-op
 
@@ -299,7 +301,6 @@ public:
 	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID);
 	IAnimationGraphState* GetAnimationGraphState();
 
-	void RegisterMultiplayerAI();
 	struct PlayReadabilitySoundParams
 	{
 	public:
@@ -480,28 +481,16 @@ private:
 
 	Quat m_lastSpawnPointRotation;
 	EntityId m_lastShooterId;
-	bool m_isHidden;
+	bool m_isEntityHidden;
 	bool m_isZeus;
 	bool m_isSlave; // сериализованное по сети значение, является ли актёр рабом
 	bool m_isMaster; // сериализованное по сети значение, является ли актёр мастером
 
-	// Зафиксировать на всех клиентах и сервере, что данный актёр стал рабом. Вызывать только с клиента!
-	//void NetMarkMeSlave(bool slave) const;
-
-	// Зафиксировать на всех клиентах и сервере, что данный актёр стал master. Вызывать только с клиента!
-	//void NetMarkMeMaster(bool master) const;
-
 	DECLARE_SERVER_RMI_NOATTACH(SvRequestPlayAnimation, NetPlayAnimationParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_NOATTACH(ClPlayAnimation, NetPlayAnimationParams, eNRT_ReliableOrdered);
 
-	//DECLARE_SERVER_RMI_NOATTACH(SvRequestMarkMeAsSlave, NetMarkMeParams, eNRT_ReliableOrdered);
-	//DECLARE_CLIENT_RMI_NOATTACH(ClMarkMeAsSlave, NetMarkMeParams, eNRT_ReliableOrdered);	
-	//
-	//DECLARE_SERVER_RMI_NOATTACH(SvRequestMarkMeAsMaster, NetMarkMeParams, eNRT_ReliableOrdered);
-	//DECLARE_CLIENT_RMI_NOATTACH(ClMarkMeAsMaster, NetMarkMeParams, eNRT_ReliableOrdered);
-
-	DECLARE_SERVER_RMI_NOATTACH(SvRequestHideMe, NetHideMeParams, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_NOATTACH(ClMarkHideMe, NetHideMeParams, eNRT_ReliableOrdered);
+	//DECLARE_SERVER_RMI_PREATTACH(SvRequestHideMe, NetHideMeParams, eNRT_ReliableOrdered);
+	//DECLARE_CLIENT_RMI_PREATTACH(ClMarkHideMe, NetHideMeParams, eNRT_ReliableOrdered);
 
 	DECLARE_CLIENT_RMI_NOATTACH_FAST(ClTOSJump, NoParams, eNRT_ReliableUnordered);
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestTOSJump, NoParams, eNRT_ReliableUnordered);
@@ -509,7 +498,7 @@ private:
 	DECLARE_CLIENT_RMI_POSTATTACH(ClAttachChild, NetAttachChild, eNRT_ReliableUnordered);
 	DECLARE_SERVER_RMI_POSTATTACH(SvRequestAttachChild, NetAttachChild, eNRT_ReliableUnordered);
 
-	DECLARE_CLIENT_RMI_PREATTACH(ClClearInventory, NoParams, eNRT_ReliableUnordered);
+	DECLARE_CLIENT_RMI_PREATTACH(ClClearInventory, NoParams, eNRT_ReliableOrdered);
 
 protected:
 	bool m_chargingJump;///< Если *true, то высота прыжка зависит от длительности нажатия на дейсвие прыжка [jump]

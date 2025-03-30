@@ -577,11 +577,13 @@ function InstantAction.Server:OnChangeSpectatorMode(playerId, mode, targetId, re
 			end
 		end			
 	elseif (not norevive) then
+		--TheOtherSide
+
 		if (self:CanRevive(playerId)) then	
 			player.actor:SetSpectatorMode(0, NULL_ENTITY);
-
 			self:RevivePlayer(player.actor:GetChannel(), player);
 		end
+		--~TheOtherSide
 	end
 	
 	if (resetAll) then

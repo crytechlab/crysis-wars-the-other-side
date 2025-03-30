@@ -1134,15 +1134,17 @@ void CHUDRadar::UpdateCompassStealth(CActor* pActor, float fDeltaTime)
 	float fStealthValueStatic = 0;
 
 	//TheOtherSide
-
 	// allowedTeamId - Команда игроков, у которой работает стелс бар в мультиплеере
 	// all - у всех команд игроков работает стелс бар в мультиплеере
 	const string allowedTeamName = TOS_Console::GetSafeStringVar("tos_sv_EnableMPStealthOMeterForTeam");
-
 	const int playerTeamId = g_pGame->GetGameRules()->GetTeam(pActor->GetEntityId());
 	const int allowedTeamId = g_pGame->GetGameRules()->GetTeamId(allowedTeamName.c_str());
 	const bool enableStealthOMeter = playerTeamId == allowedTeamId || allowedTeamName == "all";
 	//~TheOtherSide
+
+	//Crysis Co-op
+	CTOSPlayer* pPlayer = static_cast<CTOSPlayer*>(pActor);
+	//~Crysis Co-op
 
 	if (!gEnv->bMultiplayer)
 	{
@@ -1168,6 +1170,13 @@ void CHUDRadar::UpdateCompassStealth(CActor* pActor, float fDeltaTime)
 		fStealthValueStatic = fStealthValue = m_iMultiplayerEnemyNear * 10.0f;
 		m_iMultiplayerEnemyNear = 0;
 	}
+	//Crysis Co-op
+	else
+	{
+		fStealthValue = pPlayer->GetDetectionValue() * 100.0f;
+		fStealthValueStatic = pPlayer->GetDetectionValue() * 100.0f;
+	}
+	//~Crysis Co-op
 
 	if (m_fLastStealthValue != fStealthValue)
 	{

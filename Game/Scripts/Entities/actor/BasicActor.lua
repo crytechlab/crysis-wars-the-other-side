@@ -909,8 +909,8 @@ function BasicActor:ResetCommon()
 
 	--set health
 	local health = self.Properties.Damage.health;
-
-	if (self.actor:IsPlayer()) then
+	--Crysis co-op add is mp
+	if (g_gameRules and not g_gameRules:IsMultiplayer() and self.actor:IsPlayer()) then
 		health = System.GetCVar("g_playerHealthValue");
 	end
 	self.actor:SetMaxHealth(health);
@@ -1412,7 +1412,6 @@ end
 function BasicActor:PlayEvent(eventStr)
 	
 	local events = self.scripted_events;
-	
 	if (not events) then
 		return 0;
 	end
@@ -1468,7 +1467,7 @@ function BasicActor:HealthChanged()
 end
 
 function BasicActor.Server:OnDeadHit(hit)
-	Log("BasicActor.Server:OnDeadHit()");
+	--Log("BasicActor.Server:OnDeadHit()");
 	local frameID = System.GetFrameID();
 	if ((frameID - self.lastDeathImpulse) > 10) then
 		--marcok: talk to me before touching this
@@ -1791,7 +1790,7 @@ function BasicActor:ApplyDeathImpulse()
 		--self:SetTimer(DEATH_REIMPULSE_TIMER,math.random(300,900));
 	end
 	
-	Log(self:GetName()..":DeathImpulse("..partId..","..Vec2Str(dir)..","..impulse..")");	
+	--Log(self:GetName()..":DeathImpulse("..partId..","..Vec2Str(dir)..","..impulse..")");	
 end
 
 function BasicActor:TurnRagdoll(param)
@@ -1905,7 +1904,9 @@ function BasicActor:Kill(ragdoll, shooterId, weaponId, freeze)
 	end
 
 	-- when a driver ai is dead, something will happen to his vehicle depending on the situation.
-	if ( g_gameRules:IsMultiplayer() == false ) then
+	
+	--Crysis co-op comment if
+	--if ( g_gameRules:IsMultiplayer() == false ) then
 		if ( self.actor and not self.actor:IsPlayer() ) then
 			local vd = self.actor:GetLinkedVehicleId();
 			if ( vd ) then
@@ -1917,7 +1918,7 @@ function BasicActor:Kill(ragdoll, shooterId, weaponId, freeze)
 				end
 			end
 		end
-	end
+	--end
 
 	-- Notify CLeader about this
 	AI.Signal(SIGNALFILTER_LEADER, 10, "OnUnitDied", self.id);

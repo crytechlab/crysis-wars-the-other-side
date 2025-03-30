@@ -729,7 +729,7 @@ bool CTOSMasterModule::ReviveSlave(const IEntity* pSlaveEntity, const Vec3& revi
 		//pInventory->Destroy();
 		//pInventory->Clear();
 
-		pSlaveActor->ResetActorWeapons(1000);
+		// pSlaveActor->ResetActorWeapons(1000);
 	}
 
 	pSlaveActor->NetReviveAt(revivePos, Quat(angles), teamId);

@@ -175,7 +175,9 @@ bool CTOSZeusModule::OnInputEvent(const SInputEvent& event)
 			{
 				if (m_local.m_altModifier)
 				{
-					for (auto it = m_local.m_selectedEntities.cbegin(); it != m_local.m_selectedEntities.cend(); it++)
+					for (auto it = m_local.m_selectedEntities.cbegin(); 
+						it != m_local.m_selectedEntities.cend(); 
+						it++)
 					{
 						const bool movedOnHeight = m_local.m_draggingDelta.len() > 1;
 
@@ -204,7 +206,9 @@ bool CTOSZeusModule::OnInputEvent(const SInputEvent& event)
 				{
 					m_local.m_debugZModifier = false;
 
-					for (auto it = m_local.m_selectedEntities.cbegin(); it != m_local.m_selectedEntities.cend(); it++)
+					for (auto it = m_local.m_selectedEntities.cbegin(); 
+						it != m_local.m_selectedEntities.cend(); 
+						it++)
 					{
 						if (!m_local.SelectionFilter(*it))
 							it = m_local.DeselectEntity(*it);
@@ -286,13 +290,19 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 	m_local.m_mouseIPos.x = iX;
 	m_local.m_mouseIPos.y = iY;
 
-	auto mod_iY = gEnv->pRenderer->GetHeight() - iY;
-	gEnv->pRenderer->UnProjectFromScreen(iX, mod_iY, 0.0f, &m_local.m_worldMousePos.x, &m_local.m_worldMousePos.y, &m_local.m_worldMousePos.z);
+	int mod_iY = gEnv->pRenderer->GetHeight() - iY;
+	gEnv->pRenderer->UnProjectFromScreen(
+		iX, 
+		mod_iY, 
+		0.0f, 
+		&m_local.m_worldMousePos.x, 
+		&m_local.m_worldMousePos.y, 
+		&m_local.m_worldMousePos.z);
 
 	auto pHUD = g_pGame->GetHUD();
 	if (pHUD)
 	{
-		SFlashCursorEvent::ECursorState eCursorState = SFlashCursorEvent::eCursorMoved;
+		auto eCursorState = SFlashCursorEvent::eCursorMoved;
 		if (HARDWAREMOUSEEVENT_LBUTTONDOWN == eHardwareMouseEvent)
 		{
 			eCursorState = SFlashCursorEvent::eCursorPressed;
@@ -347,7 +357,9 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 					// Множественное выделение c зажатым модификатором
 					if (m_local.m_ctrlModifier)
 					{
-						if (!m_local.m_dragging && !m_local.m_doubleClick && m_local.m_curClickedEntityId != 0)
+						if (!m_local.m_dragging && 
+							!m_local.m_doubleClick && 
+							m_local.m_curClickedEntityId != 0)
 						{
 							if (m_local.m_selectedEntities.count(m_local.m_curClickedEntityId) > 0)
 							{
@@ -381,16 +393,22 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 						if (!pClientActor)
 							return;
 
-						const auto clickedIter = stl::binary_find(m_local.m_doubleClickLastSelectedEntities.cbegin(), m_local.m_doubleClickLastSelectedEntities.cend(), m_local.m_curClickedEntityId);
+						const auto clickedIter = stl::binary_find(
+							m_local.m_doubleClickLastSelectedEntities.cbegin(), 
+							m_local.m_doubleClickLastSelectedEntities.cend(), 
+							m_local.m_curClickedEntityId);
+
 						const bool clickedSelected = clickedIter != m_local.m_doubleClickLastSelectedEntities.cend();
 						if (clickedSelected)
 						{
 							// Снимаем выделение последних выделенных подобных сущностей
-							for (auto it = m_local.m_doubleClickLastSelectedEntities.begin(); it != m_local.m_doubleClickLastSelectedEntities.end();)
+							for (auto it = m_local.m_doubleClickLastSelectedEntities.begin(); 
+								it != m_local.m_doubleClickLastSelectedEntities.end();)
 							{
 								auto pEntity = TOS_GET_ENTITY(*it);
 
-								if (EntityIsSimilarToEntity(pEntity, pClickedEntity) || pEntity == pClickedEntity)
+								if (EntityIsSimilarToEntity(pEntity, pClickedEntity) || 
+									pEntity == pClickedEntity)
 								{
 									m_local.DeselectEntity(*it);
 									it = m_local.m_doubleClickLastSelectedEntities.erase(it);
@@ -451,7 +469,9 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 				// Показываем все скопированные сущности
 				if (m_local.m_copying)
 				{
-					for (auto it = m_local.m_selectedEntities.cbegin(); it != m_local.m_selectedEntities.cend(); it++)
+					for (auto it = m_local.m_selectedEntities.cbegin();
+						it != m_local.m_selectedEntities.cend(); 
+						it++)
 					{
 						auto pEntity = TOS_GET_ENTITY(*it);
 						if (pEntity)
@@ -465,8 +485,14 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							makeHostileParams.bHostile = true;
 							makeHostileParams.id = pEntity->GetId();
 
-							GetSynchronizer()->RMISend(CTOSZeusSynchronizer::SvRequestHideEntity(), hideParams, eRMI_ToServer);
-							GetSynchronizer()->RMISend(CTOSZeusSynchronizer::SvRequestAIMakeHostile(), makeHostileParams, eRMI_ToServer);
+							GetSynchronizer()->RMISend(
+								CTOSZeusSynchronizer::SvRequestHideEntity(), 
+								hideParams, 
+								eRMI_ToServer);
+							GetSynchronizer()->RMISend(
+								CTOSZeusSynchronizer::SvRequestAIMakeHostile(),
+								makeHostileParams, 
+								eRMI_ToServer);
 						}
 					}
 				}
@@ -474,7 +500,8 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 
 				if (m_local.m_dragging)
 				{
-					for (auto it = m_local.m_selectedEntities.begin(); it != m_local.m_selectedEntities.end();)
+					for (auto it = m_local.m_selectedEntities.begin(); 
+						it != m_local.m_selectedEntities.end();)
 					{
 						const EntityId selectedEntId = *it;
 						// Сущность, которую перенаскивают
@@ -501,7 +528,8 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							{
 								// Actor перетаскивают на Vehicle
 								IVehicle* pDragVehicle = TOS_GET_VEHICLE(dragTargetId);
-								if (pDragVehicle && TOS_Vehicle::Enter(pSelectedActor, pDragVehicle, true))
+								if (pDragVehicle && 
+									TOS_Vehicle::Enter(pSelectedActor, pDragVehicle, true))
 								{
 									moveSelectedEnt = false;
 									needDeselect = true;
@@ -515,7 +543,9 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 								{
 									if (pDragActor->PickUpItem(pSelectedItem->GetEntityId(), true))
 									{
-										TOS_Inventory::SelectItemByClass(pDragActor, pSelectedItem->GetEntity()->GetClass()->GetName());
+										TOS_Inventory::SelectItemByClass(pDragActor,
+											pSelectedItem->GetEntity()->GetClass()->GetName());
+
 										moveSelectedEnt = false;
 										needDeselect = true;
 									}
@@ -545,7 +575,10 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							params.dir = pBox->obb.m33.GetColumn1();
 							params.id = pSelectedEntity->GetId();
 
-							GetSynchronizer()->RMISend(CTOSZeusSynchronizer::SvRequestTransformEntity(), params, eRMI_ToServer);
+							GetSynchronizer()->RMISend(
+								CTOSZeusSynchronizer::SvRequestTransformEntity(), 
+								params, 
+								eRMI_ToServer);
 						}
 
 						if (needDeselect)
@@ -573,7 +606,11 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							CTOSZeusSynchronizer::NetHideParams params;
 							params.bHide = false;
 							params.id = pEntity->GetId();
-							GetSynchronizer()->RMISend(CTOSZeusSynchronizer::SvRequestHideEntity(), params, eRMI_ToServer);
+
+							GetSynchronizer()->RMISend(
+								CTOSZeusSynchronizer::SvRequestHideEntity(), 
+								params, 
+								eRMI_ToServer);
 						}
 						else
 						{
@@ -586,13 +623,20 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 			else if (eHardwareMouseEvent == HARDWAREMOUSEEVENT_MOVE)
 			{
 				// При перетаскивании кликнутая сущность должна быть выделена
-				const auto clickedIter = stl::binary_find(m_local.m_selectedEntities.begin(), m_local.m_selectedEntities.end(), m_local.m_curClickedEntityId);
+				const auto clickedIter = stl::binary_find(
+					m_local.m_selectedEntities.begin(), 
+					m_local.m_selectedEntities.end(), 
+					m_local.m_curClickedEntityId);
+
 				const bool clickedSelected = clickedIter != m_local.m_selectedEntities.end();
 
 				// Мышь находится в диапазоне иконки кликнутой сущности. True - да
 				const bool clickedOveredByMouse = m_local.m_mouseOveredEntityId == m_local.m_curClickedEntityId;
 
-				if ((m_local.m_select) && m_local.m_curClickedEntityId != 0 && clickedSelected && clickedOveredByMouse)
+				if ((m_local.m_select) && 
+					m_local.m_curClickedEntityId != 0 && 
+					clickedSelected && 
+					clickedOveredByMouse)
 				{
 					// Перед тем как начать перемещение сущностей...
 					if (m_local.m_dragging == false)

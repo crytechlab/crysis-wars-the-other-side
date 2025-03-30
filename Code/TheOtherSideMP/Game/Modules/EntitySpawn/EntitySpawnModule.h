@@ -133,23 +133,6 @@ class CTOSEntitySpawnModule :
 	public CTOSGenericModule
 {
 public:
-	struct SFrameTimer : STOSSmartStruct
-	{
-		SFrameTimer() :
-			creationFrameId(0),
-			targetFrameId(0)
-		{};
-
-		SFrameTimer(int framesDelta = 0)
-		{
-			creationFrameId = gEnv->pRenderer->GetFrameID();
-			targetFrameId = creationFrameId + framesDelta;
-		};
-
-		int creationFrameId;
-		int targetFrameId;
-	};
-
 	CTOSEntitySpawnModule();
 	~CTOSEntitySpawnModule();
 
@@ -170,6 +153,23 @@ public:
 	//~ITOSGameModule
 
 	void Reset();
+
+	struct SFrameTimer : STOSSmartStruct
+	{
+		SFrameTimer() :
+			creationFrameId(0),
+			targetFrameId(0)
+		{};
+
+		SFrameTimer(int framesDelta = 0)
+		{
+			creationFrameId = gEnv->pRenderer->GetFrameID();
+			targetFrameId = creationFrameId + framesDelta;
+		};
+
+		int creationFrameId;
+		int targetFrameId;
+	};
 
 	//Console command's functions
 	static void CmdSpawnEntity(IConsoleCmdArgs* pArgs);

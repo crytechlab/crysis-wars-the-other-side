@@ -219,7 +219,9 @@ void CGameRules::PostInit(IGameObject* pGameObject)
 }
 
 //------------------------------------------------------------------------
-void CGameRules::InitClient(int channelId) {}
+void CGameRules::InitClient(int channelId) 
+{
+}
 
 //------------------------------------------------------------------------
 void CGameRules::PostInitClient(const int channelId)
@@ -227,7 +229,6 @@ void CGameRules::PostInitClient(const int channelId)
 	//TheOtherSide
 	char buffer[256] = {};
 	sprintf(buffer, "ChannelId = %i", channelId);
-
 	TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_GamerulesPostInitClient, buffer, false));
 	//~TheOtherSide
 

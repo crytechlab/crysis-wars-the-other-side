@@ -219,6 +219,6 @@ public:
 	DECLARE_SERVER_RMI_POSTATTACH(SvRequestSpawnEntity, NetSpawnParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_POSTATTACH(ClSpawnEntity, NetSpawnedInfo, eNRT_ReliableOrdered);
 
-	DECLARE_SERVER_RMI_PREATTACH_FAST(SvRequestMakeZeus, NetMakeParams, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_PREATTACH_FAST(ClMakeZeus, NetMakeParams, eNRT_ReliableOrdered);
+	DECLARE_SERVER_RMI_PREATTACH(SvRequestMakeZeus, NetMakeParams, eNRT_ReliableOrdered);
+	DECLARE_CLIENT_RMI_PREATTACH(ClMakeZeus, NetMakeParams, eNRT_ReliableOrdered);
 };

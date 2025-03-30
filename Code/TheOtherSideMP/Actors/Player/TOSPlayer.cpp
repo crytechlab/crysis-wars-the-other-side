@@ -57,48 +57,11 @@ bool CTOSPlayer::Init(IGameObject* pGameObject)
 void CTOSPlayer::PostInit(IGameObject* pGameObject)
 {
 	CPlayer::PostInit(pGameObject);
-
-	//Case 1 - Master Client was created only on local machine
-	// Not working at dedicated server
-	//if (GetEntityId() == g_pGame->GetIGameFramework()->GetClientActorId())
-	//{
-	//	m_pLocalMasterClient = new CTOSMasterClient(this);
-	//}
-
-	//Case 2 - Master Client was created on client
-	// It is ok on dedicated but calling two cases on not dedicated
-	//if (!m_pMasterClient)
-	//{
-	//	m_pMasterClient = new CTOSMasterClient(this);
-	//}
-
-	//if (IsClient())
-	//{
-	//	gEnv->pSystem->GetI3DEngine()->SetPostEffectParam("AlienInterference_Amount", 0.0f);
-	//	SAFE_HUD_FUNC(StartInterference(0, 0, 0, 0));
-	//}
 }
 
 void CTOSPlayer::InitClient(const int channelId)
 {
 	CPlayer::InitClient(channelId);
-
-	//if (gEnv->bServer)
-	//{
-	//	CryLogAlways(" ");
-	//	CryLogAlways("<C++>[SERVER][FUNC CALL][CPlayer::InitClient] channelId: %i, ThisPlayer: %s", channelId, GetEntity()->GetName());
-	//}
-	//else if(gEnv->bClient)
-	//{
-	//	CryLogAlways(" ");
-	//	CryLogAlways("<C++>[CLIENT][FUNC CALL][CPlayer::InitClient] channelId: %i, ThisPlayer: %s", channelId, GetEntity()->GetName());
-	//}
-
-	//Case 3
-	//if (!m_pMasterClient)
-	//{
-	//	m_pMasterClient = new CTOSMasterClient(this);
-	//}
 }
 
 void CTOSPlayer::InitLocalPlayer()
@@ -165,11 +128,12 @@ void CTOSPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 	NETINPUT_TRACE(GetEntityId(), m_stats.velocity);
 	NETINPUT_TRACE(GetEntityId(), m_stats.speed);
 	NETINPUT_TRACE(GetEntityId(), GetEntity()->GetWorldPos());
+	NETINPUT_TRACE(GetEntityId(), GetSpectatorMode());
 
 	//Crysis co-op
 	UpdateMusic(ctx.fFrameTime);
 
-	if (gEnv->bServer)
+	if (gEnv->bServer && IsPlayer())
 	{
 		if (m_fNetDetectionDelay > 0.1f)
 		{
@@ -184,28 +148,8 @@ void CTOSPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 			m_fNetDetectionDelay += ctx.fFrameTime;
 	}
 
-
-	if (IsPlayer() && gEnv->bServer)
-	{
-		/*if (!GetEntity()->GetAI() && GetSpectatorMode() == eASM_None)
-		{
-			gEnv->bMultiplayer = false;
-
-			IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
-
-			gEnv->pScriptSystem->BeginCall(pScriptTable, "CoopForceAI");
-			gEnv->pScriptSystem->PushFuncParam(pScriptTable);
-			gEnv->pScriptSystem->EndCall(pScriptTable);
-
-			if (CCoopSystem::GetInstance()->GetDebugLog() > 0)
-				CryLogAlways("AI Registered for Player %s", GetEntity()->GetName());
-
-			gEnv->bMultiplayer = true;
-		}*/
-	}
-
 	// Fixes cloaking in MP for non-host players
-	/*CNanoSuit* pNanoSuit = GetNanoSuit();
+	CNanoSuit* pNanoSuit = GetNanoSuit();
 	if (pNanoSuit && gEnv->bServer)
 	{
 		IAIObject* pAI = GetEntity()->GetAI();
@@ -218,7 +162,7 @@ void CTOSPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 			else
 				agentParams.m_fCloakScale = 0.f;
 		}
-	}*/
+	}
 
 	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
 	{
@@ -342,7 +286,9 @@ CTOSMasterClient* CTOSPlayer::GetMasterClient() const
 void CTOSPlayer::ClearInterference()
 {
 	m_clientPostEffects.clear();
-	gEnv->pSystem->GetI3DEngine()->SetPostEffectParam("AlienInterference_Amount", 0.0f);
+	gEnv->pSystem->GetI3DEngine()->SetPostEffectParam(
+		"AlienInterference_Amount", 0.0f);
+
 	SAFE_HUD_FUNC(StartInterference(0, 0, 0, 0));
 }
 
@@ -373,56 +319,6 @@ void CTOSPlayer::UpdateDetectionValue(float frameTime)
 			sDetectionLevelSnapshot.vehicleThreat));
 
 	m_fLastDetectionValue = m_fDetectionValue;
-	// Local player can use AI system's default method.
-	/*if (GetEntityId() == g_pGame->GetIGameFramework()->GetClientActorId())
-	{
-
-
-		SAIDetectionLevels aiDetectionLevels;
-		gEnv->pAISystem->GetDetectionLevels(0, aiDetectionLevels);
-		m_fDetectionValue = max(max(aiDetectionLevels.puppetExposure, aiDetectionLevels.puppetThreat),
-								max(aiDetectionLevels.vehicleExposure, aiDetectionLevels.vehicleThreat));
-		return;
-	}
-
-	m_fDetectionTimer += frameTime;
-
-	// Only detect with AI system update intervals.
-	if (m_fDetectionTimer >= m_pSystemUpdateRate->GetFVal() + 0.05f)
-	{
-		// No AI for player nothing to be detected
-		if (!GetEntity()->GetAI())
-			return;
-
-		m_fDetectionTimer = 0.0f;
-
-		float* pAIActorFloat = (float*)GetEntity()->GetAI()->CastToIAIActor();
-
-		// Varies between X86 and X64
-		int nDataIndex = (sizeof(void*) == 8) ? 502 : 473;
-
-		// Create snapshot
-		pAIActorFloat[nDataIndex + 4] = pAIActorFloat[nDataIndex + 0];
-		pAIActorFloat[nDataIndex + 5] = pAIActorFloat[nDataIndex + 1];
-		pAIActorFloat[nDataIndex + 6] = pAIActorFloat[nDataIndex + 2];
-		pAIActorFloat[nDataIndex + 7] = pAIActorFloat[nDataIndex + 3];
-
-		SAIDetectionLevels aiDetectionLevels;
-		aiDetectionLevels.puppetExposure = pAIActorFloat[nDataIndex + 0];
-		aiDetectionLevels.puppetThreat = pAIActorFloat[nDataIndex + 1];
-		aiDetectionLevels.vehicleExposure = pAIActorFloat[nDataIndex + 2];
-		aiDetectionLevels.vehicleThreat = pAIActorFloat[nDataIndex + 3];
-
-		// Reset originals
-		pAIActorFloat[nDataIndex + 0] = 0;
-		pAIActorFloat[nDataIndex + 1] = 0;
-		pAIActorFloat[nDataIndex + 2] = 0;
-		pAIActorFloat[nDataIndex + 3] = 0;
-
-		m_fDetectionValue = max(max(aiDetectionLevels.puppetExposure, aiDetectionLevels.puppetThreat),
-								max(aiDetectionLevels.vehicleExposure, aiDetectionLevels.vehicleThreat));
-
-	}*/
 }
 
 void CTOSPlayer::UpdateMusic(float frameTime)
@@ -464,7 +360,7 @@ void CTOSPlayer::UpdateMusic(float frameTime)
 void CTOSPlayer::PostUpdate(float frameTime)
 {
 	//Crysis co-op
-	if (gEnv->bServer)
+	if (gEnv->bServer && IsPlayer())
 	{
 		// Called here not to interfere with AI system.
 		UpdateDetectionValue(frameTime);

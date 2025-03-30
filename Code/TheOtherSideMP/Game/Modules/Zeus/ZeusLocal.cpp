@@ -662,6 +662,9 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 
 			if (pActor)
 			{
+				pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 0), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Health = %i", pActor->GetHealth());
+				pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 1), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Stance = %i", int(pActor->GetStance()));
+
 				auto pTable = pActor->GetEntity()->GetScriptTable();
 				SmartScriptTable props;
 
@@ -672,8 +675,12 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 					pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 2), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Equipment = %s", equipName);
 				}
 
-				pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 0), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Health = %i", pActor->GetHealth());
-				pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 1), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Stance = %i", int(pActor->GetStance()));
+				IInventory* pInventory = pActor->GetInventory();
+				if (pInventory)
+				{
+					int count = pInventory->GetCount();
+					pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 3), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Inventory Count = %i", count);
+				}
 			}
 			else if (pItem)
 			{
@@ -930,3 +937,14 @@ bool CTOSZeusModule::Local::ExecuteCommand(ECommand command)
 	return true;
 }
 
+//TODO: 
+// Фиксить: ИИ спавнит одну и туже модель ИИ через архетип
+// Фиксить: ИИ в мультиплеере не реагирует на приказ поднять оружие
+// Исправлено: ИИ в машине не ездит у зевса, но ездит у всех остальных
+// Фиксить: ИИ в машине при езде не поворачивает колеса
+// Фиксить: ИИ при старте/спавне без оружия
+// Фиксить: В редакторе мышь не работает при выходе из режима зевса
+// Исправлено: Игрок - зевс видим для остальных и для себя
+// Фиксить: Игрок по приказу зевса садится в т.с. только на клиенте зевса 
+// Фиксить: Вылет при появлении трупера на карте
+// Исправлено: Постоянно срет логами Unregister AI For Actor, если игрок - зритель

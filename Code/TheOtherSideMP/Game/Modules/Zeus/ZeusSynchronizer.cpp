@@ -32,7 +32,6 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 
 		// Становимся неуязвимым к урону
 		pTOSPlayer->SetMeZeus(true);
-		pTOSPlayer->GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
 		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
 
 		// Откл. ИИ для перса зевса
@@ -62,10 +61,16 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 				"CTOSZeusModule::MakeZeus");
 		}
 
-		pTOSPlayer->GetGameObject()->InvokeRMI(CTOSActor::ClClearInventory(), CActor::NoParams(), eRMI_ToAllClients);
-		pTOSPlayer->GetGameObject()->InvokeRMI(CTOSActor::ClMarkHideMe(), NetHideMeParams(true), eRMI_ToAllClients);
+		pTOSPlayer->GetGameObject()->InvokeRMI(
+			CTOSActor::ClClearInventory(), 
+			CActor::NoParams(), 
+			eRMI_ToAllClients);
 
-		RMISend(CTOSZeusSynchronizer::ClMakeZeus(), params, eRMI_ToClientChannel, params.playerChannelId);
+		GetGameObject()->InvokeRMI(
+			CTOSZeusSynchronizer::ClMakeZeus(), 
+			params, 
+			eRMI_ToClientChannel, 
+			params.playerChannelId);
 
 		TOS_Inventory::GiveItem(pTOSPlayer, "NightVision", false, false, false);
 	}
