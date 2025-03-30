@@ -79,11 +79,12 @@ function HandleOrder(executorTable, orderTable)
                 else 
                     AI_FOLLOW_AND_PROTECT(executor, orderTarget, 1.5, speed, 2)
                 end
+
+            elseif (targetItem) then
+                AI_PICKUP_ITEM(executor, orderTarget, speed)
             end
         end
     else
-        
-
         -- Если цели нет, то бежим
         AI_GOTO(executor, orderPosition, speed)
 

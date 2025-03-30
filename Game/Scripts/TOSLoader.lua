@@ -16,6 +16,7 @@ Script.ReloadScript("Scripts/AI/TOS/OrderHandlers/AI_GOTO.lua")
 Script.ReloadScript("Scripts/AI/TOS/OrderHandlers/AI_ENTERVEHICLE.lua")
 Script.ReloadScript("Scripts/AI/TOS/OrderHandlers/AI_PURSUIT_AND_KILL.lua")
 Script.ReloadScript("Scripts/AI/TOS/OrderHandlers/AI_FOLLOW_AND_PROTECT.lua")
+Script.ReloadScript("Scripts/AI/TOS/OrderHandlers/AI_PICKUP_ITEM.lua")
 
 -- manual loaded
 -- Script.ReloadScript("Scripts/AI/TOS/TOSHandleOrder.lua")
