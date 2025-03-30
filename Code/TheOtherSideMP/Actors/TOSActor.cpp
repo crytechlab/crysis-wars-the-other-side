@@ -115,7 +115,7 @@ void CTOSActor::PostInitClient(const int channelId)
 		if (!IsPlayer())
 		{
 			GiveEquipmentPack();
-			TOS_Inventory::SelectPrimary(this);
+			SelectLastItem(true, true);
 		}
 	}
 }
@@ -243,6 +243,28 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 		}
 			
 	}
+
+	if (aspect == TOS_NET::CLIENT_ASPECT_STATIC)
+	{
+		//Блок скопирован из CPlayer::NetSerialize()
+
+		const bool writing = ser.IsWriting();
+		bool	   hasWeapon = false;
+
+		if (writing)
+			hasWeapon = NetGetCurrentItem() != 0;
+
+		ser.Value("hasWeapon", hasWeapon, 'bool');
+		ser.Value("currentItemId", 
+			static_cast<CActor*>(this), 
+			&CActor::NetGetCurrentItem, 
+			&CActor::NetSetCurrentItem, 
+			'eid');
+
+		if (!writing && hasWeapon && NetGetCurrentItem() == 0)
+			ser.FlagPartialRead();
+	}
+
 	return true;
 }
 
