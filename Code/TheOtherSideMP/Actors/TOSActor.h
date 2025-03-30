@@ -263,6 +263,7 @@ public:
 	void NetReviveAt(const Vec3& pos, const Quat& rot, int teamId) ;
 	void NetReviveInVehicle(EntityId vehicleId, int seatId, int teamId) ;
 	void NetSimpleKill() ;
+	void SerializeSpawnInfo(TSerialize ser);
 	// ~CActor
 
 	//ITOSMasterControllable

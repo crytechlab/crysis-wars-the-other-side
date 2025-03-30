@@ -119,6 +119,25 @@ void CTOSPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 	}
 
 	CPlayer::SetSpectatorMode(mode, targetId);
+
+	//FIX: ИИ видит игрока в режиме зрителя
+	if (mode != eASM_None)
+	{
+		auto pAI = GetEntity()->GetAI();
+		if (pAI)
+		{
+			if (pAI->IsEnabled())
+				pAI->Event(AIEVENT_DISABLE, 0);
+		}
+	}
+	else
+	{
+		auto pAI = GetEntity()->GetAI();
+		if (pAI)
+		{
+			pAI->Event(AIEVENT_ENABLE, 0);
+		}
+	}
 }
 
 void CTOSPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
@@ -132,6 +151,7 @@ void CTOSPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 
 	//Crysis co-op
 	UpdateMusic(ctx.fFrameTime);
+
 
 	if (gEnv->bServer && IsPlayer())
 	{

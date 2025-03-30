@@ -626,6 +626,11 @@ void CTOSActor::NetSimpleKill()
 	Kill();
 }
 
+void CTOSActor::SerializeSpawnInfo(TSerialize ser)
+{
+	CActor::SerializeSpawnInfo(ser);
+}
+
 //bool CTOSActor::ResetActorWeapons(int delayMilliseconds)
 //{
 //	if (gEnv->bServer && gEnv->bMultiplayer && !IsPlayer())
