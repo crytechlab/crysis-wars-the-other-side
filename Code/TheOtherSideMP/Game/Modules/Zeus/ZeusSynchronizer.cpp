@@ -176,10 +176,11 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 		spawnParams.vanilla.sName = name;
 		spawnParams.vanilla.pClass = pClass;
 		spawnParams.vanilla.vPosition = params.pos;
+		spawnParams.vanilla.nFlags |= ENTITY_FLAG_NET_PRESENT | ENTITY_FLAG_CASTSHADOW;
 
 		const auto pArchetype = gEnv->pEntitySystem->LoadEntityArchetype(psClassName->c_str());
 		if (pArchetype)
-			spawnParams.vanilla.pArchetype = pArchetype;
+			spawnParams.archetypeName = pArchetype->GetName();
 
 		if (!pClass && !pArchetype)
 		{

@@ -149,6 +149,17 @@ void CTOSPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 	NETINPUT_TRACE(GetEntityId(), GetEntity()->GetWorldPos());
 	NETINPUT_TRACE(GetEntityId(), GetSpectatorMode());
 
+	bool ghostMode = IsZeus() || IsMaster();
+	if (ghostMode)
+	{
+		HideMe(true);
+		if (GetGameObject()->GetAspectProfile(eEA_Physics) != eAP_Spectator)
+			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
+
+		if (GetFlyMode() != 1)
+			SetFlyMode(1);
+	}
+
 	//Crysis co-op
 	UpdateMusic(ctx.fFrameTime);
 

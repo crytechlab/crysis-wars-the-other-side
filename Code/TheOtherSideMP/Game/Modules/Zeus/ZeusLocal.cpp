@@ -671,8 +671,16 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 				if (pTable && pTable->GetValue("Properties", props))
 				{
 					const char* equipName = 0;
+					const char* fileModel = 0;
+					const char* soundPack = 0;
+
 					props->GetValue("equip_EquipmentPack", equipName);
+					props->GetValue("fileModel", fileModel);
+					props->GetValue("SoundPack", soundPack);
+
 					pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 2), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Equipment = %s", equipName);
+					pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 3), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "File model = %s", fileModel);
+					pPD->AddText(screenPos.x, screenPos.y + 20 * (actorDelta + 4), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Sound pack = %s", soundPack);
 				}
 
 				IInventory* pInventory = pActor->GetInventory();
@@ -938,13 +946,14 @@ bool CTOSZeusModule::Local::ExecuteCommand(ECommand command)
 }
 
 //TODO: 
-// Фиксить: ИИ спавнит одну и туже модель ИИ через архетип
-// Фиксить: ИИ в мультиплеере не реагирует на приказ поднять оружие
+// Исправлено: ИИ спавнит одну и туже модель ИИ через архетип
+// Исправлено: ИИ в мультиплеере не реагирует на приказ поднять оружие
 // Исправлено: ИИ в машине не ездит у зевса, но ездит у всех остальных
 // Фиксить: ИИ в машине при езде не поворачивает колеса
-// Фиксить: ИИ при старте/спавне без оружия
-// Фиксить: В редакторе мышь не работает при выходе из режима зевса
+// Исправлено: ИИ при старте/спавне без оружия
+// Фиксить: Мышь не работает при выходе из режима зевса
 // Исправлено: Игрок - зевс видим для остальных и для себя
 // Фиксить: Игрок по приказу зевса садится в т.с. только на клиенте зевса 
 // Фиксить: Вылет при появлении трупера на карте
+// Фиксить: При спавне ИИ через меню зевса выбранное оружие ИИ может не совпадать между клиентами. 
 // Исправлено: Постоянно срет логами Unregister AI For Actor, если игрок - зритель

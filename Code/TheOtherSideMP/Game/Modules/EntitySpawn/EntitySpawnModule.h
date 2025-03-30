@@ -63,6 +63,7 @@ struct STOSEntitySpawnParams : public STOSSmartStruct
 		this->m_refs = 0;
 		this->tosFlags = params.tosFlags;
 		this->vanilla = params.vanilla;
+		this->archetypeName = params.archetypeName;
 		this->authorityPlayerName = params.authorityPlayerName;
 		this->savedName = params.savedName;
 		this->forceStartControl = params.forceStartControl;
@@ -75,12 +76,14 @@ struct STOSEntitySpawnParams : public STOSSmartStruct
 
 	SEntitySpawnParams vanilla;
 
+	
 	SmartScriptTable properties;
 	SmartScriptTable propertiesInstance;
 	bool hide;
 	bool moveSpawnedToAuthorityPos;
 	bool saveParams;
 	bool forceStartControl; ///< Если \a true, то при передаче власти игроку генерирует событие \a eEGE_ForceStartControl \n Используется вместе с \a authorityPlayerName
+	string archetypeName;
 	string authorityPlayerName; ///< Имя персонажа игрока, которому будет передана власть над сущностью после её пересоздания 
 	string savedName; ///< Имя сущности, которая будет спавнится
 	uint32 tosFlags; ///< Флаги появления сущности. \n Смотреть \a ETOSEntityFlags

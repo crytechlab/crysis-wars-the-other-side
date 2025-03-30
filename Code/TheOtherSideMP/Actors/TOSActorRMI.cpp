@@ -414,3 +414,24 @@ IMPLEMENT_RMI(CTOSActor, ClPlayNetworkedAnimation)
 	return true;
 }
 // ~Crysis Co-op
+
+
+IMPLEMENT_RMI(CTOSActor, SvRequestSetActorModel)
+{
+	GetGameObject()->InvokeRMI(ClSetActorModel(), params, eRMI_ToAllClients);
+
+	return true;
+}  
+
+IMPLEMENT_RMI(CTOSActor, ClSetActorModel)
+{
+	if (IScriptTable* pScriptTable = GetEntity()->GetScriptTable())
+	{
+		SmartScriptTable actorProps;
+		pScriptTable->GetValue("Properties", actorProps);
+		actorProps->SetValue("fileModel", params.fileModel.c_str());
+		Script::CallMethod(pScriptTable, "SetActorModel", IsClient());
+	}
+
+	return true;
+}

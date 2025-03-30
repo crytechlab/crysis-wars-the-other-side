@@ -307,14 +307,20 @@ IEntity* CTOSEntitySpawnModule::SpawnEntity(STOSEntitySpawnParams& params, bool 
 		}
 	}
 
+
+	//Fix не применяется архетип на клиенте
+	auto pArchetype = gEnv->pEntitySystem->LoadEntityArchetype(params.archetypeName);
+	if (pArchetype)
+		params.vanilla.pArchetype = pArchetype;
+
 	const auto pSpawned = pEntSys->SpawnEntity(params.vanilla, false);
 	assert(pSpawned);
 
+	if (pArchetype)
+		pSpawned->GetScriptTable()->SetValue("Properties", pArchetype->GetProperties());
+
 	if (!params.savedName.empty())
 		pSpawned->SetName(params.savedName);
-
-	IPersistantDebug* pPD = gEnv->pGame->GetIGameFramework()->GetIPersistantDebug();
-	pPD->Begin("EntitySpawnModule", true);
 
 	auto& props = params.properties;
 	if (props.GetPtr())
@@ -327,12 +333,36 @@ IEntity* CTOSEntitySpawnModule::SpawnEntity(STOSEntitySpawnParams& params, bool 
 	gEnv->pEntitySystem->InitEntity(pSpawned, params.vanilla);
 
 	const EntityId entityId = pSpawned->GetId();
-	auto pActor = static_cast<CActor*>(TOS_GET_ACTOR(entityId));
-	if (params.moveSpawnedToAuthorityPos && pActor)
+	auto pActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(entityId));
+
+	if (pActor)
 	{
-		IEntity* pAuthorityPlayerEnt = gEnv->pEntitySystem->FindEntityByName(params.authorityPlayerName);
-		if (pAuthorityPlayerEnt)
-			g_pGame->GetGameRules()->MovePlayer(pActor, pAuthorityPlayerEnt->GetWorldPos(), Ang3(pAuthorityPlayerEnt->GetWorldRotation()));
+		if (gEnv->bMultiplayer && !pActor->IsPlayer())
+		{
+			//FIX: Применение модели архетипа
+			const char* fileModel = "";
+			const char* equipPack = "";
+			pArchetype->GetProperties()->GetValue("fileModel", fileModel);
+			pArchetype->GetProperties()->GetValue("equip_EquipmentPack", equipPack);
+
+			CTOSActor::SSetActorModelParams modelParams;
+			modelParams.fileModel = fileModel;
+			pActor->GetGameObject()->InvokeRMI(
+				CTOSActor::ClSetActorModel(), 
+				modelParams, 
+				eRMI_ToAllClients);
+
+			//FIX: Выдача оружия артехипа
+			pActor->GiveEquipmentPack();
+
+		}
+
+		if (params.moveSpawnedToAuthorityPos)
+		{
+			IEntity* pAuthorityPlayerEnt = gEnv->pEntitySystem->FindEntityByName(params.authorityPlayerName);
+			if (pAuthorityPlayerEnt)
+				g_pGame->GetGameRules()->MovePlayer(pActor, pAuthorityPlayerEnt->GetWorldPos(), Ang3(pAuthorityPlayerEnt->GetWorldRotation()));
+		}
 	}
 
 	//1

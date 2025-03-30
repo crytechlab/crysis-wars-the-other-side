@@ -115,7 +115,6 @@ void CTOSActor::PostInitClient(const int channelId)
 		if (!IsPlayer())
 		{
 			GiveEquipmentPack();
-			SelectLastItem(true, true);
 		}
 	}
 }
@@ -323,14 +322,6 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 {
 	CActor::Update(ctx, updateSlot);
 
-	bool ghostMode = m_isZeus || m_isMaster;
-	if (ghostMode)
-	{
-		HideMe(true);
-		if (GetGameObject()->GetAspectProfile(eEA_Physics) != eAP_Spectator)
-			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
-	}
-
 	//Отладка потребителя энергии в виде вывода инф. на экран
 	if (gEnv->bClient && IsClient())
 	{
@@ -412,6 +403,8 @@ void CTOSActor::Revive(const bool fromInit)
 		m_pAnimatedCharacter->ForceRefreshPhysicalColliderMode();
 		m_pAnimatedCharacter->RequestPhysicalColliderMode(eColliderMode_Spectator, eColliderModeLayer_Game, "Actor::SetAspectProfile");
 	}
+
+	SelectLastItem(true, true); 
 
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorRevived, "", true));
 }
@@ -781,6 +774,8 @@ void CTOSActor::GiveEquipmentPack()
 			CryLogAlways("[%s] acquired equipment pack %s", GetEntity()->GetName(), equip);
 		}
 	}
+
+	SelectLastItem(true, true);
 }
 
 bool CTOSActor::HideMe(bool value)
