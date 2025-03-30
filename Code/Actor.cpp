@@ -2937,6 +2937,11 @@ bool CActor::PickUpItem(EntityId itemId, bool sound, bool ignoreOffhand)
 	if (!pItem || GetHealth()<=0)
 		return false;
 
+	//TheOtherSide
+	if (pItem->IsBusy())
+		return false;
+	//~TheOtherSide
+
 	if(IsClient() && !ignoreOffhand)
 	{
 		if(EntityId offHandId = GetInventory()->GetItemByClass(CItem::sOffHandClass))
