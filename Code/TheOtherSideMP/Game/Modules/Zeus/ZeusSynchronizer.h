@@ -65,10 +65,14 @@ public:
 		int playerChannelId;
 		bool bMake;
 
-		NetMakeParams()
-			:
+		NetMakeParams() :
 			playerChannelId(0),
 			bMake(false)
+		{};			
+		
+		NetMakeParams(int _playerChannelId, bool _bmake) :
+			playerChannelId(_playerChannelId),
+			bMake(_bmake)
 		{};
 
 		void SerializeWith(TSerialize ser)

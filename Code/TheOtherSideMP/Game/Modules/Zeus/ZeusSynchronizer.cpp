@@ -11,132 +11,25 @@
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 {
-	// Здесь пишем всё, что должно выполниться на сервере
-
 	//TODO:
 	// 2) Через меню паузы можно кликнуть по объектам...
 
-	if (gEnv->bServer)
-	{
-		CryLog("<C++>[%s][%s][SvRequestMakeZeus]",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+	CryLog("<C++>[%s][%s][SvRequestMakeZeus]",
+		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
 
-		auto pZeusModule = g_pTOSGame->GetZeusModule();
-		auto pTOSPlayer = static_cast<CTOSPlayer*>(TOS_GET_ACTOR_CHANNELID(params.playerChannelId));
-		assert(pZeusModule != nullptr);
-		assert(pTOSPlayer != nullptr);
-
-		// Сбрасываем статы
-		pTOSPlayer->GetActorStats()->inAir = 0.0f;
-		pTOSPlayer->GetActorStats()->onGround = 0.0f;
-
-		// Становимся неуязвимым к урону
-		pTOSPlayer->SetMeZeus(true);
-		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
-
-		// Откл. ИИ для перса зевса
-		auto pAI = pTOSPlayer->GetEntity()->GetAI();
-		if (pAI)
-			TOS_AI::SendEvent(pAI, AIEVENT_DISABLE);
-
-		// Режим полета со столкновениями
-		pTOSPlayer->SetFlyMode(1);
-
-		// убираем нанокостюм
-		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
-		if (pSuit)
-		{
-			pSuit->SetMode(NANOMODE_DEFENSE);
-			pSuit->SetModeDefect(NANOMODE_CLOAK, true);
-			pSuit->SetModeDefect(NANOMODE_SPEED, true);
-			pSuit->SetModeDefect(NANOMODE_STRENGTH, true);
-		}
-
-		if (pTOSPlayer->GetAnimatedCharacter())
-		{
-			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
-			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
-				eColliderMode_Spectator, 
-				eColliderModeLayer_Game, 
-				"CTOSZeusModule::MakeZeus");
-		}
-
-		pTOSPlayer->GetGameObject()->InvokeRMI(
-			CTOSActor::ClClearInventory(), 
-			CActor::NoParams(), 
-			eRMI_ToAllClients);
-
-		GetGameObject()->InvokeRMI(
-			CTOSZeusSynchronizer::ClMakeZeus(), 
-			params, 
-			eRMI_ToClientChannel, 
-			params.playerChannelId);
-
-		TOS_Inventory::GiveItem(pTOSPlayer, "NightVision", false, false, false);
-	}
-
-	return true;
+	return CTOSZeusModule::ClientServer::ServerMakeZeus(
+		this, 
+		params.playerChannelId, 
+		params.bMake);
 }
 
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClMakeZeus)
 {
-	// Здесь пишем всё, что должно выполниться на клиенте
+	CryLog("<C++>[%s][%s][ClMakeZeus]",
+		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
 
-	if (gEnv->bClient)
-	{
-		CryLog("<C++>[%s][%s][ClMakeZeus]",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
-
-		auto pZeusModule = g_pTOSGame->GetZeusModule();
-		auto pTOSPlayer = pZeusModule->GetPlayer();
-		//auto pTOSPlayer = static_cast<CTOSPlayer*>(g_pGame->GetIGameFramework()->GetClientActor());
-
-		assert(pZeusModule != nullptr);
-		assert(pTOSPlayer != nullptr);
-
-		// Убираем лишние действия
-		g_pGameActions->FilterZeus()->Enable(true);
-
-		// Скрываем HUD игрока
-		pZeusModule->GetHUD().ShowPlayerHUD(false);
-		pZeusModule->GetHUD().ShowZeusMenu(true);
-
-		//Включаем мышь
-		pZeusModule->GetLocal().ShowMouse(true);
-		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::CanUseMouse, true);
-
-		//Включаем режим зевса
-		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, true);
-		// pZeusModule->SetPlayer(pTOSPlayer);
-
-		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
-
-		// Режим полета со столкновениями
-		pTOSPlayer->SetFlyMode(1);
-		pTOSPlayer->SetMeZeus(true);
-
-		// убираем нанокостюм
-		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
-		if (pSuit)
-		{
-			pSuit->SetMode(NANOMODE_DEFENSE);
-			pSuit->SetModeDefect(NANOMODE_CLOAK, true);
-			pSuit->SetModeDefect(NANOMODE_SPEED, true);
-			pSuit->SetModeDefect(NANOMODE_STRENGTH, true);
-		}
-
-		if (pTOSPlayer->GetAnimatedCharacter())
-		{
-			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
-			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
-				eColliderMode_Spectator, 
-				eColliderModeLayer_Game, 
-				"CTOSZeusModule::MakeZeus");
-		}
-	}
-
-	return true;
+	return CTOSZeusModule::ClientServer::ClientMakeZeus(params.bMake);
 }
 
 //------------------------------------------------------------------------
@@ -152,8 +45,8 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 
 		STOSEntityDelaySpawnParams spawnParams;
 		spawnParams.pCallback = std::bind(
-			&CTOSZeusModule::Network::ServerEntitySpawned, 
-			&pZeusModule->GetNetwork(), 
+			&CTOSZeusModule::ClientServer::ServerOnEntitySpawned, 
+			&pZeusModule->GetClientServer(), 
 			std::placeholders::_1, 
 			std::placeholders::_2,
 			std::placeholders::_3);
@@ -421,8 +314,8 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 
 		STOSEntityDelaySpawnParams spawnParams;
 		spawnParams.pCallback = std::bind(
-			&CTOSZeusModule::Network::ServerEntityCopied,
-			&pZeusModule->GetNetwork(),
+			&CTOSZeusModule::ClientServer::ServerOnEntityCopied,
+			&pZeusModule->GetClientServer(),
 			std::placeholders::_1,
 			std::placeholders::_2,
 			std::placeholders::_3);

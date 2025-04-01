@@ -224,28 +224,29 @@ public:
 		//EOrderType type;
 	};
 
-	struct Network
+	struct ClientServer
 	{
 		friend class CTOSZeusSynchronizer;
+		friend class CTOSZeusClientServer;
 		friend class CTOSZeusModule;
 
-		Network::Network()
+		ClientServer::ClientServer()
 			:
 			pParent(nullptr)
 		{}		
 		
-		Network::Network(CTOSZeusModule* _pParent)
+		ClientServer::ClientServer(CTOSZeusModule* _pParent)
 			:
 			pParent(_pParent)
 		{}
 
-		void MakeZeus(IActor* pPlayer, bool bMake);
+		void DispatchMakeZeus(IActor* pPlayer, bool bMake);
 		void SetPP(int amount);
 		int  GetPP();
-
-	private:
-		void ServerEntitySpawned(EntityId id, const Vec3& pos, int clientChannelId);
-		void ServerEntityCopied(EntityId id, const Vec3& pos, int clientChannelId);
+		void ServerOnEntitySpawned(EntityId id, const Vec3& pos, int clientChannelId);
+		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId); 
+		static bool ServerMakeZeus(const CTOSGenericSynchronizer* pZeusSync, int playerChannelId, bool make);
+		static bool ClientMakeZeus(bool make);
 
 	public:
 		CTOSZeusModule* pParent;
@@ -254,6 +255,7 @@ public:
 	struct Local
 	{
 		friend class CTOSZeusSynchronizer;
+		friend class CTOSZeusClientServer;
 		friend class CTOSZeusModule;
 		friend class CScriptBind_Zeus;
 
@@ -367,6 +369,7 @@ public:
 	struct HUD
 	{
 		friend class CTOSZeusSynchronizer;
+		friend class CTOSZeusClientServer;
 		friend class CTOSZeusModule;
 		friend class CHUD;
 
@@ -450,13 +453,13 @@ public:
 	bool IsPhysicsAllowed(const IEntity* pEntity);
 	// Получить локального игрока
 	CTOSPlayer* GetPlayer() const; 
-	Network& GetNetwork();
+	ClientServer& GetClientServer();
 	Local& GetLocal();
 	HUD& GetHUD();
 
 private:
 	Local m_local;
-	Network m_network;
+	ClientServer m_clientserver;
 	HUD m_hud;
 
 	CScriptBind_Zeus* m_pZeusScriptBind;

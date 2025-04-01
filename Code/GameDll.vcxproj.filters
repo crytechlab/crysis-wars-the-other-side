@@ -196,6 +196,9 @@
     <Filter Include="TheOtherSideMP\Actors\animation">
       <UniqueIdentifier>{34136f8a-189a-4079-848f-600d57256d28}</UniqueIdentifier>
     </Filter>
+    <Filter Include="TheOtherSideMP\Game\Modules\DebugMenu">
+      <UniqueIdentifier>{4b5f6ba9-a39f-41f4-ad7b-cd4626249eff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp">
@@ -909,17 +912,11 @@
     <ClCompile Include="TheOtherSideMP\Game\TOSGameEventRecorder.cpp">
       <Filter>TheOtherSideMP\Game\Events</Filter>
     </ClCompile>
-    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusNetwork.cpp">
-      <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
-    </ClCompile>
     <ClCompile Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_Zeus.cpp">
       <Filter>TheOtherSideMP\Game\ScriptBinds</Filter>
     </ClCompile>
     <ClCompile Include="TheOtherSideMP\Nodes\FlowAINodes.cpp">
       <Filter>TheOtherSideMP\Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusLocal.cpp">
-      <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
     </ClCompile>
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusSynchronizer.cpp">
       <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
@@ -998,6 +995,15 @@
     </ClCompile>
     <ClCompile Include="TheOtherSideMP\Actors\Animation\AnimationGraphState.cpp">
       <Filter>TheOtherSideMP\Actors\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Game\Modules\DebugMenu\DebugMenu.cpp">
+      <Filter>TheOtherSideMP\Game\Modules\DebugMenu</Filter>
+    </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusClientServer.cpp">
+      <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
+    </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusLocal.cpp">
+      <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1753,6 +1759,9 @@
     </ClInclude>
     <ClInclude Include="TheOtherSideMP\Actors\Animation\AnimationGraphState.h">
       <Filter>TheOtherSideMP\Actors\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Game\Modules\DebugMenu\DebugMenu.h">
+      <Filter>TheOtherSideMP\Game\Modules\DebugMenu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

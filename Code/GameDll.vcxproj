@@ -493,6 +493,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Game\Modules\DebugMenu\DebugMenu.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="TheOtherSideMP\Game\Modules\EntitySpawn\EntitySpawnCvars.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\EntitySpawn\EntitySpawnModule.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\GenericModule.cpp" />
@@ -500,10 +504,10 @@
     <ClCompile Include="TheOtherSideMP\Game\Modules\Master\MasterClient.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Master\MasterModule.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Master\MasterSynchronizer.cpp" />
-    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusLocal.cpp" />
-    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusNetwork.cpp" />
+    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusClientServer.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusCvars.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusHUD.cpp" />
+    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusLocal.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusModule.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusNodes.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusSynchronizer.cpp" />
@@ -766,6 +770,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Game\Modules\DebugMenu\DebugMenu.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="TheOtherSideMP\Game\Modules\EntitySpawn\EntitySpawnModule.h" />
     <ClInclude Include="TheOtherSideMP\Game\Modules\GenericModule.h" />

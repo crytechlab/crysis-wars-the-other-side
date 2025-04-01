@@ -94,7 +94,7 @@ CTOSZeusModule::CTOSZeusModule()
 	m_pPersistantDebug(nullptr),
 	m_pZeusScriptBind(nullptr),
 
-	m_network(this),
+	m_clientserver(this),
 	m_local(this),
 	m_hud(this)
 {}
@@ -704,7 +704,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 
 		if (pPlayer)
 		{
-			m_network.MakeZeus(pPlayer, true);
+			m_clientserver.DispatchMakeZeus(pPlayer, true);
 			m_local.SetFlag(EFlag::Possessing, false);
 		}
 		break;
@@ -1000,9 +1000,9 @@ CTOSPlayer* CTOSZeusModule::GetPlayer() const
 	return static_cast<CTOSPlayer*>(TOS_GET_CLIENT_ACTOR);
 }
 
-CTOSZeusModule::Network& CTOSZeusModule::GetNetwork()
+CTOSZeusModule::ClientServer& CTOSZeusModule::GetClientServer()
 {
-	return m_network;
+	return m_clientserver;
 }
 
 CTOSZeusModule::Local& CTOSZeusModule::GetLocal()

@@ -197,6 +197,7 @@ public:
 
 	friend class CTOSZeusModule;
 	friend class CTOSZeusSynchronizer;
+	friend class CTOSZeusClientServer;
 	friend class CTOSMasterModule;
 	friend class CTOSMasterClient;
 
