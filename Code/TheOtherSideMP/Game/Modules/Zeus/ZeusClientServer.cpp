@@ -147,49 +147,96 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(const CTOSGenericSynchronizer*
 	pTOSPlayer->GetActorStats()->inAir = 0.0f;
 	pTOSPlayer->GetActorStats()->onGround = 0.0f;
 
-	// Становимся неуязвимым к урону
-	pTOSPlayer->SetMeZeus(true);
-	pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
-
-	// Откл. ИИ для перса зевса
-	auto pAI = pTOSPlayer->GetEntity()->GetAI();
-	if (pAI)
-		TOS_AI::SendEvent(pAI, AIEVENT_DISABLE);
-
-	// Режим полета со столкновениями
-	pTOSPlayer->SetFlyMode(1);
-
-	// убираем нанокостюм
-	CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
-	if (pSuit)
+	if (make)
 	{
-		pSuit->SetMode(NANOMODE_DEFENSE);
-		pSuit->SetModeDefect(NANOMODE_CLOAK, true);
-		pSuit->SetModeDefect(NANOMODE_SPEED, true);
-		pSuit->SetModeDefect(NANOMODE_STRENGTH, true);
-	}
+		// Становимся неуязвимым к урону
+		pTOSPlayer->SetMeZeus(true);
+		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
 
-	if (pTOSPlayer->GetAnimatedCharacter())
+		// Откл. ИИ для перса зевса
+		auto pAI = pTOSPlayer->GetEntity()->GetAI();
+		if (pAI)
+			TOS_AI::SendEvent(pAI, AIEVENT_DISABLE);
+
+		// Режим полета со столкновениями
+		pTOSPlayer->SetFlyMode(1);
+
+		// убираем нанокостюм
+		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
+		if (pSuit)
+		{
+			pSuit->SetMode(NANOMODE_DEFENSE);
+			pSuit->SetModeDefect(NANOMODE_CLOAK, true);
+			pSuit->SetModeDefect(NANOMODE_SPEED, true);
+			pSuit->SetModeDefect(NANOMODE_STRENGTH, true);
+		}
+
+		if (pTOSPlayer->GetAnimatedCharacter())
+		{
+			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
+			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
+				eColliderMode_Spectator,
+				eColliderModeLayer_Game,
+				"CTOSZeusModule::DispatchMakeZeus");
+		}
+
+		pTOSPlayer->GetGameObject()->InvokeRMI(
+			CTOSActor::ClClearInventory(),
+			CActor::NoParams(),
+			eRMI_ToAllClients);
+
+		pZeusSync->GetGameObject()->InvokeRMI(
+			CTOSZeusSynchronizer::ClMakeZeus(),
+			CTOSZeusSynchronizer::NetMakeParams(playerChannelId, make),
+			eRMI_ToClientChannel,
+			playerChannelId);
+
+		TOS_Inventory::GiveItem(pTOSPlayer, "NightVision", false, false, false);
+	}
+	else
 	{
-		pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
-		pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
-			eColliderMode_Spectator,
-			eColliderModeLayer_Game,
-			"CTOSZeusModule::DispatchMakeZeus");
+		// Становимся уязвимым к урону
+		pTOSPlayer->SetMeZeus(false);
+		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Alive);
+
+		// Откл. ИИ для перса зевса
+		auto pAI = pTOSPlayer->GetEntity()->GetAI();
+		if (pAI)
+			TOS_AI::SendEvent(pAI, AIEVENT_ENABLE);
+
+		// Отключаем режим полета
+		pTOSPlayer->SetFlyMode(0);
+
+		// убираем нанокостюм
+		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
+		if (pSuit)
+		{
+			pSuit->SetMode(NANOMODE_DEFENSE);
+			pSuit->SetModeDefect(NANOMODE_CLOAK, false);
+			pSuit->SetModeDefect(NANOMODE_SPEED, false);
+			pSuit->SetModeDefect(NANOMODE_STRENGTH, false);
+		}
+
+		if (pTOSPlayer->GetAnimatedCharacter())
+		{
+			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
+			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
+				eColliderMode_Undefined,
+				eColliderModeLayer_Game,
+				"CTOSZeusModule::DispatchMakeZeus");
+		}
+
+		pTOSPlayer->GetGameObject()->InvokeRMI(
+			CTOSActor::ClClearInventory(),
+			CActor::NoParams(),
+			eRMI_ToAllClients);
+
+		pZeusSync->GetGameObject()->InvokeRMI(
+			CTOSZeusSynchronizer::ClMakeZeus(),
+			CTOSZeusSynchronizer::NetMakeParams(playerChannelId, make),
+			eRMI_ToClientChannel,
+			playerChannelId);
 	}
-
-	pTOSPlayer->GetGameObject()->InvokeRMI(
-		CTOSActor::ClClearInventory(),
-		CActor::NoParams(),
-		eRMI_ToAllClients);
-
-	pZeusSync->GetGameObject()->InvokeRMI(
-		CTOSZeusSynchronizer::ClMakeZeus(),
-		CTOSZeusSynchronizer::NetMakeParams(playerChannelId, make),
-		eRMI_ToClientChannel,
-		playerChannelId);
-
-	TOS_Inventory::GiveItem(pTOSPlayer, "NightVision", false, false, false);
 
     return true;
 }
@@ -204,44 +251,94 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 	if (!gEnv->bClient || !pTOSPlayer)
 		return false;
 
-	// Убираем лишние действия
-	g_pGameActions->FilterZeus()->Enable(true);
-
-	// Скрываем HUD игрока
-	pZeusModule->GetHUD().ShowPlayerHUD(false);
-	pZeusModule->GetHUD().ShowZeusMenu(true);
-
-	//Включаем мышь
-	pZeusModule->GetLocal().ShowMouse(true);
-	pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::CanUseMouse, true);
-
-	//Включаем режим зевса
-	pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, true);
-	// pZeusModule->SetPlayer(pTOSPlayer);
-
-	pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
-
-	// Режим полета со столкновениями
-	pTOSPlayer->SetFlyMode(1);
-	pTOSPlayer->SetMeZeus(true);
-
-	// убираем нанокостюм
-	CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
-	if (pSuit)
+	if (make)
 	{
-		pSuit->SetMode(NANOMODE_DEFENSE);
-		pSuit->SetModeDefect(NANOMODE_CLOAK, true);
-		pSuit->SetModeDefect(NANOMODE_SPEED, true);
-		pSuit->SetModeDefect(NANOMODE_STRENGTH, true);
+		// Убираем лишние действия
+		g_pGameActions->FilterZeus()->Enable(true);
+
+		// Скрываем HUD игрока
+		pZeusModule->GetHUD().ShowPlayerHUD(false);
+		pZeusModule->GetHUD().ShowZeusMenu(true);
+
+		//Включаем мышь
+		pZeusModule->GetLocal().ShowMouse(true);
+		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::CanUseMouse, true);
+
+		//Включаем режим зевса
+		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, true);
+		// pZeusModule->SetPlayer(pTOSPlayer);
+
+		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
+
+		// Режим полета со столкновениями
+		pTOSPlayer->SetFlyMode(1);
+		pTOSPlayer->SetMeZeus(true);
+
+		// убираем нанокостюм
+		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
+		if (pSuit)
+		{
+			pSuit->SetMode(NANOMODE_DEFENSE);
+			pSuit->SetModeDefect(NANOMODE_CLOAK, true);
+			pSuit->SetModeDefect(NANOMODE_SPEED, true);
+			pSuit->SetModeDefect(NANOMODE_STRENGTH, true);
+		}
+
+		if (pTOSPlayer->GetAnimatedCharacter())
+		{
+			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
+			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
+				eColliderMode_Spectator,
+				eColliderModeLayer_Game,
+				"CTOSZeusModule::DispatchMakeZeus");
+		}
+
+		pTOSPlayer->HideMe(true);
 	}
-
-	if (pTOSPlayer->GetAnimatedCharacter())
+	else
 	{
-		pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
-		pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
-			eColliderMode_Spectator,
-			eColliderModeLayer_Game,
-			"CTOSZeusModule::DispatchMakeZeus");
+		// Возвращаем доступные дейтсвия
+		g_pGameActions->FilterZeus()->Enable(false);
+
+		// Показываем HUD игрока
+		pZeusModule->GetHUD().ShowPlayerHUD(true);
+		pZeusModule->GetHUD().ShowZeusMenu(false);
+
+		//Выключаем мышь
+		if (pZeusModule->GetLocal().IsMouseDisplayed())
+			pZeusModule->GetLocal().ShowMouse(false);		
+		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::CanUseMouse, false);
+
+		//Выключаем режим зевса
+		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, false);
+		// pZeusModule->SetPlayer(pTOSPlayer);
+
+		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Alive);
+
+		// Режим полета со столкновениями
+		pTOSPlayer->SetFlyMode(0);
+		pTOSPlayer->SetMeZeus(false);
+
+		// убираем нанокостюм
+		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
+		if (pSuit)
+		{
+			pSuit->SetMode(NANOMODE_DEFENSE);
+			pSuit->SetModeDefect(NANOMODE_CLOAK, false);
+			pSuit->SetModeDefect(NANOMODE_SPEED, false);
+			pSuit->SetModeDefect(NANOMODE_STRENGTH, false);
+		}
+
+		if (pTOSPlayer->GetAnimatedCharacter())
+		{
+			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
+			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
+				eColliderMode_Undefined,
+				eColliderModeLayer_Game,
+				"CTOSZeusModule::DispatchMakeZeus");
+		}
+
+		pTOSPlayer->HideMe(false);
 	}
 
 	return true;

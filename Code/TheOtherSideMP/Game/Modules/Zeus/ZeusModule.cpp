@@ -731,10 +731,8 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 
 		if (pPlayer)
 		{
-			if (m_local.m_mouseDisplayed == false)
-			{
+			if (m_local.IsMouseDisplayed() == false)
 				m_local.ShowMouse(true);
-			}
 
 			auto it = m_local.m_orders.cbegin();
 			auto end = m_local.m_orders.cend();

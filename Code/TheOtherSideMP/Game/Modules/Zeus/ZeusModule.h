@@ -309,6 +309,8 @@ public:
 		void ClickEntity(EntityId id, const Vec3& clickPos);
 		bool IsSelectedEntity(EntityId id);
 
+		bool IsMouseDisplayed() const;
+
 		/// @brief Обрабатывает однократный выбор сущности.
 		/// @param id Идентификатор выбранной сущности.
 		void HandleOnceSelection(EntityId id);
