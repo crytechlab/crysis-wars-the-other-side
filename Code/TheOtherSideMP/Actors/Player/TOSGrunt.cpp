@@ -280,26 +280,6 @@ void CTOSGrunt::ProcessEvent(SEntityEvent& event)
 			{
 				m_bHidden = false;
 				GetGameObject()->ChangedNetworkState(ASPECT_HIDE);
-
-				IInventory* pInventory = GetInventory();
-				if (pInventory && gEnv->bServer)
-				{
-					CryLog("[%s] Synchronizing inventory...", GetEntity()->GetName());
-					const int nItemCount = pInventory->GetCount();
-					for (int nItem = 0; nItem < nItemCount; ++nItem)
-					{
-						EntityId nCurrentItemId = pInventory->GetCurrentItem();
-						EntityId nItemId = pInventory->GetItem(nItem);
-
-						if (IItem* pItem = gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GetItem(nItemId))
-						{
-							// Only call if the item isn't client or server exclusive.
-							if((pItem->GetEntity()->GetFlags() & (ENTITY_FLAG_CLIENT_ONLY | ENTITY_FLAG_SERVER_ONLY)) == 0)
-								pItem->PickUp(GetEntityId(), false, nItemId == nCurrentItemId, false);
-						}
-					}
-					
-				}
 			}
 			break;
 		}

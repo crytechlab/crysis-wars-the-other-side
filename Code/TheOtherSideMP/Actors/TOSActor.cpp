@@ -110,13 +110,14 @@ void CTOSActor::InitClient(const int channelId)
 
 void CTOSActor::PostInitClient(const int channelId)
 {
-	if (gEnv->bMultiplayer)
-	{
-		if (!IsPlayer())
-		{
-			GiveEquipmentPack();
-		}
-	}
+	//if (gEnv->bMultiplayer)
+	//{
+	//	if (!IsPlayer())
+	//	{
+	//		GiveEquipmentPack();
+	//		SelectLastItem(true, true);
+	//	}
+	//}
 }
 
 void CTOSActor::ProcessEvent(SEntityEvent& event)
@@ -174,8 +175,6 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 				pInventory->RemoveAllItems();
 				pInventory->Clear();
 			}
-
-			// ResetActorWeapons(1000);
 		}
 		else if (event.nParam[0] == eMPTIMER_GIVEWEAPONDELAY)
 		{
@@ -202,6 +201,16 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 			//{
 			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HumanGruntMPEquipPack")->GetString();
 			//}
+
+			IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
+			SmartScriptTable props;
+			if (pScriptTable->GetValue("Properties", props))
+			{
+				auto pEquipManager = gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GetIEquipmentManager();
+				char* equip;
+				if (pEquipManager && props->GetValue("equip_EquipmentPack", equip))
+					pEquipManager->GiveEquipmentPack(this, equip, true, true);
+			}
 		}
 	}
 	default: 
@@ -243,9 +252,33 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 			
 	}
 
-	if (aspect == TOS_NET::CLIENT_ASPECT_STATIC)
+	if (aspect == TOS_NET::CLIENT_ASPECT_STATIC || 
+		aspect == TOS_NET::SERVER_ASPECT_STATIC)
 	{
 		//Блок скопирован из CPlayer::NetSerialize()
+
+		//Inventory
+		//IInventory* pInventory = GetInventory();
+		//if (!IsPlayer() && pInventory && gEnv->bServer)
+		//{
+			// pInventory->NetSerialize(ser, aspect, profile, flags);
+
+			//CryLogAlways("[%s] Synchronizing inventory...", GetEntity()->GetName());
+			//const int nItemCount = pInventory->GetCount();
+			//for (int nItem = 0; nItem < nItemCount; ++nItem)
+			//{
+			//	EntityId nCurrentItemId = pInventory->GetCurrentItem();
+			//	EntityId nItemId = pInventory->GetItem(nItem);
+
+			//	if (IItem* pItem = gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GetItem(nItemId))
+			//	{
+			//		// Only call if the item isn't client or server exclusive.
+			//		if ((pItem->GetEntity()->GetFlags() & (ENTITY_FLAG_CLIENT_ONLY | ENTITY_FLAG_SERVER_ONLY)) == 0)
+			//			pItem->PickUp(GetEntityId(), false, nItemId == nCurrentItemId, false);
+			//	}
+			//}
+		//}
+		//~Inventory
 
 		const bool writing = ser.IsWriting();
 		bool	   hasWeapon = false;
@@ -275,6 +308,10 @@ void CTOSActor::SelectNextItem(const int direction, const bool keepHistory, cons
 	{
 		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
 	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+	}
 }
 
 void CTOSActor::HolsterItem(const bool holster)
@@ -284,6 +321,10 @@ void CTOSActor::HolsterItem(const bool holster)
 	if (gEnv->bClient)
 	{
 		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
 	}
 }
 
@@ -295,6 +336,11 @@ void CTOSActor::SelectLastItem(const bool keepHistory, const bool forceNext /* =
 	{
 		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
 	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+	}
+
 }
 
 void CTOSActor::SelectItemByName(const char* name, const bool keepHistory)
@@ -305,6 +351,11 @@ void CTOSActor::SelectItemByName(const char* name, const bool keepHistory)
 	{
 		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
 	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+	}
+
 }
 
 void CTOSActor::SelectItem(const EntityId itemId, const bool keepHistory)
@@ -314,6 +365,10 @@ void CTOSActor::SelectItem(const EntityId itemId, const bool keepHistory)
 	if (gEnv->bClient)
 	{
 		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
 	}
 }
 
@@ -774,8 +829,6 @@ void CTOSActor::GiveEquipmentPack()
 			CryLogAlways("[%s] acquired equipment pack %s", GetEntity()->GetName(), equip);
 		}
 	}
-
-	SelectLastItem(true, true);
 }
 
 bool CTOSActor::HideMe(bool value)

@@ -447,7 +447,7 @@ void CPlayer::ProcessEvent(SEntityEvent& event)
 			PrePhysicsUpdate();
 	}
 
-	CActor::ProcessEvent(event);
+	CTOSActor::ProcessEvent(event);
 
 	// needs to be after CActor::ProcessEvent()
 	if (event.event == ENTITY_EVENT_RESET)

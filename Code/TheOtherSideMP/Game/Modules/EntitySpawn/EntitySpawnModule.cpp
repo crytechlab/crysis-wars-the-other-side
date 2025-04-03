@@ -351,10 +351,6 @@ IEntity* CTOSEntitySpawnModule::SpawnEntity(STOSEntitySpawnParams& params, bool 
 				CTOSActor::ClSetActorModel(), 
 				modelParams, 
 				eRMI_ToAllClients);
-
-			//FIX: Выдача оружия артехипа
-			pActor->GiveEquipmentPack();
-
 		}
 
 		if (params.moveSpawnedToAuthorityPos)

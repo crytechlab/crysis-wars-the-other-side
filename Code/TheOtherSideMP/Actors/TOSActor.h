@@ -246,7 +246,7 @@ public:
 	void PostInit( IGameObject * pGameObject ) ;
 	void InitClient(int channelId ) ;
 	void PostInitClient(const int channelId);
-	void ProcessEvent(SEntityEvent& event) ;
+	void ProcessEvent(SEntityEvent& event);
 	bool NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profile, int flags) ;
 	void SelectNextItem(int direction, bool keepHistory, const char* category) ;
 	void HolsterItem(bool holster) ;
