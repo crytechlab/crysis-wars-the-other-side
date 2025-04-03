@@ -1670,10 +1670,16 @@ void CItem::PickUp(EntityId pickerId, bool sound, bool select, bool keepHistory)
 		PlayAction(g_pItemStrings->pickedup);
 
 		//AI back weapon attachments
-		if (!gEnv->bMultiplayer && !IsSelected())
+		//TheOtherSide
+		//if (!gEnv->bMultiplayer && !IsSelected())
+		//{
+		//	AttachToBack(true);
+		//}
+		if (!IsSelected())
 		{
 			AttachToBack(true);
 		}
+		//~TheOtherSide
 	}
 	else if (!slave && m_params.unique && !alone)
 	{
@@ -2383,8 +2389,12 @@ bool CItem::AttachToHand(bool attach, bool checkAttachment)
 //------------------------------------------------------------------------
 bool CItem::AttachToBack(bool attach)
 {
-	if (gEnv->bMultiplayer || !m_params.attach_to_back)
+	//TheOtherSide
+	//if (gEnv->bMultiplayer || !m_params.attach_to_back)
+	//	return false;
+	if (!m_params.attach_to_back)
 		return false;
+	//~TheOtherSide
 
 	IEntity* pOwner = GetOwner();
 	if (!pOwner)
@@ -2392,6 +2402,11 @@ bool CItem::AttachToBack(bool attach)
 
 	CActor* pActor = GetOwnerActor();
 	CWeaponAttachmentManager* pWAM = pActor ? pActor->GetWeaponAttachmentManager() : NULL;
+
+	//TheOtherSide
+	if (gEnv->bMultiplayer && pActor->IsPlayer())
+		return false;
+	//~TheOtherSide
 
 	//Do not attach on drop
 	if (attach && m_stats.dropped)
@@ -2417,35 +2432,19 @@ bool CItem::AttachToBack(bool attach)
 	FrostSync(false);
 	WetSync(false);
 
-	if (attach)
+	//TheOtherSide FIX: оружие крепится на спину 2 раза подряд и
+	// остается там даже когда ИИ стреляет
+	//if (attach)
+	if (attach && m_stats.backAttachment == eIBA_Unknown)
 	{
-		/*if(SupportsDualWield(GetEntity()->GetClass()->GetName()))
+		//~TheOtherSide
+
+		pAttachment = pAttachmentManager->GetInterfaceByName(m_params.bone_attachment_01.c_str());
+		m_stats.backAttachment = eIBA_Primary;
+		if (pAttachment && pAttachment->GetIAttachmentObject())
 		{
-			if(IsDualWieldMaster())
-			{
-				pAttachment = pAttachmentManager->GetInterfaceByName(m_params.bone_attachment_01.c_str());
-				m_stats.backAttachment = eIBA_Primary;
-			}
-			else if(IsDualWieldSlave())
-			{
-				pAttachment = pAttachmentManager->GetInterfaceByName(m_params.bone_attachment_02.c_str());
-				m_stats.backAttachment = eIBA_Secondary;
-			}
-			else
-			{
-				pAttachment = pAttachmentManager->GetInterfaceByName(m_params.bone_attachment_01.c_str());
-				m_stats.backAttachment = eIBA_Primary;
-			}
-		}
-		else*/
-		{
-			pAttachment = pAttachmentManager->GetInterfaceByName(m_params.bone_attachment_01.c_str());
-			m_stats.backAttachment = eIBA_Primary;
-			if (pAttachment && pAttachment->GetIAttachmentObject())
-			{
-				pAttachment = pAttachmentManager->GetInterfaceByName(m_params.bone_attachment_02.c_str());
-				m_stats.backAttachment = eIBA_Secondary;
-			}
+			pAttachment = pAttachmentManager->GetInterfaceByName(m_params.bone_attachment_02.c_str());
+			m_stats.backAttachment = eIBA_Secondary;
 		}
 	}
 	else if (m_stats.backAttachment == eIBA_Primary)

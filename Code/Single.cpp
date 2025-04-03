@@ -2884,8 +2884,10 @@ void CSingle::InternalNetShootEx(IEntityClass* spawn_ammo, const Vec3& pos, cons
 
 	ammoCount--;
 
-	if (m_fireparams.clip_size != -1) //Don't trigger the assert in this case
-		assert(ammoCount>=0);
+	//TheOtherSide
+	//if (m_fireparams.clip_size != -1) //Don't trigger the assert in this case
+	//	assert(ammoCount>=0);
+	//~TheOtherSide
 
 	//Hurricane fire rate fake
 	if (m_fireparams.fake_fire_rate && playerIsShooter)
