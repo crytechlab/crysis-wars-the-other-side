@@ -563,7 +563,7 @@ void CTOSEntitySpawnModule::DebugDraw(const Vec2& screenPos, float fontSize, flo
 		const string& entName = pEnt->GetName();
 		const string& savedName = it->second->vanilla.sName;
 
-		const int index = TOS_STL::GetIndexFromMapKey(m_savedSpawnParams, id) + 1;
+		const int index = tos::stl::GetIndexFromMapKey(m_savedSpawnParams, id) + 1;
 
 		float color[] = {1,1,1,1};
 

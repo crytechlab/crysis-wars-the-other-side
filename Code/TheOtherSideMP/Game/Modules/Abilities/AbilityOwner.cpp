@@ -365,11 +365,11 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
                     //bool isProjectingShield = pTrooper->m_shieldParams.canGuardianShieldProj;
 
                     pAbility->SetState(eAbilityState_Activated);
-                    TOS_HUD::DisplayOverlayMessage("@abil_tr_shield_enabled", ColorF(0, 1, 0));
+                    tos::hud::DisplayOverlayMessage("@abil_tr_shield_enabled", ColorF(0, 1, 0));
                 }
                 else
                 {
-                    TOS_HUD::DisplayOverlayMessage("@abil_you_cant_use_ability", ColorF(1, 0, 0));
+                    tos::hud::DisplayOverlayMessage("@abil_you_cant_use_ability", ColorF(1, 0, 0));
                 }
             }
             else if (pAbility->GetState() == eAbilityState_Activated)
@@ -378,7 +378,7 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
                 //pSys->trooper.isProjectingShield = pTrooper->m_shieldParams.canGuardianShieldProj = false;
                 pTrooper->m_shieldParams.canGuardianShieldProj = false;
                 pAbility->SetState(eAbilityState_Cooldown);
-                TOS_HUD::DisplayOverlayMessage("@abil_tr_shield_disabled", ColorF(0, 1, 0));
+                tos::hud::DisplayOverlayMessage("@abil_tr_shield_disabled", ColorF(0, 1, 0));
             }
         }
         if (abilityName == ABILITY_TROOPER_RAGE)
@@ -393,13 +393,13 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
                 pTrooper->m_rageMode.ToggleMode(isRageMode, rageDuration);
                 pAbility->SetState(eAbilityState_Activated);
 
-                TOS_HUD::DisplayOverlayMessage("@abil_tr_rage_enabled", ColorF(0, 1, 0));
+                tos::hud::DisplayOverlayMessage("@abil_tr_rage_enabled", ColorF(0, 1, 0));
             }
             else if (pAbility->GetState() == eAbilityState_Activated)
             {
                 pAbility->SetState(eAbilityState_Cooldown);
 
-                TOS_HUD::DisplayOverlayMessage("@abil_tr_rage_disabled", ColorF(0, 1, 0));
+                tos::hud::DisplayOverlayMessage("@abil_tr_rage_disabled", ColorF(0, 1, 0));
             }
         }
         if (abilityName == ABILITY_TROOPER_EMP)
@@ -585,7 +585,7 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
                 {
                     pAbility->SetState(eAbilityState_Activated);
 
-                    TOS_HUD::DisplayOverlayMessage("@abil_ht_shield_enabled", ColorF(0, 1, 0));
+                    tos::hud::DisplayOverlayMessage("@abil_ht_shield_enabled", ColorF(0, 1, 0));
                 }
 
                 pHunter->GetEnergyParams().isHunterShieldEnabled = true;
@@ -595,7 +595,7 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
                 pHunter->GetEnergyParams().isHunterShieldEnabled = false;
                 pAbility->SetState(eAbilityState_Cooldown);
 
-                TOS_HUD::DisplayOverlayMessage("@abil_ht_shield_disabled", ColorF(0, 1, 0));
+                tos::hud::DisplayOverlayMessage("@abil_ht_shield_disabled", ColorF(0, 1, 0));
             }
 
             auto* pClientActor = g_pGame->GetIGameFramework()->GetClientActor();
@@ -664,12 +664,12 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
                     pScout->EnableSearchBeam(true);
                     pAbility->SetState(eAbilityState_Activated);
 
-                    TOS_HUD::DisplayOverlayMessage("@abil_sc_spotLight_enabled", ColorF(0, 1, 0));
+                    tos::hud::DisplayOverlayMessage("@abil_sc_spotLight_enabled", ColorF(0, 1, 0));
                 }
                 else if (pAbility->GetState() == eAbilityState_Activated)
                 {
                     pAbility->SetState(eAbilityState_Cooldown);
-                    TOS_HUD::DisplayOverlayMessage("@abil_sc_spotLight_disabled", ColorF(0, 1, 0));
+                    tos::hud::DisplayOverlayMessage("@abil_sc_spotLight_disabled", ColorF(0, 1, 0));
                 }
             }
         }
@@ -678,12 +678,12 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
             if (pAbility->GetState() == eAbilityState_Ready_To_Activate)
             {
                 pAbility->SetState(eAbilityState_Activated);
-                TOS_HUD::DisplayOverlayMessage("@abil_sc_antigrav_enabled", ColorF(0, 1, 0));
+                tos::hud::DisplayOverlayMessage("@abil_sc_antigrav_enabled", ColorF(0, 1, 0));
             }
             else if (pAbility->GetState() == eAbilityState_Activated)
             {
                 pAbility->SetState(eAbilityState_Cooldown);
-                TOS_HUD::DisplayOverlayMessage("@abil_sc_antigrav_disabled", ColorF(0, 1, 0));
+                tos::hud::DisplayOverlayMessage("@abil_sc_antigrav_disabled", ColorF(0, 1, 0));
             }
         }
         else if (abilityName == ABILITY_SCOUT_OBJECTGRAB)
@@ -735,7 +735,7 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
                             //28.01.2023
                             //Akeeper: Транспорт не поддаётся физике после броска, пока с ним не столкнешься  // NOLINT(clang-diagnostic-invalid-utf8)
                             return;
-                            //const auto isCar = TOS_Vehicle::IsCar(pCrossVehicle);
+                            //const auto isCar = tos::vehicle::IsCar(pCrossVehicle);
                             //if (!isCar)
                             //{
                             //	if (pLCC->GetControlledActor() == pOwnerActor)
@@ -747,13 +747,13 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
                         if (isOther)
                         {
                             bool pickable = false;
-                            TOS_Script::GetEntityProperty(pCrossEntity, "bPickable", pickable);
+                            tos::script::GetEntityProperty(pCrossEntity, "bPickable", pickable);
 
                             if (!pickable)
                             {
                                 if (pLCC->GetControlledActor() == pOwnerActor)
                                 {
-                                    TOS_HUD::DisplayOverlayMessage("@abil_you_cant_grab_notpickable", ColorF(1, 0, 0));
+                                    tos::hud::DisplayOverlayMessage("@abil_you_cant_grab_notpickable", ColorF(1, 0, 0));
                                     return;
                                 }
                             }
@@ -766,8 +766,8 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
 
                             if (isActor)
                             {
-                                if (TOS_AI::IsCombatEnable_deprecated(pCrossActor))
-                                    TOS_AI::EnableCombat_deprecated(pCrossActor, false, false, "Grabbed by ability");
+                                if (tos::ai::IsCombatEnable_deprecated(pCrossActor))
+                                    tos::ai::EnableCombat_deprecated(pCrossActor, false, false, "Grabbed by ability");
 
 
                                 auto pActor = static_cast<CActor*>(pCrossActor);
@@ -775,15 +775,15 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
 
                                 if (pActor->IsAlien())
                                 {
-                                    TOS_HUD::DisplayOverlayMessage("@abil_you_grab_alien", ColorF(0, 1, 0));
+                                    tos::hud::DisplayOverlayMessage("@abil_you_grab_alien", ColorF(0, 1, 0));
                                 }
                                 else if (strcmp(grabbedClsName, "Player") == 0 || strcmp(grabbedClsName, "Grunt") == 0)
                                 {
-                                    TOS_HUD::DisplayOverlayMessage("@abil_you_grab_human", ColorF(0, 1, 0));
+                                    tos::hud::DisplayOverlayMessage("@abil_you_grab_human", ColorF(0, 1, 0));
                                 }
                                 else
                                 {
-                                    TOS_HUD::DisplayOverlayMessage("@abil_you_grab_something", ColorF(0, 1, 0));
+                                    tos::hud::DisplayOverlayMessage("@abil_you_grab_something", ColorF(0, 1, 0));
                                 }
                             }
                         }
@@ -795,14 +795,14 @@ void CAbilityOwner::ToggleAbility(int index, EntityId targetId)
                     {
                         //Handle drop here
                         Script::CallMethod(pOwnerTable, "DropEntitiesFromTentacles");
-                        TOS_HUD::DisplayOverlayMessage("@abil_you_drop_all_grabbed", ColorF(0, 1, 0));
+                        tos::hud::DisplayOverlayMessage("@abil_you_drop_all_grabbed", ColorF(0, 1, 0));
 
                         for (auto id : pOwnerActor->GetGrabStats()->grabbedIds)
                         {
                             auto pActor = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(id);
 
-                            if (!TOS_AI::IsCombatEnable_deprecated(pActor))
-                                TOS_AI::EnableCombat_deprecated(pActor, true, false, "UnGrabbed by ability");
+                            if (!tos::ai::IsCombatEnable_deprecated(pActor))
+                                tos::ai::EnableCombat_deprecated(pActor, true, false, "UnGrabbed by ability");
                         }
                     }
                 }

@@ -228,7 +228,7 @@ bool CTOSMasterClient::OnActionJump(CTOSActor* pActor, const ActionId& actionId,
 	if (pActor->IsHaveChargingJump() && pActor->GetActorStats()->onGround > 0.0f)
 	{
 		// Получение времени удержания кнопки и задержки для прыжка
-		const float jumpDelay = TOS_Console::GetSafeFloatVar("tos_tr_charging_jump_input_time");
+		const float jumpDelay = tos::console::GetSafeFloatVar("tos_tr_charging_jump_input_time");
 
 		// Автопрыжок при удержании клавиши прыжка
 		if (activationMode == eAAM_OnHold && holdTime > jumpDelay)
@@ -905,7 +905,7 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 
 		auto pAI = m_pLocalDude->GetEntity()->GetAI();
 		if (pAI)
-			TOS_AI::SendEvent(pAI, AIEVENT_DISABLE);
+			tos::ai::SendEvent(pAI, AIEVENT_DISABLE);
 
         if (dudeFlags & TOS_DUDE_FLAG_DISABLE_SUIT)
         {
@@ -971,7 +971,7 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 
 		auto pAI = m_pLocalDude->GetEntity()->GetAI();
 		if (pAI)
-			TOS_AI::SendEvent(pAI, AIEVENT_ENABLE);
+			tos::ai::SendEvent(pAI, AIEVENT_ENABLE);
 
         if (dudeFlags & TOS_DUDE_FLAG_ENABLE_ACTION_FILTER)
         {
@@ -1075,7 +1075,7 @@ bool CTOSMasterClient::PrepareNextSlave(CTOSActor* pNextActor) const
     //Re-register controlled actor in AI System as AI Player
     if (pAI->GetAIType() == AIOBJECT_PUPPET)
 	{
-		TOS_AI::RegisterAI(pNextActor->GetEntity(), true);
+		tos::ai::RegisterAI(pNextActor->GetEntity(), true);
 	}
 	
 	//Restore AI values to new ai pointer
@@ -1116,7 +1116,7 @@ bool CTOSMasterClient::PreparePrevSlave(CTOSActor* pPrevActor) const
     {
 		if (pAI->GetAIType() == AIOBJECT_PLAYER)
 		{
-			TOS_AI::RegisterAI(pPrevActor->GetEntity(), false);
+			tos::ai::RegisterAI(pPrevActor->GetEntity(), false);
 		}
     }
 

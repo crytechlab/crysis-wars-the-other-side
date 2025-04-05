@@ -65,13 +65,13 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 	if (!CAlien::NetSerialize(ser,aspect,profile,flags))
 		return false;
 
-	if (aspect == TOS_NET::SERVER_ASPECT_STATIC)
+	if (aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
 		ser.Value("health", m_health);
 		ser.Value("maxHealth", m_maxHealth);
 	}
 
-	if (aspect == TOS_NET::CLIENT_ASPECT_DYNAMIC || aspect == TOS_NET::SERVER_ASPECT_DYNAMIC)
+	if (aspect == tos::net::CLIENT_ASPECT_DYNAMIC || aspect == tos::net::SERVER_ASPECT_DYNAMIC)
 	{
 		m_netBodyInfo.Serialize(GetEntity(), ser);// ок
 
@@ -99,7 +99,7 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 		}
 	}
 
-	if (aspect == TOS_NET::CLIENT_ASPECT_STATIC)
+	if (aspect == tos::net::CLIENT_ASPECT_STATIC)
 	{
 		//Блок скопирован из CPlayer::NetSerialize()
 
@@ -152,11 +152,11 @@ void CTOSAlien::PrePhysicsUpdate()
 	if (gEnv->bClient)
 	{
 		m_netBodyInfo.worldPos = GetEntity()->GetWorldPos();
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
 	}
 
 	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
@@ -177,7 +177,7 @@ void CTOSAlien::SetHealth(const int health)
 
 	if (gEnv->bServer)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 }
 

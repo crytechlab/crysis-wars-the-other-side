@@ -988,7 +988,7 @@ void CPlayerInput::SerializeSaveGame( TSerialize ser )
 bool CPlayerInput::OnActionMoveForward(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 
@@ -1018,7 +1018,7 @@ bool CPlayerInput::OnActionMoveForward(EntityId entityId, const ActionId& action
 bool CPlayerInput::OnActionMoveBack(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 
@@ -1060,7 +1060,7 @@ bool CPlayerInput::OnActionMoveBack(EntityId entityId, const ActionId& actionId,
 bool CPlayerInput::OnActionMoveLeft(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 
@@ -1090,7 +1090,7 @@ bool CPlayerInput::OnActionMoveLeft(EntityId entityId, const ActionId& actionId,
 bool CPlayerInput::OnActionMoveRight(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 
@@ -1212,7 +1212,7 @@ bool CPlayerInput::OnActionSuitSkin(EntityId entityId, const ActionId& actionId,
 bool CPlayerInput::OnActionJump(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 

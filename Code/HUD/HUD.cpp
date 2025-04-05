@@ -230,7 +230,7 @@ void CHUD::TOSSetInventoryHUD(IActor* pActor, const char* filePath) const
 	pHUD->m_animWeaponSelection.Unload();
 	pHUD->m_animWeaponSelection.Load(filePath, eFD_Right, eFAF_Visible | eFAF_ThisHandler);
 
-	TOS_HUD::ShowInventory(pActor, "null", "null");
+	tos::hud::ShowInventory(pActor, "null", "null");
 }
 
 void CHUD::TOSShowInventoryOverview(IActor* pActor, const char* curCategory, const char* curItem, bool grenades)
@@ -2080,7 +2080,7 @@ void CHUD::HandleFSCommand(const char* szCommand, const char* szArgs)
 		if (!pPlayer->IsZeus())
 			g_pTOSGame->GetZeusModule()->GetClientServer().DispatchMakeZeus(pPlayer, true);
 		else
-			TOS_HUD::DisplayOverlayMessage("You have already become ZEUS", ColorF(1, 0, 0, 1));
+			tos::hud::DisplayOverlayMessage("You have already become ZEUS", ColorF(1, 0, 0, 1));
 	}
 	//~TheOtherSide
 }

@@ -286,7 +286,7 @@ void STOSCvars::CmdDumpEntityInfo(IConsoleCmdArgs* pArgs)
 		CryLogAlways("	Authority: %s", strAuth);
 	}
 
-	TOS_Debug::DumpEntityFlags(pEntity);
+	tos::debug::DumpEntityFlags(pEntity);
 
 	IEntityRenderProxy* pRenderProxy = static_cast<IEntityRenderProxy*>(pEntity->GetProxy(ENTITY_PROXY_RENDER));
 

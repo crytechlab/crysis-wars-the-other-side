@@ -199,6 +199,9 @@
     <Filter Include="TheOtherSideMP\Game\Modules\DebugMenu">
       <UniqueIdentifier>{4b5f6ba9-a39f-41f4-ad7b-cd4626249eff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="TheOtherSideMP\Utilities\WinApiAdditions">
+      <UniqueIdentifier>{4e0bc1e6-68d1-45fa-b06c-3e1e79afa3ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp">
@@ -1658,9 +1661,6 @@
     <ClInclude Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_Custom.h">
       <Filter>TheOtherSideMP\Game\ScriptBinds</Filter>
     </ClInclude>
-    <ClInclude Include="TheOtherSideMP\Helpers\TOS_Hooks.h">
-      <Filter>TheOtherSideMP\Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="TheOtherSideMP\Utilities\IndexFinder.h">
       <Filter>TheOtherSideMP\Utilities</Filter>
     </ClInclude>
@@ -1669,9 +1669,6 @@
     </ClInclude>
     <ClInclude Include="CryMP\Library\WinAPI.h">
       <Filter>CryMP\Library</Filter>
-    </ClInclude>
-    <ClInclude Include="TheOtherSideMP\Utilities\VTables.h">
-      <Filter>TheOtherSideMP\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_Version.h">
       <Filter>TheOtherSideMP\Helpers</Filter>
@@ -1762,6 +1759,12 @@
     </ClInclude>
     <ClInclude Include="TheOtherSideMP\Game\Modules\DebugMenu\DebugMenu.h">
       <Filter>TheOtherSideMP\Game\Modules\DebugMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Utilities\WinApiAdditions\Functions.h">
+      <Filter>TheOtherSideMP\Utilities\WinApiAdditions</Filter>
+    </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Utilities\WinApiAdditions\VTables.h">
+      <Filter>TheOtherSideMP\Utilities\WinApiAdditions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -19,22 +19,22 @@ const bool mustDrawEnt = (entName).length() > 1 || (entId) > 0;\
 if (mustDrawDesc && mustDrawEnt)\
 {\
 	CryLog("[ExtraGameplayEvent] [%s] %s: %s, %s",\
-		TOS_Debug::GetEnv(), (eventName).c_str(), (entName).c_str(), (eventDesc).c_str());\
+		tos::debug::GetEnv(), (eventName).c_str(), (entName).c_str(), (eventDesc).c_str());\
 }\
 else if (mustDrawEnt && !mustDrawDesc)\
 {\
 	CryLog("[OnExtraGameplayEvent] [%s]: %s %s",\
-		TOS_Debug::GetEnv(), (eventName).c_str(), (entName).c_str());\
+		tos::debug::GetEnv(), (eventName).c_str(), (entName).c_str());\
 }\
 else if (mustDrawDesc && !mustDrawEnt)\
 {\
 	CryLog("[OnExtraGameplayEvent] [%s]: %s %s",\
-		TOS_Debug::GetEnv(), (eventName).c_str(), (eventDesc).c_str());\
+		tos::debug::GetEnv(), (eventName).c_str(), (eventDesc).c_str());\
 }\
 else\
 {\
 	CryLog("[OnExtraGameplayEvent] [%s]: %s",\
-		TOS_Debug::GetEnv(), (eventName).c_str());\
+		tos::debug::GetEnv(), (eventName).c_str());\
 }\
 
 

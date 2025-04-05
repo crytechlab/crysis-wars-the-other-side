@@ -46,7 +46,7 @@
 #include "TheOtherSideMP/Helpers/TOS_MasterModule.h"
 #include "TheOtherSideMP/HUD/TOSCrosshair.h"
 #include "TheOtherSideMP/Helpers/TOS_AI.h"
-#include <TheOtherSideMP\Helpers\TOS_Entity.h>
+#include "TheOtherSideMP/Helpers/TOS_Entity.h"
 //TheOtherSide
 
 DbgPlotter g_dbgPlotter;
@@ -4740,7 +4740,7 @@ void CGameRules::SetSpecies(int speciesIdx, EntityId entityId)
 	if (!pAI)
 		return;
 
-	TOS_AI::SetSpecies(pAI, speciesIdx);
+	tos::ai::SetSpecies(pAI, speciesIdx);
 }
 
 //
@@ -4755,5 +4755,5 @@ int CGameRules::GetSpecies(EntityId entityId)
 	if (!pAI)
 		return -1;
 
-	return TOS_AI::GetSpecies(pAI, false);
+	return tos::ai::GetSpecies(pAI, false);
 }

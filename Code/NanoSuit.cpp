@@ -949,7 +949,7 @@ bool CNanoSuit::SetMode(const ENanoMode mode, const bool forceUpdate, const bool
 			GetOwner()->GetEntity()->GetAI()->Event(AIEVENT_PLAYER_STUNT_CLOAK, nullptr);
 
 	//TheOtherSide
-	const int soundsVersion = TOS_Console::GetSafeIntVar("tos_cl_nanosuitSoundsVersion");
+	const int soundsVersion = tos::console::GetSafeIntVar("tos_cl_nanosuitSoundsVersion");
 
 	if (soundsVersion == 2)
 	{
@@ -1172,7 +1172,7 @@ void CNanoSuit::PlaySound(const ENanoSound sound, const float param, const bool 
 	bool playLoopModeSound = false;
 	ENanoMode loopMode = m_currentMode;
 
-	const int soundsVersion = TOS_Console::GetSafeIntVar("tos_cl_nanosuitSoundsVersion");
+	const int soundsVersion = tos::console::GetSafeIntVar("tos_cl_nanosuitSoundsVersion");
 	assert(soundsVersion == 1 || soundsVersion == 2);
 
 	if (soundsVersion == 1)
@@ -2014,7 +2014,7 @@ bool CNanoSuit::PlayLoopSound(const ENanoMode mode)
 		return ok;
 	}
 
-	const int soundsVersion = TOS_Console::GetSafeIntVar("tos_cl_nanosuitSoundsVersion");
+	const int soundsVersion = tos::console::GetSafeIntVar("tos_cl_nanosuitSoundsVersion");
 	if (soundsVersion != 2)
 	{
 		ok = false;

@@ -1616,7 +1616,7 @@ void CPlayer::SetIK( const SActorFrameMovementParams& frameMovementParams )
 			aimTarget = info.eyePosition + info.aimDirection * 5.0f; // If this is too close the aiming will fade out.
 
 			//TheOtherSide
-			aimEnabled = TOS_Console::GetSafeIntVar("tos_sv_PlayerAlwaysAiming", 1);
+			aimEnabled = tos::console::GetSafeIntVar("tos_sv_PlayerAlwaysAiming", 1);
 			//~TheOtherSide
 			// 
 			// TODO: This should probably be moved somewhere else and not done every frame.
@@ -5454,7 +5454,7 @@ void CPlayer::PlaySound(EPlayerSounds sound, bool play, bool param /*= false*/, 
 	const char* soundName = nullptr;
 
 	//TheOtherSide
-	const int feedbackVersion = TOS_Console::GetSafeIntVar("tos_cl_playerFeedbackSoundsVersion");
+	const int feedbackVersion = tos::console::GetSafeIntVar("tos_cl_playerFeedbackSoundsVersion");
 	assert(feedbackVersion == 1 || feedbackVersion == 2);
 
 	if (feedbackVersion == 2)

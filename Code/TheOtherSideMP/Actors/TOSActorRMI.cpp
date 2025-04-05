@@ -34,8 +34,8 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 	}
 
 	//CryLogAlways("<C++>[%s][%s][%s] mode = %s, animation = %s", 
-	//	TOS_Debug::GetEnv(), 
-	//	TOS_Debug::GetAct(3), 
+	//	tos::debug::GetEnv(), 
+	//	tos::debug::GetAct(3), 
 	//	__FUNCTION__, 
 	//	mode.c_str(), params.animation.c_str());
 
@@ -49,11 +49,11 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 //	m_isMaster = params.value;
 //	GetGameObject()->InvokeRMI(ClMarkMeAsMaster(), params, eRMI_ToAllClients);
 //
-//	GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+//	GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 //
 //	CryLog("<C++>[%s][%s][%s][%s] mark as master = %i",
-//		TOS_Debug::GetEnv(),
-//		TOS_Debug::GetAct(3),
+//		tos::debug::GetEnv(),
+//		tos::debug::GetAct(3),
 //		__FUNCTION__,
 //		m_debugName,
 //		params.value);
@@ -69,8 +69,8 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 //	m_isMaster = params.value;
 //
 //	CryLog("<C++>[%s][%s][%s][%s] mark as master = %i",
-//		TOS_Debug::GetEnv(),
-//		TOS_Debug::GetAct(3),
+//		tos::debug::GetEnv(),
+//		tos::debug::GetAct(3),
 //		__FUNCTION__,
 //		m_debugName,
 //		params.value);
@@ -84,11 +84,11 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 //
 //	m_isSlave = params.value;
 //
-//	GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+//	GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 //
 //	CryLog("<C++>[%s][%s][%s][%s] mark as slave = %i",
-//		TOS_Debug::GetEnv(),
-//		TOS_Debug::GetAct(3),
+//		tos::debug::GetEnv(),
+//		tos::debug::GetAct(3),
 //		__FUNCTION__,
 //		m_debugName,
 //		params.value);
@@ -104,8 +104,8 @@ IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
 //	m_isSlave = params.value;
 //
 //	CryLog("<C++>[%s][%s][%s][%s] mark as slave = %i",
-//		TOS_Debug::GetEnv(),
-//		TOS_Debug::GetAct(3),
+//		tos::debug::GetEnv(),
+//		tos::debug::GetAct(3),
 //		__FUNCTION__,
 //		m_debugName,
 //		params.value);
@@ -190,7 +190,7 @@ IMPLEMENT_RMI(CTOSActor, SvRequestAttachChild)
 IMPLEMENT_RMI(CTOSActor, ClClearInventory)
 {
 	CryLog("<C++>[%s][%s][ClClearInventory]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	RemoveAllItems();
 	return true;

@@ -23,7 +23,7 @@ CScriptBind_Zeus::~CScriptBind_Zeus()
 void CScriptBind_Zeus::RegisterMethods()
 {
 # define REGISTER_TEMPLATE(sGlobalName, sFuncName, sFuncParams)\
-	TOS_Script::RegisterTemplateFunction(sGlobalName, #sFuncName, sFuncParams, *this, &CScriptBind_Zeus::sFuncName)
+	tos::script::RegisterTemplateFunction(sGlobalName, #sFuncName, sFuncParams, *this, &CScriptBind_Zeus::sFuncName)
 
 	// REGISTER_TEMPLATE("System", TOSSpawnEntity, "params");
 	REGISTER_TEMPLATE("Zeus", OnOrderComplete, "executorId");

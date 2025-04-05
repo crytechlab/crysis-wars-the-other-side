@@ -185,8 +185,8 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 					if (!pClass)
 					{
 						CryLogAlways("<C++>[%s][%s] Class %s not found",
-									 TOS_Debug::GetEnv(),
-									 TOS_Debug::GetAct(1),
+									 tos::debug::GetEnv(),
+									 tos::debug::GetAct(1),
 									 slaveClsName.c_str());
 						break;
 					}
@@ -207,7 +207,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 						params.vanilla.vPosition = pEntity->GetWorldPos();
 						params.forceStartControl = true;
 
-						TOS_Entity::SpawnDelay(params, true);
+						tos::entity::SpawnDelay(params, true);
 					}
 				}
 			}
@@ -335,7 +335,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 							playerChannelId
 						);
 
-						TOS_Entity::RemoveEntityForced(pSlave->GetId());
+						tos::entity::RemoveEntityForced(pSlave->GetId());
 					}
 
 					MasterRemove(pPlayer->GetEntity());
@@ -419,13 +419,13 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 					{
 						//Вызывало баг, когда в какой-то момент раб перестал появляться после sv_restart
 						//Вернул, чтобы сущность удалялась после отключения клиента, а не когда актёр клиента вызвал Release
-						TOS_Entity::RemoveEntityForced(pSlave->GetId());
+						tos::entity::RemoveEntityForced(pSlave->GetId());
 					}
 
 					const auto pSavedEnt = g_pTOSGame->GetEntitySpawnModule()->GetSavedSlaveByAuthName(pPlayer->GetEntity()->GetName());
 					if (pSavedEnt)
 					{
-						TOS_Entity::RemoveEntityForced(pSavedEnt->GetId());
+						tos::entity::RemoveEntityForced(pSavedEnt->GetId());
 					}
 				}
 
@@ -549,7 +549,7 @@ void CTOSMasterModule::MasterAdd(const IEntity* pMasterEntity, const char* slave
 			if (pActor)
 			{
 				pActor->SetMeMaster(true);
-				pActor->GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+				pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 			}
 
 			TOS_RECORD_EVENT(id, STOSGameEvent(eEGE_MasterAdd, "", true));
@@ -561,7 +561,7 @@ void CTOSMasterModule::MasterAdd(const IEntity* pMasterEntity, const char* slave
 			if (pActor)
 			{
 				pActor->SetMeMaster(true);
-				pActor->GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+				pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 			}
 		}
 	}
@@ -581,7 +581,7 @@ void CTOSMasterModule::MasterRemove(const IEntity* pMasterEntity)
 			if (pActor)
 			{
 				pActor->SetMeMaster(false);
-				pActor->GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+				pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 			}
 
 
@@ -640,7 +640,7 @@ void CTOSMasterModule::SetCurrentSlave(const IEntity* pMasterEntity, const IEnti
 	if (pActor)
 	{
 		pActor->SetMeSlave(true);
-		pActor->GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+		pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 }
 
@@ -657,7 +657,7 @@ void CTOSMasterModule::ClearCurrentSlave(const IEntity* pMasterEntity)
 	if (pActor)
 	{
 		pActor->SetMeSlave(false);
-		pActor->GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+		pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 
 	m_masters[pMasterEntity->GetId()]->slaveId = 0;
@@ -800,7 +800,7 @@ void CTOSMasterModule::SaveMasterClientParams(IEntity* pMasterEntity)
 	params.rot = static_cast<Quat>(pMasterEntity->GetWorldAngles());
 
 	if (pAI)
-		params.species = TOS_AI::GetSpecies(pAI, false);
+		params.species = tos::ai::GetSpecies(pAI, false);
 
 	const auto pPlayer = static_cast<CTOSPlayer*>(g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pMasterEntity->GetId()));
 	assert(pPlayer);
@@ -888,7 +888,7 @@ void CTOSMasterModule::ApplyMasterClientParams(IEntity* pMasterEntity)
 
 		IAIObject* pAI = pMasterEntity->GetAI();
 		if (pAI)
-			TOS_AI::SetSpecies(pAI, species);
+			tos::ai::SetSpecies(pAI, species);
 
 		const IInventory* pInventory = pPlayer->GetInventory();
 		if (!pInventory)

@@ -15,7 +15,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 	// 2) Через меню паузы можно кликнуть по объектам...
 
 	CryLog("<C++>[%s][%s][SvRequestMakeZeus]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	return CTOSZeusModule::ClientServer::ServerMakeZeus(
 		this, 
@@ -27,7 +27,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClMakeZeus)
 {
 	CryLog("<C++>[%s][%s][ClMakeZeus]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	return CTOSZeusModule::ClientServer::ClientMakeZeus(params.bMake);
 }
@@ -38,7 +38,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 	if (gEnv->bServer)
 	{
 		CryLog("<C++>[%s][%s][SvRequestSpawnEntity]",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+			tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 		auto pZeusModule = g_pTOSGame->GetZeusModule();
 		assert(pZeusModule != nullptr);
@@ -81,7 +81,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 			return true;
 		}
 
-		bool bSpawned = TOS_Entity::SpawnDelay(spawnParams, true);
+		bool bSpawned = tos::entity::SpawnDelay(spawnParams, true);
 		if (!bSpawned)
 		{
 			CryLogError("[Zeus] entity with class '%s' spawn failed!", psClassName->c_str());
@@ -98,7 +98,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClSpawnEntity)
 	// Здесь пишем всё, что должно выполниться на клиенте
 
 	CryLog("<C++>[%s][%s][ClSpawnEntity]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 	 
 	auto pZeusModule = g_pTOSGame->GetZeusModule();
 	assert(pZeusModule != nullptr);
@@ -119,7 +119,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClSpawnEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestTransformEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestTransformEntity]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (!pEntity)
@@ -147,7 +147,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestTransformEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClTransformEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestTransformEntity]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (!pEntity)
@@ -173,7 +173,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClTransformEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestRemoveEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestRemoveEntity]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pActor = TOS_GET_ACTOR(params.id);
 	if (pActor)
@@ -181,7 +181,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestRemoveEntity)
 		auto pActorVeh = pActor->GetLinkedVehicle();
 		if (pActorVeh)
 		{
-			TOS_Vehicle::Exit(pActor, false, true);
+			tos::vehicle::Exit(pActor, false, true);
 		}
 	}
 
@@ -192,7 +192,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestRemoveEntity)
 		pEntity->Activate(false);
 	}
 
-	TOS_Entity::RemoveEntityDelayed(params.id, 2);
+	tos::entity::RemoveEntityDelayed(params.id, 2);
 
 	return true;
 }
@@ -201,7 +201,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestRemoveEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestKillEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestKillEntity]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	string hitType = "event";
 
@@ -215,7 +215,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestKillEntity)
 
 	auto pVehicle = TOS_GET_VEHICLE(params.targetId);
 	if (pVehicle)
-		TOS_Vehicle::Destroy(pVehicle);
+		tos::vehicle::Destroy(pVehicle);
 
 
 	return true;
@@ -225,7 +225,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestKillEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestExecuteOrder)
 {
 	CryLog("<C++>[%s][%s][SvRequestExecuteOrder]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	IScriptSystem* pSS = gEnv->pScriptSystem;
 	if (pSS->ExecuteFile("Scripts/AI/TOS/TOSHandleOrder.lua", true, true))
@@ -257,7 +257,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestExecuteOrder)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestHideEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestHideEntity]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (pEntity)
@@ -272,7 +272,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestHideEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClHideEntity)
 {
 	CryLog("<C++>[%s][%s][ClHideEntity]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (pEntity)
@@ -288,14 +288,14 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClHideEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestAIMakeHostile)
 {
 	CryLog("<C++>[%s][%s][SvRequestAIMakeHostile]",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (pEntity)
 	{
 		bool hostile = params.bHostile;
-		TOS_Script::GetEntityProperty(pEntity, "bSpeciesHostility", hostile);
-		TOS_AI::MakeHostile(pEntity->GetAI(), hostile);
+		tos::script::GetEntityProperty(pEntity, "bSpeciesHostility", hostile);
+		tos::ai::MakeHostile(pEntity->GetAI(), hostile);
 	}
 
 	return true;
@@ -307,7 +307,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 	if (gEnv->bServer)
 	{
 		CryLog("<C++>[%s][%s][SvRequestCopyEntity]",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+			tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 		auto pZeusModule = g_pTOSGame->GetZeusModule();
 		assert(pZeusModule != nullptr);
@@ -349,7 +349,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 			return true;
 		}
 
-		bool bSpawned = TOS_Entity::SpawnDelay(spawnParams, true);
+		bool bSpawned = tos::entity::SpawnDelay(spawnParams, true);
 		if (!bSpawned)
 		{
 			CryLogError("[Zeus] entity with class '%s' copy failed!", psClassName->c_str());

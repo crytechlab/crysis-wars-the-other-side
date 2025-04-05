@@ -182,12 +182,12 @@ bool CTOSZeusModule::OnInputEvent(const SInputEvent& event)
 						const bool movedOnHeight = m_local.m_draggingDelta.len() > 1;
 
 						auto pVehicle = TOS_GET_VEHICLE(*it);
-						if (pVehicle && TOS_Vehicle::IsAir(pVehicle) && movedOnHeight)
+						if (pVehicle && tos::vehicle::IsAir(pVehicle) && movedOnHeight)
 						{
 							SVehicleMovementEventParams params;
 							params.fValue = pVehicle->GetEntity()->GetWorldPos().z; // желаемая высота
 
-							TOS_Vehicle::BroadcastMovementEvent(pVehicle, IVehicleMovement::eVME_WarmUpEngine, params);
+							tos::vehicle::BroadcastMovementEvent(pVehicle, IVehicleMovement::eVME_WarmUpEngine, params);
 						}
 					}
 
@@ -529,7 +529,7 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 								// Actor перетаскивают на Vehicle
 								IVehicle* pDragVehicle = TOS_GET_VEHICLE(dragTargetId);
 								if (pDragVehicle && 
-									TOS_Vehicle::Enter(pSelectedActor, pDragVehicle, true))
+									tos::vehicle::Enter(pSelectedActor, pDragVehicle, true))
 								{
 									moveSelectedEnt = false;
 									needDeselect = true;
@@ -543,7 +543,7 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 								{
 									if (pDragActor->PickUpItem(pSelectedItem->GetEntityId(), true))
 									{
-										TOS_Inventory::SelectItemByClass(pDragActor,
+										tos::inventory::SelectItemByClass(pDragActor,
 											pSelectedItem->GetEntity()->GetClass()->GetName());
 
 										moveSelectedEnt = false;
@@ -645,7 +645,7 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 						m_local.SaveEntitiesStartPositions();
 
 						// Запуск таймера 
-						m_local.m_draggingMoveStartTimer = TOS_Console::GetSafeFloatVar("tos_sv_zeus_dragging_move_start_delay", 0.05f);
+						m_local.m_draggingMoveStartTimer = tos::console::GetSafeFloatVar("tos_sv_zeus_dragging_move_start_delay", 0.05f);
 					}
 
 					m_local.m_dragging = true;
@@ -880,7 +880,7 @@ void CTOSZeusModule::Update(float frametime)
 	///////////////////////////////////////////////////////////////////////
 	if (m_local.m_dragging && !zeusMoving && m_local.m_draggingMoveStartTimer == 0.0f)
 	{
-		const bool autoEntitiesHeight = TOS_Console::GetSafeIntVar("tos_sv_zeus_dragging_entities_auto_height", 0) == 1; // Расчет высоты для каждой сущности отдельно
+		const bool autoEntitiesHeight = tos::console::GetSafeIntVar("tos_sv_zeus_dragging_entities_auto_height", 0) == 1; // Расчет высоты для каждой сущности отдельно
 		const auto pClickedEntity = TOS_GET_ENTITY(m_local.m_curClickedEntityId);
 
 		m_local.m_mouseRayEntityFlags = ZEUS_DRAGGING_MOUSE_ENT_FLAGS;

@@ -168,7 +168,7 @@ void CTOSZeusModule::HandleFSCommand(const char* pCommand, const char* pArgs)
 
 		//params.vanilla.vPosition = spawnPos;
 
-		//IEntity* pSpawned = TOS_Entity::Spawn(params, false);
+		//IEntity* pSpawned = tos::entity::Spawn(params, false);
 		//if (!pSpawned)
 		//{
 		//	CryLogError("[Zeus] entity with class '%s' spawn failed!", psClassName->c_str());
@@ -213,10 +213,10 @@ void CTOSZeusModule::HUD::CreateOrderIcon(const Vec3& worldPos)
 
 	auto pAnim = &m_animZeusOrderIcons;
 
-	//const int	iMinDist = TOS_Console::GetSafeIntVar("tos_sv_zeus_on_screen_near_distance", 10);
-	//const int	iMaxDist = TOS_Console::GetSafeIntVar("tos_sv_zeus_on_screen_far_distance", 500);
-	//const float	fMinSize = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_near_size", 1.4f);
-	//const float	fMaxSize = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_far_size", 0.7f);
+	//const int	iMinDist = tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_near_distance", 10);
+	//const int	iMaxDist = tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_far_distance", 500);
+	//const float	fMinSize = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_near_size", 1.4f);
+	//const float	fMaxSize = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_far_size", 0.7f);
 
 	//const auto pPlayerActor = static_cast<CTOSActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
 	//const float fDist = (worldPos - pPlayerActor->GetEntity()->GetWorldPos()).len();
@@ -246,8 +246,8 @@ void CTOSZeusModule::HUD::CreateOrderIcon(const Vec3& worldPos)
 	float fHalfUselessSize = 0.0f;
 	pHUD->GetProjectionScale(pAnim, &fScaleX, &fScaleY, &fHalfUselessSize);
 
-	const float offsetX = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetX", 0.0f);
-	const float offsetY = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetY", 0.0f);
+	const float offsetX = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetX", 0.0f);
+	const float offsetY = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetY", 0.0f);
 
 	const float transX = orderScreenPos.x * fScaleX + fHalfUselessSize + offsetX;
 	const float transY = orderScreenPos.y * fScaleY + offsetY;
@@ -577,10 +577,10 @@ void CTOSZeusModule::HUD::CreateUnitIcon(EntityId unitEntityId, int friendly, in
 	float fHalfUselessSize = 0.0f;
 	pHUD->GetProjectionScale(pAnim, &fScaleX, &fScaleY, &fHalfUselessSize);
 
-	const int	iMinDist = TOS_Console::GetSafeIntVar("tos_sv_zeus_on_screen_near_distance", 10);
-	const int	iMaxDist = TOS_Console::GetSafeIntVar("tos_sv_zeus_on_screen_far_distance", 500);
-	const float	fMinSize = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_near_size", 1.4f);
-	const float	fMaxSize = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_far_size", 0.7f);
+	const int	iMinDist = tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_near_distance", 10);
+	const int	iMaxDist = tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_far_distance", 500);
+	const float	fMinSize = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_near_size", 1.4f);
+	const float	fMaxSize = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_far_size", 0.7f);
 
 	const auto pPlayerActor = static_cast<CTOSActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
 	const float fDist = (vWorldPos - pPlayerActor->GetEntity()->GetWorldPos()).len();
@@ -602,8 +602,8 @@ void CTOSZeusModule::HUD::CreateUnitIcon(EntityId unitEntityId, int friendly, in
 		fSize = ((fA / fB) * fC) + fMaxSize;
 	}
 
-	const float offsetX = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetX", 0.0f);
-	const float offsetY = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetY", 0.0f);
+	const float offsetX = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetX", 0.0f);
+	const float offsetY = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetY", 0.0f);
 
 	const float transX = vEntityScreenSpace.x * fScaleX + fHalfUselessSize + offsetX;
 	const float transY = vEntityScreenSpace.y * fScaleY + offsetY;
@@ -632,7 +632,7 @@ void CTOSZeusModule::HUD::FlashUpdateUnitIcons()
 
 	//const auto pClient = static_cast<CTOSActor*>(g_pGame->GetIGameFramework()->GetClientActor());
 	//const bool isZeus = pClient && pClient->IsZeus();
-	//const bool visible = isZeus && TOS_Console::GetSafeIntVar("tos_sv_zeus_on_screen_force_show", 1);
+	//const bool visible = isZeus && tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_force_show", 1);
 	if (icons->size())
 	{
 		pAnim->SetVisible(true);

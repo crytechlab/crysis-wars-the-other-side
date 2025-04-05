@@ -3814,7 +3814,7 @@ IMPLEMENT_RMI(CActor, ClSetSpectatorMode)
 
 	//TheOtherSide
 	CryLog("[ClSetSpectatorMode] Mode '%i', TargetId '%i', Actor '%s'",
-		TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), params.mode, params.targetId, GetEntity()->GetName());
+		tos::debug::GetEnv(), tos::debug::GetAct(3), params.mode, params.targetId, GetEntity()->GetName());
 	//~TheOtherSide
 
 	return true;

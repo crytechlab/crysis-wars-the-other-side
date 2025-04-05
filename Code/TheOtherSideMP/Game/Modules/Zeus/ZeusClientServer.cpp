@@ -156,7 +156,7 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(const CTOSGenericSynchronizer*
 		// Откл. ИИ для перса зевса
 		auto pAI = pTOSPlayer->GetEntity()->GetAI();
 		if (pAI)
-			TOS_AI::SendEvent(pAI, AIEVENT_DISABLE);
+			tos::ai::SendEvent(pAI, AIEVENT_DISABLE);
 
 		// Режим полета со столкновениями
 		pTOSPlayer->SetFlyMode(1);
@@ -191,7 +191,7 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(const CTOSGenericSynchronizer*
 			eRMI_ToClientChannel,
 			playerChannelId);
 
-		TOS_Inventory::GiveItem(pTOSPlayer, "NightVision", false, false, false);
+		tos::inventory::GiveItem(pTOSPlayer, "NightVision", false, false, false);
 	}
 	else
 	{
@@ -202,7 +202,7 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(const CTOSGenericSynchronizer*
 		// Откл. ИИ для перса зевса
 		auto pAI = pTOSPlayer->GetEntity()->GetAI();
 		if (pAI)
-			TOS_AI::SendEvent(pAI, AIEVENT_ENABLE);
+			tos::ai::SendEvent(pAI, AIEVENT_ENABLE);
 
 		// Отключаем режим полета
 		pTOSPlayer->SetFlyMode(0);

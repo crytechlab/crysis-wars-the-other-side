@@ -72,8 +72,8 @@ public:
 					{
 						const auto isGunner = GetPortBool(pActInfo, EIP_IsGunner);
 						const int index = isGunner ?
-							TOS_Vehicle::RequestGunnerSeatIndex(pVehicle) :
-							TOS_Vehicle::RequestFreeSeatIndex(pVehicle);
+							tos::vehicle::RequestGunnerSeatIndex(pVehicle) :
+							tos::vehicle::RequestFreeSeatIndex(pVehicle);
 
 						ActivateOutput(pActInfo, EOP_SeatId, index);
 					}
@@ -172,7 +172,7 @@ public:
 						if (pSeat)
 						{
 							//if (pSeat->Enter(pActor->GetEntityId(), false))
-							if (TOS_Vehicle::Enter(pActor, pVehicle, true))
+							if (tos::vehicle::Enter(pActor, pVehicle, true))
 							{
 								ActivateOutput(pActInfo, EOP_Success, 1);
 							}
@@ -385,7 +385,7 @@ public:
 
 				if (IsPortActive(pActInfo, EIP_Sync))
 				{
-					const auto pVehicle = TOS_Vehicle::GetVehicle(pActor);
+					const auto pVehicle = tos::vehicle::GetVehicle(pActor);
 					if (pVehicle)
 					{
 						const auto pSeat = pVehicle->GetSeatForPassenger(pActor->GetEntityId());
@@ -498,7 +498,7 @@ public:
 						const auto pSeat = pVehicle->GetSeatById(GetPortInt(pActInfo, EIP_SeatId));
 						if (pSeat && !pSeat->GetPassenger())
 						{
-							TOS_Vehicle::ChangeSeat(pActor, pSeat->GetSeatId(), false);
+							tos::vehicle::ChangeSeat(pActor, pSeat->GetSeatId(), false);
 							ActivateOutput(pActInfo, EOP_Success, 1);
 						}
 						else
@@ -597,9 +597,9 @@ public:
 					const auto* pVehicle = g_pGame->GetIGameFramework()->GetIVehicleSystem()->GetVehicle(GetPortEntityId(pActInfo, EIP_VehicleId));
 					if (pVehicle)
 					{
-						TOS_Vehicle::ActorIsDriver(pActor) ? ActivateOutput(pActInfo, EOP_IsDriver, 1) : void();
-						TOS_Vehicle::ActorIsGunner(pActor) ? ActivateOutput(pActInfo, EOP_IsGunner, 1) : void();
-						TOS_Vehicle::ActorIsPassenger(pActor) ? ActivateOutput(pActInfo, EOP_IsPassenger, 1) : void();
+						tos::vehicle::ActorIsDriver(pActor) ? ActivateOutput(pActInfo, EOP_IsDriver, 1) : void();
+						tos::vehicle::ActorIsGunner(pActor) ? ActivateOutput(pActInfo, EOP_IsGunner, 1) : void();
+						tos::vehicle::ActorIsPassenger(pActor) ? ActivateOutput(pActInfo, EOP_IsPassenger, 1) : void();
 					}
 				}
 			}

@@ -35,7 +35,7 @@ CTOSGame::CTOSGame() :
 {
 
 	// Получение версии по имени выполняемого файла
-    m_modVersion = TOS_Version::GetDLLVersion("CrysisTheOtherSide");
+    m_modVersion = tos::version::GetDLLVersion("CrysisTheOtherSide");
 }
 
 CTOSGame::~CTOSGame()
@@ -190,35 +190,35 @@ void CTOSGame::OnLoadingStart(ILevelInfo* pLevel)
 void CTOSGame::CacheAssets()
 {
 	//Пришельцы
-	TOS_Cache::CacheObject("Objects/Characters/Alien/trooper/Trooper.chr");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/trooper/trooper_leader.chr");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/scout/scout_base.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/scout/scout_leader.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/hunter/Hunter.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/AlienBase/AlienBase.cdf");
+	tos::cache::CacheObject("Objects/Characters/Alien/trooper/Trooper.chr");
+	tos::cache::CacheObject("Objects/Characters/Alien/trooper/trooper_leader.chr");
+	tos::cache::CacheObject("Objects/Characters/Alien/scout/scout_base.cdf");
+	tos::cache::CacheObject("Objects/Characters/Alien/scout/scout_leader.cdf");
+	tos::cache::CacheObject("Objects/Characters/Alien/hunter/Hunter.cdf");
+	tos::cache::CacheObject("Objects/Characters/Alien/AlienBase/AlienBase.cdf");
 
 	//Корейцы
-	TOS_Cache::CacheObject("Objects/Characters/Human/Asian/NK_Soldier/nk_soldier_jungle_cover_light_01.cdf");
+	tos::cache::CacheObject("Objects/Characters/Human/Asian/NK_Soldier/nk_soldier_jungle_cover_light_01.cdf");
 
 	//Нанокостюмы
-	TOS_Cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us_fp3p.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us_multiplayer.cdf");
-	TOS_Cache::CacheObject("objects/weapons/arms_global/arms_nanosuit_us.chr");
+	tos::cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us.cdf");
+	tos::cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us_fp3p.cdf");
+	tos::cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us_multiplayer.cdf");
+	tos::cache::CacheObject("objects/weapons/arms_global/arms_nanosuit_us.chr");
 	CNanoSuit::PrecacheMaterials(false);
 
-	TOS_Cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian_fp3p.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian_multiplayer.cdf");
-	TOS_Cache::CacheObject("objects/weapons/arms_global/arms_nanosuit_asian.chr");
+	tos::cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian.cdf");
+	tos::cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian_fp3p.cdf");
+	tos::cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian_multiplayer.cdf");
+	tos::cache::CacheObject("objects/weapons/arms_global/arms_nanosuit_asian.chr");
 	CNanoSuit::PrecacheMaterials(true);
 
 	//Прочие объекты
-	TOS_Cache::CacheObject("objects/effects/tracer_standard_new.cgf");
-	TOS_Cache::CacheObject("objects/effects/tracer_standard_red_new.cgf");
-	TOS_Cache::CacheMaterial("objects/effects/tracer_standard.mtl");
+	tos::cache::CacheObject("objects/effects/tracer_standard_new.cgf");
+	tos::cache::CacheObject("objects/effects/tracer_standard_red_new.cgf");
+	tos::cache::CacheMaterial("objects/effects/tracer_standard.mtl");
 
-	TOS_Cache::CacheObject("objects/characters/human/asian/nk_soldier/nk_soldier_frozen_scatter.cgf");
+	tos::cache::CacheObject("objects/characters/human/asian/nk_soldier/nk_soldier_frozen_scatter.cgf");
 }
 
 void CTOSGame::OnLoadingComplete(ILevel* pLevel)

@@ -134,7 +134,7 @@ IMPLEMENT_RMI(CTOSGenericSynchronizer, SvRequestPintest)
 	if (gEnv->bServer)
 	{
 		CryLogAlways("<C++>[%s][%s][SvRequestPintest] Game channel = %i, from %s",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), channelId, params.commentary.c_str());
+			tos::debug::GetEnv(), tos::debug::GetAct(3), channelId, params.commentary.c_str());
 	}
 
 	auto pActor = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActorByChannelId(channelId);
@@ -150,7 +150,7 @@ IMPLEMENT_RMI(CTOSGenericSynchronizer, ClPintest)
 	if (gEnv->bClient)
 	{
 		CryLogAlways("<C++>[%s][%s][ClPintest] Game channel = %i, from %s",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), channelId, params.commentary.c_str());
+			tos::debug::GetEnv(), tos::debug::GetAct(3), channelId, params.commentary.c_str());
 	}
 
 	return true;

@@ -608,8 +608,8 @@ void CItem::ProcessEvent(SEntityEvent& event)
 						InitialSetup();
 
 						//TheOtherSide
-						const bool enableFix = TOS_Console::GetSafeIntVar("tos_sv_enable_ghost_item_fix", 1) == 1;
-						const bool enableFixLog = TOS_Console::GetSafeIntVar("tos_sv_enable_ghost_item_fix_log", 1) == 1;
+						const bool enableFix = tos::console::GetSafeIntVar("tos_sv_enable_ghost_item_fix", 1) == 1;
+						const bool enableFixLog = tos::console::GetSafeIntVar("tos_sv_enable_ghost_item_fix_log", 1) == 1;
 						auto pEntity = GetEntity();
 						if (enableFix > 0 && pEntity)
 						{
@@ -636,7 +636,7 @@ void CItem::ProcessEvent(SEntityEvent& event)
 											CryLogAlways("[%s] GHOST ITEM REMOVED", pEntity->GetName());
 
 										//gEnv->pEntitySystem->RemoveEntity(pEntity->GetId());
-										TOS_Entity::RemoveEntityDelayed(pEntity->GetId(), 1);
+										tos::entity::RemoveEntityDelayed(pEntity->GetId(), 1);
 									}
 								}
 							}

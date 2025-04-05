@@ -797,7 +797,6 @@
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_HUD.h" />
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_Inventory.h" />
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_MasterModule.h" />
-    <ClInclude Include="TheOtherSideMP\Helpers\TOS_Hooks.h" />
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_NET.h" />
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_Screen.h" />
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_Script.h" />
@@ -808,7 +807,8 @@
     <ClInclude Include="TheOtherSideMP\HUD\TOSCrosshair.h" />
     <ClInclude Include="TheOtherSideMP\TOSSmartStruct.h" />
     <ClInclude Include="TheOtherSideMP\Utilities\IndexFinder.h" />
-    <ClInclude Include="TheOtherSideMP\Utilities\VTables.h" />
+    <ClInclude Include="TheOtherSideMP\Utilities\WinApiAdditions\Functions.h" />
+    <ClInclude Include="TheOtherSideMP\Utilities\WinApiAdditions\VTables.h" />
     <ClInclude Include="Throw.h" />
     <ClInclude Include="ThrowableWeapon.h" />
     <ClInclude Include="TracerManager.h" />

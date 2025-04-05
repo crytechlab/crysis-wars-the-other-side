@@ -27,11 +27,11 @@ void CTOSTrooper::PostInit(IGameObject* pGameObject)
 
 	if (m_pEnergyConsumer)
 	{
-		m_pEnergyConsumer->SetRegenStartDelayMP(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_mp"));
-		m_pEnergyConsumer->SetRegenStartDelaySP(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_sp"));
-		m_pEnergyConsumer->SetRegenStartDelay20Boundary(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_20boundary"));
-		m_pEnergyConsumer->SetRechargeTimeSP(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_sp"));
-		m_pEnergyConsumer->SetRechargeTimeMP(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_mp"));
+		m_pEnergyConsumer->SetRegenStartDelayMP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_mp"));
+		m_pEnergyConsumer->SetRegenStartDelaySP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_sp"));
+		m_pEnergyConsumer->SetRegenStartDelay20Boundary(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_20boundary"));
+		m_pEnergyConsumer->SetRechargeTimeSP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_sp"));
+		m_pEnergyConsumer->SetRechargeTimeMP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_mp"));
 	}
 
 }
@@ -133,13 +133,13 @@ bool CTOSTrooper::NetSerialize(TSerialize ser, const EEntityAspects aspect, cons
 	if (!CAlien::NetSerialize(ser, aspect, profile, flags))
 		return false;
 
-	if (aspect == TOS_NET::SERVER_ASPECT_STATIC)
+	if (aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
 		ser.Value("health", m_health);
 		ser.Value("maxHealth", m_maxHealth);
 	}
 
-	if (aspect == TOS_NET::CLIENT_ASPECT_DYNAMIC || aspect == TOS_NET::SERVER_ASPECT_DYNAMIC)
+	if (aspect == tos::net::CLIENT_ASPECT_DYNAMIC || aspect == tos::net::SERVER_ASPECT_DYNAMIC)
 	{
 		m_netBodyInfo.Serialize(GetEntity(), ser);// ок
 
@@ -186,14 +186,14 @@ void CTOSTrooper::ProcessMovement(const float frameTime)
 			m_jumpParams.duration = 0.4f; // подбиралось эмпирически. Через 0.4 сек переход из flying в approach landing
 			
 			const float	jumpPressDur = pSlaveStats->chargingJumpPressDur;
-			const float	jumpHeight = TOS_Console::GetSafeFloatVar("tos_tr_jump_height", 3);
-			//const float	jumpForceAdd = TOS_Console::GetSafeFloatVar("tos_tr_double_jump_force", 4.0f);
-			const float chargingTime = TOS_Console::GetSafeFloatVar("tos_tr_charging_jump_input_time", 0.20f);
-			const float chargingMul = TOS_Console::GetSafeFloatVar("tos_tr_charged_jump_mul", 2);
+			const float	jumpHeight = tos::console::GetSafeFloatVar("tos_tr_jump_height", 3);
+			//const float	jumpForceAdd = tos::console::GetSafeFloatVar("tos_tr_double_jump_force", 4.0f);
+			const float chargingTime = tos::console::GetSafeFloatVar("tos_tr_charging_jump_input_time", 0.20f);
+			const float chargingMul = tos::console::GetSafeFloatVar("tos_tr_charged_jump_mul", 2);
 			//const float	finalOnceJumpForce = jumpPressDur > chargingTime ? jumpForce + jumpForceAdd : jumpForce;
 			const float	mult = jumpPressDur > chargingTime ? chargingMul : 1.0f;
 
-			const float doubleJumpCost = TOS_Console::GetSafeFloatVar("tos_tr_double_jump_energy_cost");
+			const float doubleJumpCost = tos::console::GetSafeFloatVar("tos_tr_double_jump_energy_cost");
 			const float energy = TOS_SAFE_GET_ENERGY(this);
 
 			Vec3 jumpVec(0, 0, 0);
@@ -398,11 +398,11 @@ void CTOSTrooper::PrePhysicsUpdate()
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
 	}
 }
 
@@ -462,9 +462,9 @@ bool CTOSTrooper::ApplyActions(int actions)
 //		const float     onGround  = pActorStats->onGround;
 //		const float		jumpPressDur = pSlaveStats->chargingJumpPressDur;
 //		const float		jumpForce = 6.0f;
-//		const float		finalOnceJumpForce = jumpPressDur > TOS_Console::GetSafeFloatVar("tos_tr_charging_jump_input_time") ? jumpForce + 4.0f : jumpForce;
+//		const float		finalOnceJumpForce = jumpPressDur > tos::console::GetSafeFloatVar("tos_tr_charging_jump_input_time") ? jumpForce + 4.0f : jumpForce;
 //
-//		const float doubleJumpCost = TOS_Console::GetSafeFloatVar("tos_tr_double_jump_energy_cost");
+//		const float doubleJumpCost = tos::console::GetSafeFloatVar("tos_tr_double_jump_energy_cost");
 //		const float energy = TOS_SAFE_GET_ENERGY(this);
 //
 //		// Одиночный прыжок

@@ -1136,7 +1136,7 @@ void CHUDRadar::UpdateCompassStealth(CActor* pActor, float fDeltaTime)
 	//TheOtherSide
 	// allowedTeamId - Команда игроков, у которой работает стелс бар в мультиплеере
 	// all - у всех команд игроков работает стелс бар в мультиплеере
-	const string allowedTeamName = TOS_Console::GetSafeStringVar("tos_sv_EnableMPStealthOMeterForTeam");
+	const string allowedTeamName = tos::console::GetSafeStringVar("tos_sv_EnableMPStealthOMeterForTeam");
 	const int playerTeamId = g_pGame->GetGameRules()->GetTeam(pActor->GetEntityId());
 	const int allowedTeamId = g_pGame->GetGameRules()->GetTeamId(allowedTeamName.c_str());
 	const bool enableStealthOMeter = playerTeamId == allowedTeamId || allowedTeamName == "all";

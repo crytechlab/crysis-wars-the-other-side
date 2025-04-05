@@ -161,7 +161,7 @@ public:
 			{
 				CryLog("%s[%s] [%s] cannot start control Slave %s while in a vehicle", 
 					TOS_COLOR_YELLOW, 
-					TOS_Debug::GetEnv(), 
+					tos::debug::GetEnv(), 
 					pDudePlayer->GetEntity()->GetName(),
 					pInputEntity->GetName());
 

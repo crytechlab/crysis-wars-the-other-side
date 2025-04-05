@@ -7,7 +7,7 @@ Comrade, thx for helping to create this!
 
 #pragma once
 
-namespace Utils
+namespace WinAPIAdditions
 {
 	namespace VTables
 	{

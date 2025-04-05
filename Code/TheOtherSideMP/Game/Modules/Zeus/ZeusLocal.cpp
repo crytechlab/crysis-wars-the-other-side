@@ -124,7 +124,7 @@ void CTOSZeusModule::Local::Reset()
 
 bool CTOSZeusModule::Local::CanSelectMultiplyWithBox() const
 {
-	return m_mouseDownDurationSec > TOS_Console::GetSafeFloatVar("tos_sv_zeus_mass_selection_hold_sec", 0.2f);
+	return m_mouseDownDurationSec > tos::console::GetSafeFloatVar("tos_sv_zeus_mass_selection_hold_sec", 0.2f);
 }
 
 EntityId CTOSZeusModule::Local::GetMouseEntityId() const
@@ -298,7 +298,7 @@ bool CTOSZeusModule::Local::SelectionFilter(EntityId id) const
 		const string consoleVarName = it->second;
 
 		// Проверяем значение консольной переменной
-		if (TOS_Console::GetSafeIntVar(consoleVarName.c_str(), 1) == 1)
+		if (tos::console::GetSafeIntVar(consoleVarName.c_str(), 1) == 1)
 		{
 			return false;
 		}
@@ -307,7 +307,7 @@ bool CTOSZeusModule::Local::SelectionFilter(EntityId id) const
 	// Проверяем класс по умолчанию
 	if (pEntity->GetClass() == gEnv->pEntitySystem->GetClassRegistry()->GetDefaultClass())
 	{
-		if (TOS_Console::GetSafeIntVar("tos_sv_zeus_selection_ignore_default", 1) == 1)
+		if (tos::console::GetSafeIntVar("tos_sv_zeus_selection_ignore_default", 1) == 1)
 		{
 			return false;
 		}
@@ -324,7 +324,7 @@ void CTOSZeusModule::Local::GetSelectedEntities()
 		if (IEntity* pEntity = pIt->Next())
 		{
 			// выделяем только родительскую сущность
-			if (TOS_Console::GetSafeIntVar("tos_sv_zeus_selection_always_select_parent", 1) == 1 && pEntity->GetParent())
+			if (tos::console::GetSafeIntVar("tos_sv_zeus_selection_always_select_parent", 1) == 1 && pEntity->GetParent())
 				pEntity = pEntity->GetParent();
 
 			if (!SelectionFilter(pEntity->GetId()))
@@ -475,7 +475,7 @@ void CTOSZeusModule::Local::UpdateUnitIcons(IActor* pClientActor)
 				if (pActor->GetHealth() > 0)
 					color = EIconColor::Yellow;
 
-				auto pLinkedVehicle = TOS_Vehicle::GetVehicle(pActor);
+				auto pLinkedVehicle = tos::vehicle::GetVehicle(pActor);
 				if (pLinkedVehicle)
 					continue;
 			}
@@ -541,7 +541,7 @@ void CTOSZeusModule::Local::RemoveOrder(EntityId executorId)
 
 void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 {
-	if (TOS_Console::GetSafeIntVar("tos_cl_zeus_dragging_draw_debug", 0) > 0)
+	if (tos::console::GetSafeIntVar("tos_cl_zeus_dragging_draw_debug", 0) > 0)
 	{
 		IPersistantDebug* pPD = gEnv->pGame->GetIGameFramework()->GetIPersistantDebug();
 		pPD->Begin("ZeusModule", true);
@@ -560,7 +560,7 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 
 		pPD->AddSphere(m_orderPos, 0.40f, orderColor, 1.0f);
 		Vec3 ordScreenPos(ZERO);
-		TOS_Screen::ProjectToScreen(m_orderPos, ordScreenPos);
+		tos::screen::ProjectToScreen(m_orderPos, ordScreenPos);
 		pPD->AddText(ordScreenPos.x, ordScreenPos.y, 1.3f, orderColor, 1.0f, "Order position: (%1.f, %1.f, %1.f)", m_orderPos.x, m_orderPos.y, m_orderPos.z);
 		pPD->AddText(ordScreenPos.x, ordScreenPos.y + 20, 1.3f, orderColor, 1.0f, "Order target: %s", pOrderTargerEntity ? pOrderTargerEntity->GetName() : "NONE");
 
@@ -623,17 +623,17 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 
 		if (!m_selectedEntities.empty())
 		{
-			TOS_Debug::DrawEntitiesName2DLabel(m_selectedEntities, "Selected Entities: ", 100, startY + deltaY * 18, deltaY);
+			tos::debug::DrawEntitiesName2DLabel(m_selectedEntities, "Selected Entities: ", 100, startY + deltaY * 18, deltaY);
 		}
 
 		if (!m_doubleClickLastSelectedEntities.empty())
 		{
-			TOS_Debug::DrawEntitiesName2DLabel(m_doubleClickLastSelectedEntities, "DC Selected Entities: ", 300, startY + deltaY * 19, deltaY);
+			tos::debug::DrawEntitiesName2DLabel(m_doubleClickLastSelectedEntities, "DC Selected Entities: ", 300, startY + deltaY * 19, deltaY);
 		}
 
 		//if (!m_orders.empty())
 		//{
-		//	TOS_Debug::DrawEntitiesName2DLabelMap(m_orders, "Orders: ", 100, startY + deltaY * 20, deltaY);
+		//	tos::debug::DrawEntitiesName2DLabelMap(m_orders, "Orders: ", 100, startY + deltaY * 20, deltaY);
 		//}
 
 		// Вывод текстовой отладки кликнутой сущности
@@ -647,7 +647,7 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 		if (pDebugEntity)
 		{
 			Vec3 screenPos(ZERO);
-			TOS_Screen::ProjectToScreen(pDebugEntity->GetWorldPos(), screenPos);
+			tos::screen::ProjectToScreen(pDebugEntity->GetWorldPos(), screenPos);
 
 			auto pParentEnt = pDebugEntity->GetParent();
 
@@ -773,7 +773,7 @@ bool CTOSZeusModule::Local::UpdateDraggedEntity(EntityId id, const IEntity* pCli
 	if ((pActor && pActor->GetHealth() < 0.0f) || className == "DeadBody")
 	{
 		// Пропускаем убитых актеров при условии
-		if (TOS_Console::GetSafeIntVar("tos_sv_zeus_dragging_ignore_dead_bodies", 0) < 1)
+		if (tos::console::GetSafeIntVar("tos_sv_zeus_dragging_ignore_dead_bodies", 0) < 1)
 			return false;
 	}
 
@@ -857,7 +857,7 @@ bool CTOSZeusModule::Local::ExecuteCommand(ECommand command)
 	while (it != end)
 	{
 		const EntityId id = *it;
-		const int index = TOS_STL::GetIndexFromMapKey(m_selectedEntities, id);
+		const int index = tos::stl::GetIndexFromMapKey(m_selectedEntities, id);
 
 		IVehicle* pVehicle = g_pGame->GetIGameFramework()->GetIVehicleSystem()->GetVehicle(id);
 		IActor* pActor = TOS_GET_ACTOR(id);

@@ -65,7 +65,7 @@ bool CTOSActor::Init(IGameObject* pGameObject)
 void CTOSActor::PostInit(IGameObject* pGameObject)
 {
 	//CryLogAlways("<C++>[%s][%s][CTOSActor::PostInit] Actor: %s|%i",
-	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
+	//	tos::debug::GetEnv(), tos::debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
 
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorPostInit, "", true));
 
@@ -100,7 +100,7 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 void CTOSActor::InitClient(const int channelId)
 {
 	//CryLogAlways("<C++>[%s][%s][CTOSActor::InitClient] Actor: %s|%i|ch:%i",
-	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId(), channelId);
+	//	tos::debug::GetEnv(), tos::debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId(), channelId);
 
 	TOS_RECORD_EVENT(GetEntityId(), 
 		STOSGameEvent(eEGE_InitClient, "", true, false, nullptr, 0.0f, channelId));
@@ -224,7 +224,7 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 	if (!CActor::NetSerialize(ser,aspect,profile,flags))
 		return false;
 
-	if (aspect == TOS_NET::SERVER_ASPECT_STATIC)
+	if (aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
 		// Персонаж мастера всегда должен быть невидим
 		ser.Value("is_master", m_isMaster, 'bool');
@@ -252,8 +252,8 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 			
 	}
 
-	if (aspect == TOS_NET::CLIENT_ASPECT_STATIC || 
-		aspect == TOS_NET::SERVER_ASPECT_STATIC)
+	if (aspect == tos::net::CLIENT_ASPECT_STATIC || 
+		aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
 		//Блок скопирован из CPlayer::NetSerialize()
 
@@ -306,11 +306,11 @@ void CTOSActor::SelectNextItem(const int direction, const bool keepHistory, cons
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 }
 
@@ -320,11 +320,11 @@ void CTOSActor::HolsterItem(const bool holster)
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 }
 
@@ -334,11 +334,11 @@ void CTOSActor::SelectLastItem(const bool keepHistory, const bool forceNext /* =
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 
 }
@@ -349,11 +349,11 @@ void CTOSActor::SelectItemByName(const char* name, const bool keepHistory)
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 
 }
@@ -364,11 +364,11 @@ void CTOSActor::SelectItem(const EntityId itemId, const bool keepHistory)
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 }
 
@@ -411,7 +411,7 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 void CTOSActor::Release()
 {
 	//CryLogAlways("<C++>[%s][%s][CTOSActor::Release] Actor: %s|%i",
-	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
+	//	tos::debug::GetEnv(), tos::debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
 
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorRelease, "", true));
 
@@ -742,7 +742,7 @@ void CTOSActor::RemoveAllItems()
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
 	}
 }
 
@@ -825,7 +825,7 @@ void CTOSActor::GiveEquipmentPack()
 		char* equip;
 		if (props->GetValue("equip_EquipmentPack", equip))
 		{
-			TOS_Inventory::GiveEquipmentPack(this, string(equip), false);
+			tos::inventory::GiveEquipmentPack(this, string(equip), false);
 			CryLogAlways("[%s] acquired equipment pack %s", GetEntity()->GetName(), equip);
 		}
 	}
@@ -867,7 +867,7 @@ bool CTOSActor::SetMeMaster(bool value)
 bool CTOSActor::SetMeZeus(bool value)
 {
 	m_isZeus = value;
-	GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+	GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	return true;
 }
 
@@ -926,7 +926,7 @@ bool CTOSActor::SetMeZeus(bool value)
 //	}
 //
 //	//if (oldFilteredMovement.GetDistance(m_filteredDeltaMovement) > 0.001f)
-//	//	GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_INPUT);
+//	//	GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_INPUT);
 //
 //	return m_filteredDeltaMovement;
 //}

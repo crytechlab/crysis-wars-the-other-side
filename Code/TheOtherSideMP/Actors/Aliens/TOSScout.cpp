@@ -88,11 +88,11 @@ void CTOSScout::PrePhysicsUpdate()
 	if (gEnv->bClient)
 	{
 		m_netBodyInfo.worldPos = GetEntity()->GetWorldPos();
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
 	}
 
 	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())

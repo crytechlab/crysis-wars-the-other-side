@@ -22,7 +22,7 @@ CScriptBind_Custom::~CScriptBind_Custom()
 void CScriptBind_Custom::RegisterMethods()
 {
 # define REGISTER_TEMPLATE(sGlobalName, sFuncName, sFuncParams)\
-	TOS_Script::RegisterTemplateFunction(sGlobalName, #sFuncName, sFuncParams, *this, &CScriptBind_Custom::sFuncName)
+	tos::script::RegisterTemplateFunction(sGlobalName, #sFuncName, sFuncParams, *this, &CScriptBind_Custom::sFuncName)
 
 	// REGISTER_TEMPLATE("System", TOSSpawnEntity, "params");
 	REGISTER_TEMPLATE("AI", HasAI, "entityId");

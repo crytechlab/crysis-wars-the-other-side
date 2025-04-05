@@ -71,11 +71,11 @@ void CTOSHunter::PrePhysicsUpdate()
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
 	}
 }
 
@@ -84,13 +84,13 @@ bool CTOSHunter::NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profi
 	if (!CHunter::NetSerialize(ser, aspect, profile, flags))
 		return false;
 
-	if (aspect == TOS_NET::SERVER_ASPECT_STATIC)
+	if (aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
 		ser.Value("health", m_health);
 		ser.Value("maxHealth", m_maxHealth);
 	}
 
-	if (aspect == TOS_NET::CLIENT_ASPECT_DYNAMIC || aspect == TOS_NET::SERVER_ASPECT_DYNAMIC)
+	if (aspect == tos::net::CLIENT_ASPECT_DYNAMIC || aspect == tos::net::SERVER_ASPECT_DYNAMIC)
 	{
 		m_netBodyInfo.Serialize(GetEntity(), ser);// ок
 
@@ -107,7 +107,7 @@ bool CTOSHunter::NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profi
 		}
 	}
 
-	if (aspect == TOS_NET::CLIENT_ASPECT_STATIC)
+	if (aspect == tos::net::CLIENT_ASPECT_STATIC)
 	{
 		//Блок скопирован из CPlayer::NetSerialize()
 

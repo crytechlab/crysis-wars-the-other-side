@@ -1244,7 +1244,7 @@ IMPLEMENT_RMI(CGameRules, ClEnteredGame)
 
 			//TheOtherSide
 			//CryLogAlways("<C++>[%s][%s][ClEnteredGame] LocalPlayerNick = %s",
-				//TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), pActor->GetEntity()->GetName());
+				//tos::debug::GetEnv(), tos::debug::GetAct(3), pActor->GetEntity()->GetName());
 
 
 			TOS_RECORD_EVENT(pActor->GetEntityId(), STOSGameEvent(eEGE_ClientEnteredGame, "", true));
