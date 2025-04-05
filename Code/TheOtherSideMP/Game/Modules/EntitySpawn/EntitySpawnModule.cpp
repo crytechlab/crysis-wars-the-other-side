@@ -337,7 +337,7 @@ IEntity* CTOSEntitySpawnModule::SpawnEntity(STOSEntitySpawnParams& params, bool 
 
 	if (pActor)
 	{
-		if (gEnv->bMultiplayer && !pActor->IsPlayer())
+		if (pArchetype && gEnv->bMultiplayer && !pActor->IsPlayer())
 		{
 			//FIX: Применение модели архетипа
 			const char* fileModel = "";

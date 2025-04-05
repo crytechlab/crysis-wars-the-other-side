@@ -132,7 +132,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 	{
 	case ENTITY_EVENT_HIDE:
 	{
-		if (gEnv->bServer)
+		if (!IsPlayer() && gEnv->bServer)
 		{
 			GetInventory()->Clear();
 			m_isEntityHidden = true;
@@ -143,7 +143,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 	}
 	case ENTITY_EVENT_UNHIDE:
 	{
-		if (gEnv->bServer)
+		if (!IsPlayer() && gEnv->bServer)
 		{
 			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
 			m_isEntityHidden = false;
@@ -154,7 +154,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 	}
 	case ENTITY_EVENT_START_LEVEL:
 	{
-		if (gEnv->bServer)
+		if (!IsPlayer() && gEnv->bServer)
 		{
 			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
 			m_isEntityHidden = false;
