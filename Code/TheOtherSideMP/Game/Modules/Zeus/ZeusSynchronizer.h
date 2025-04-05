@@ -201,6 +201,61 @@ public:
 			ser.Value("bHostile", bHostile, 'bool');
 		}
 	};
+
+	struct NetServerEnterVehicleParams
+	{
+		EntityId actorId;
+		EntityId vehicleId;
+		bool fast;
+		
+
+		NetServerEnterVehicleParams()
+			:
+			actorId(ZERO),
+			vehicleId(ZERO),
+			fast(false)
+		{
+		};
+
+		NetServerEnterVehicleParams(EntityId _actorId, EntityId _vehId, bool _fast)
+			:
+			actorId(_actorId),
+			vehicleId(_vehId),
+			fast(_fast)
+		{
+		};
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("actorId", actorId, 'eid');
+			ser.Value("vehicleId", vehicleId, 'eid');
+			ser.Value("fast", fast, 'bool');
+		}
+	};	
+	
+	struct NetClientEnterVehicleParams
+	{
+		EntityId actorId;
+		EntityId vehicleId;
+		int seatId;
+		
+
+		NetClientEnterVehicleParams()
+			:
+			actorId(ZERO),
+			vehicleId(ZERO),
+			seatId(ZERO)
+		{
+		};
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("actorId", actorId, 'eid');
+			ser.Value("vehicleId", vehicleId, 'eid');
+			ser.Value("seatId", seatId);
+		}
+	};	
+	
 	const char* GetNameOfClass() { return "CTOSZeusSynchronizer"; }
 
 	//CLIENT - Направленные на клиент
@@ -225,4 +280,8 @@ public:
 
 	DECLARE_SERVER_RMI_PREATTACH(SvRequestMakeZeus, NetMakeParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_PREATTACH(ClMakeZeus, NetMakeParams, eNRT_ReliableOrdered);
+
+	DECLARE_SERVER_RMI_POSTATTACH(SvRequestVehicleEnter, NetServerEnterVehicleParams, eNRT_ReliableUnordered);
+	DECLARE_CLIENT_RMI_POSTATTACH(ClVehicleEnter, NetClientEnterVehicleParams, eNRT_ReliableUnordered);
+
 };

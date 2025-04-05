@@ -528,11 +528,20 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							{
 								// Actor перетаскивают на Vehicle
 								IVehicle* pDragVehicle = TOS_GET_VEHICLE(dragTargetId);
-								if (pDragVehicle && 
-									tos::vehicle::Enter(pSelectedActor, pDragVehicle, true))
+								if (pDragVehicle)
 								{
-									moveSelectedEnt = false;
-									needDeselect = true;
+									//tos::vehicle::Enter(pSelectedActor, pDragVehicle, true);
+									bool enter = ClientServer::ClientEnterVehicle(
+										GetSynchronizer(), 
+										pSelectedActor, 
+										pDragVehicle, 
+										true);
+
+									if (enter)
+									{
+										moveSelectedEnt = false;
+										needDeselect = true;
+									}
 								}
 							}
 							else if (pSelectedItem)

@@ -247,6 +247,7 @@ public:
 		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId); 
 		static bool ServerMakeZeus(const CTOSGenericSynchronizer* pZeusSync, int playerChannelId, bool make);
 		static bool ClientMakeZeus(bool make);
+		static bool ClientEnterVehicle(const CTOSGenericSynchronizer* pZeusSync, IActor* pActor, IVehicle* pVehicle, bool fast);
 
 	public:
 		CTOSZeusModule* pParent;

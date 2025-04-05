@@ -359,3 +359,17 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 
 	return true;
 }
+
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestVehicleEnter)
+{
+	IVehicle* pVehicle = TOS_GET_VEHICLE(params.vehicleId);
+	IActor* pActor = TOS_GET_ACTOR(params.actorId);
+											
+	if (!pVehicle || !pActor)
+		return true;
+
+	tos::vehicle::Enter(pActor, pVehicle, params.fast);
+
+	return true;
+}

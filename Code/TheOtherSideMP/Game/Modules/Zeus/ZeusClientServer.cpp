@@ -343,3 +343,26 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 
 	return true;
 }
+
+bool CTOSZeusModule::ClientServer::ClientEnterVehicle(const CTOSGenericSynchronizer* pZeusSync, IActor* pActor, IVehicle* pVehicle, bool fast)
+{
+	if (!pActor || !pVehicle)
+		return false;
+
+	const auto pZeusModule = g_pTOSGame->GetZeusModule();
+	if (!pZeusModule)
+		return false;
+
+	if (!gEnv->bClient)
+		return false;
+
+	pZeusSync->GetGameObject()->InvokeRMI(
+		CTOSZeusSynchronizer::SvRequestVehicleEnter(),
+		CTOSZeusSynchronizer::NetServerEnterVehicleParams(
+			pActor->GetEntityId(),
+			pVehicle->GetEntityId(),
+			fast),
+		eRMI_ToServer);
+
+	return true;
+}
