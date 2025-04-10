@@ -37,5 +37,18 @@
         "Action": "Start"
       }
     ]
+  },
+  {
+    "Name": "Client as Server + Client ",
+    "Projects": [
+      {
+        "Path": "Helpers\\LaunchClient\\LaunchClient.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Helpers\\LaunchClientAsServer\\LaunchClientAsServer.vcxproj",
+        "Action": "Start"
+      }
+    ]
   }
 ]
