@@ -7,6 +7,7 @@
 #include <TheOtherSideMP/Helpers/TOS_Screen.h>
 #include <TheOtherSideMP/Helpers/TOS_Vehicle.h>
 #include <TheOtherSideMP/Helpers/TOS_STL.h>
+#include <TheOtherSideMP/Helpers/TOS_NET.h>
 
 static CTOSZeusModule::SOBBWorldPos* CreateBoxForEntity(EntityId id)
 {
@@ -661,9 +662,11 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 
 			int actorDelta = 7;
 			int itemDelta = 7;
+			int vehicleDelta = 7;
 
-			auto pActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pDebugEntity->GetId()));
-			auto pItem = static_cast<CItem*>(TOS_GET_ITEM(pDebugEntity->GetId()));
+			const auto pActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pDebugEntity->GetId()));
+			const auto pItem = static_cast<CItem*>(TOS_GET_ITEM(pDebugEntity->GetId()));
+			const auto pVehicle = (TOS_GET_VEHICLE(pDebugEntity->GetId()));
 
 			if (pActor)
 			{
@@ -715,6 +718,26 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 				pPD->AddText(screenPos.x, screenPos.y + 20 * (itemDelta + 7), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "used = %i", int(pItem->GetStats().used));
 				pPD->AddText(screenPos.x, screenPos.y + 20 * (itemDelta + 8), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "updating = %i", int(pItem->GetStats().updating));
 				pPD->AddText(screenPos.x, screenPos.y + 20 * (itemDelta + 9), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "inOwnerInventory = %i", pActorOwner ? (pActorOwner->GetInventory()->FindItem(pItem->GetEntityId())) : -1);
+			}
+			else if (pVehicle)
+			{
+				auto pDriver = pVehicle->GetDriver();
+
+				SMovementState state;
+				pVehicle->GetMovement()->GetMovementState(state);
+				const auto& status = pVehicle->GetStatus();
+
+				pPD->AddText(screenPos.x, screenPos.y + 20 * (vehicleDelta + 0), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "Driver = %s(%s)", 
+					pDriver ? pDriver->GetEntity()->GetName() : "NONE", 
+					pDriver ? string(pDriver->GetEntityId()) : "NONE");
+				pPD->AddText(screenPos.x, screenPos.y + 20 * (vehicleDelta + 1), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "state.maxSpeed = %f",
+					state.maxSpeed);
+				pPD->AddText(screenPos.x, screenPos.y + 20 * (vehicleDelta + 2), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "status.speed = %f",
+					status.speed);
+				pPD->AddText(screenPos.x, screenPos.y + 20 * (vehicleDelta + 3), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "status.passengerCount = %i",
+					status.passengerCount);
+				pPD->AddText(screenPos.x, screenPos.y + 20 * (vehicleDelta + 4), 1.2f, ColorF(1, 1, 1, 1), 1.0f, "status.health = %f",
+					status.health);				
 			}
 		}
 
@@ -962,11 +985,11 @@ bool CTOSZeusModule::Local::ExecuteCommand(ECommand command)
 // Исправлено: ИИ при старте/спавне без оружия
 // Исправлено: Игрок - зевс видим для остальных и для себя
 // Исправлено: Постоянно срет логами Unregister AI For Actor, если игрок - зритель
-// Фиксить: ИИ в машине при езде не поворачивает колеса
-// Фиксить: Мышь не работает при выходе из режима зевса (ФИКС НУЖНО ПРОТЕСТИТЬ В ИГРЕ)
-// Фиксить: Вылет при появлении трупера на карте
-// Фиксить: Grunt не поворачивается плавно
 // Исправлено: Игрок по приказу зевса садится в т.с. только на клиенте зевса 
 // Исправлено: При спавне ИИ через меню зевса выбранное оружие ИИ может не совпадать между клиентами. 
 // Исправлено: У ИИ нет синхронизации смены вооружения
 // Исправлено: При заходе нового клиента, ИИшкам выдается оружие и это видно у всех...
+// Фиксить: ИИ в машине при езде не поворачивает колеса
+// Фиксить: Мышь не работает при выходе из режима зевса (ФИКС НУЖНО ПРОТЕСТИТЬ В ИГРЕ)
+// Фиксить: Вылет при появлении трупера на карте
+// Фиксить: Grunt не поворачивается плавно
