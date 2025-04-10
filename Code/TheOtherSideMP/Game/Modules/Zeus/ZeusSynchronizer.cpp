@@ -368,7 +368,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestVehicleEnter)
 	if (!pVehicle || !pActor)
 		return true;
 
-	tos::vehicle::Enter(pActor, pVehicle, params.fast);
+	CTOSZeusModule::ClientServer::ServerEnterVehicle(pActor, pVehicle, params.fast);
 
 	return true;
 }

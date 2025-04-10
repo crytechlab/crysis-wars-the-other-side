@@ -531,7 +531,7 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 								if (pDragVehicle)
 								{
 									//tos::vehicle::Enter(pSelectedActor, pDragVehicle, true);
-									bool enter = ClientServer::ClientEnterVehicle(
+									bool enter = ClientServer::DispatchEnterVehicle(
 										pSelectedActor, 
 										pDragVehicle, 
 										true);

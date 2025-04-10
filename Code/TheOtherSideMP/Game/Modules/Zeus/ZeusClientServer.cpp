@@ -97,11 +97,11 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3&
 		clientChannelId);
 }
 
-void CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake)
+bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake)
 {
 	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
 	if (!pSync)
-		return;
+		return false;
 
 	auto pTOSPlayer = static_cast<CTOSActor*>(pPlayer);
 
@@ -132,10 +132,12 @@ void CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake)
 			CTOSZeusSynchronizer::SvRequestMakeZeus(),
 			params,
 			eRMI_ToServer);
+
+		return true;
 	}
 	else
 	{
-		CTOSZeusModule::ClientServer::ServerMakeZeus(
+		return CTOSZeusModule::ClientServer::ServerMakeZeus(
 			params.playerChannelId,
 			params.bMake);
 	}
@@ -353,15 +355,15 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 }
 
 
-void CTOSZeusModule::ClientServer::DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast)
+bool CTOSZeusModule::ClientServer::DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast)
 {
 	if (!pActor || !pVehicle)
-		return;
+		return false;
 
 	if (gEnv->bServer)
-		ServerEnterVehicle(pActor, pVehicle, fast);
+		return ServerEnterVehicle(pActor, pVehicle, fast);
 	else
-		ClientEnterVehicle(pActor, pVehicle, fast);
+		return ClientEnterVehicle(pActor, pVehicle, fast);
 }
 
 

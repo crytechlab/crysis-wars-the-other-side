@@ -243,14 +243,15 @@ public:
 		void SetPP(int amount);
 		int  GetPP();
 		void ServerOnEntitySpawned(EntityId id, const Vec3& pos, int clientChannelId);
-		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId); 
-		static void DispatchMakeZeus(IActor* pPlayer, bool bMake);
+		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId);
+
+		static bool DispatchMakeZeus(IActor* pPlayer, bool bMake);
 		static bool ServerMakeZeus(int playerChannelId, bool make);
 		static bool ClientMakeZeus(bool make);
 
-		static void DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
-		static bool ClientEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
+		static bool DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
 		static bool ServerEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
+		static bool ClientEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
 
 	public:
 		CTOSZeusModule* pParent;
