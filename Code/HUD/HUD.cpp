@@ -2078,7 +2078,9 @@ void CHUD::HandleFSCommand(const char* szCommand, const char* szArgs)
 	{
 		auto pPlayer = static_cast<CTOSPlayer*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
 		if (!pPlayer->IsZeus())
-			g_pTOSGame->GetZeusModule()->GetClientServer().DispatchMakeZeus(pPlayer, true);
+		{
+			CTOSZeusModule::ClientServer::DispatchMakeZeus(pPlayer, true);
+		}
 		else
 			tos::hud::DisplayOverlayMessage("You have already become ZEUS", ColorF(1, 0, 0, 1));
 	}

@@ -240,14 +240,17 @@ public:
 			pParent(_pParent)
 		{}
 
-		void DispatchMakeZeus(IActor* pPlayer, bool bMake);
 		void SetPP(int amount);
 		int  GetPP();
 		void ServerOnEntitySpawned(EntityId id, const Vec3& pos, int clientChannelId);
 		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId); 
-		static bool ServerMakeZeus(const CTOSGenericSynchronizer* pZeusSync, int playerChannelId, bool make);
+		static void DispatchMakeZeus(IActor* pPlayer, bool bMake);
+		static bool ServerMakeZeus(int playerChannelId, bool make);
 		static bool ClientMakeZeus(bool make);
-		static bool ClientEnterVehicle(const CTOSGenericSynchronizer* pZeusSync, IActor* pActor, IVehicle* pVehicle, bool fast);
+
+		static void DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
+		static bool ClientEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
+		static bool ServerEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
 
 	public:
 		CTOSZeusModule* pParent;

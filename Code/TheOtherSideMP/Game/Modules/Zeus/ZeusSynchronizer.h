@@ -282,6 +282,6 @@ public:
 	DECLARE_CLIENT_RMI_PREATTACH(ClMakeZeus, NetMakeParams, eNRT_ReliableOrdered);
 
 	DECLARE_SERVER_RMI_POSTATTACH(SvRequestVehicleEnter, NetServerEnterVehicleParams, eNRT_ReliableUnordered);
-	DECLARE_CLIENT_RMI_POSTATTACH(ClVehicleEnter, NetClientEnterVehicleParams, eNRT_ReliableUnordered);
+	//DECLARE_CLIENT_RMI_POSTATTACH(ClVehicleEnter, NetClientEnterVehicleParams, eNRT_ReliableUnordered);
 
 };

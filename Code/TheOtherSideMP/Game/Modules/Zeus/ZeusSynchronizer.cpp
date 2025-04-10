@@ -18,7 +18,6 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 		tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	return CTOSZeusModule::ClientServer::ServerMakeZeus(
-		this, 
 		params.playerChannelId, 
 		params.bMake);
 }

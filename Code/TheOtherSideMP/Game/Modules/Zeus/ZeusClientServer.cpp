@@ -5,6 +5,7 @@
 #include <TheOtherSideMP/Helpers/TOS_AI.h>
 #include <TheOtherSideMP/Helpers/TOS_Entity.h>
 #include <TheOtherSideMP/Helpers/TOS_Inventory.h>
+#include <TheOtherSideMP/Helpers/TOS_Vehicle.h>
 #include <TheOtherSideMP/Actors/Player/TOSPlayer.h>
 
 // ПОКА НЕ ИСПОЛЬЗУЕТСЯ
@@ -98,6 +99,10 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3&
 
 void CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake)
 {
+	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
+	if (!pSync)
+		return;
+
 	auto pTOSPlayer = static_cast<CTOSActor*>(pPlayer);
 
 	CTOSZeusSynchronizer::NetMakeParams params;
@@ -123,7 +128,7 @@ void CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake)
 			}
 		}
 
-		pParent->GetSynchronizer()->RMISend(
+		pSync->GetGameObject()->InvokeRMI(
 			CTOSZeusSynchronizer::SvRequestMakeZeus(),
 			params,
 			eRMI_ToServer);
@@ -131,16 +136,19 @@ void CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake)
 	else
 	{
 		CTOSZeusModule::ClientServer::ServerMakeZeus(
-			pParent->GetSynchronizer(),
 			params.playerChannelId,
 			params.bMake);
 	}
 }
 
-bool CTOSZeusModule::ClientServer::ServerMakeZeus(const CTOSGenericSynchronizer* pZeusSync, int playerChannelId, bool make)
+bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make)
 {
+	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
+	if (!pSync)
+		return false;
+
 	auto pTOSPlayer = static_cast<CTOSPlayer*>(TOS_GET_ACTOR_CHANNELID(playerChannelId));
-	if (!gEnv->bServer || !pZeusSync || !pTOSPlayer)
+	if (!gEnv->bServer || !pSync || !pTOSPlayer)
 		return false;
 
 	// Сбрасываем статы
@@ -185,7 +193,7 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(const CTOSGenericSynchronizer*
 			CActor::NoParams(),
 			eRMI_ToAllClients);
 
-		pZeusSync->GetGameObject()->InvokeRMI(
+		pSync->GetGameObject()->InvokeRMI(
 			CTOSZeusSynchronizer::ClMakeZeus(),
 			CTOSZeusSynchronizer::NetMakeParams(playerChannelId, make),
 			eRMI_ToClientChannel,
@@ -231,7 +239,7 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(const CTOSGenericSynchronizer*
 			CActor::NoParams(),
 			eRMI_ToAllClients);
 
-		pZeusSync->GetGameObject()->InvokeRMI(
+		pSync->GetGameObject()->InvokeRMI(
 			CTOSZeusSynchronizer::ClMakeZeus(),
 			CTOSZeusSynchronizer::NetMakeParams(playerChannelId, make),
 			eRMI_ToClientChannel,
@@ -344,9 +352,26 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 	return true;
 }
 
-bool CTOSZeusModule::ClientServer::ClientEnterVehicle(const CTOSGenericSynchronizer* pZeusSync, IActor* pActor, IVehicle* pVehicle, bool fast)
+
+void CTOSZeusModule::ClientServer::DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast)
 {
 	if (!pActor || !pVehicle)
+		return;
+
+	if (gEnv->bServer)
+		ServerEnterVehicle(pActor, pVehicle, fast);
+	else
+		ClientEnterVehicle(pActor, pVehicle, fast);
+}
+
+
+bool CTOSZeusModule::ClientServer::ClientEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast)
+{
+	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
+	if (!pSync)
+		return false;
+
+	if (!pActor || !pVehicle || !pSync)
 		return false;
 
 	const auto pZeusModule = g_pTOSGame->GetZeusModule();
@@ -356,7 +381,7 @@ bool CTOSZeusModule::ClientServer::ClientEnterVehicle(const CTOSGenericSynchroni
 	if (!gEnv->bClient)
 		return false;
 
-	pZeusSync->GetGameObject()->InvokeRMI(
+	pSync->GetGameObject()->InvokeRMI(
 		CTOSZeusSynchronizer::SvRequestVehicleEnter(),
 		CTOSZeusSynchronizer::NetServerEnterVehicleParams(
 			pActor->GetEntityId(),
@@ -365,4 +390,15 @@ bool CTOSZeusModule::ClientServer::ClientEnterVehicle(const CTOSGenericSynchroni
 		eRMI_ToServer);
 
 	return true;
+}
+
+bool CTOSZeusModule::ClientServer::ServerEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast)
+{
+	if (!pActor || !pVehicle)
+		return false;
+
+	if (!gEnv->bServer)
+		return false;
+
+	return tos::vehicle::Enter(pActor, pVehicle, fast);
 }
