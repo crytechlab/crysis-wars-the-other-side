@@ -327,9 +327,9 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 		spawnParams.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)
 		spawnParams.vanilla.bIgnoreLock = false; // spawn lock игнор
 
-		auto pPlayer = TOS_GET_ACTOR_CHANNELID(params.playerChannelId);
-		if (pPlayer)
-			spawnParams.authorityPlayerName = pPlayer->GetEntity()->GetName();
+		//auto pPlayer = TOS_GET_ACTOR_CHANNELID(params.playerChannelId);
+		//if (pPlayer)
+		//	spawnParams.authorityPlayerName = pPlayer->GetEntity()->GetName();
 
 		const string* const psClassName = &params.className;
 		IEntityClass* pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(psClassName->c_str());
