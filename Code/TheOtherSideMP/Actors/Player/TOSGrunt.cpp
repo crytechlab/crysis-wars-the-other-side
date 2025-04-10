@@ -93,21 +93,21 @@ void CTOSGrunt::Update(SEntityUpdateContext& ctx, int updateSlot)
 		CMovementRequest currMovement = static_cast<CPlayerMovementController*>(m_pMovementController)->GetMovementReqState();
 
 		//Vec3
-		m_vMoveTarget = currMovement.GetMoveTarget();
-		m_vAimTarget = currMovement.GetAimTarget();
-		m_vLookTarget = currMovement.GetLookTarget();
-		m_vBodyTarget = currMovement.GetBodyTarget();
-		m_vFireTarget = currMovement.GetFireTarget();
+		m_vMoveTarget = currMovement.HasMoveTarget() ? currMovement.GetMoveTarget() : Vec3(ZERO);
+		m_vAimTarget  = currMovement.HasAimTarget()  ? currMovement.GetAimTarget()  : Vec3(ZERO);
+		m_vLookTarget = currMovement.HasLookTarget() ? currMovement.GetLookTarget() : Vec3(ZERO);
+		m_vBodyTarget = currMovement.HasBodyTarget() ? currMovement.GetBodyTarget() : Vec3(ZERO);
+		m_vFireTarget = currMovement.HasFireTarget() ? currMovement.GetFireTarget() : Vec3(ZERO);
 			   
 		// Float
-		m_fPseudoSpeed = currMovement.GetPseudoSpeed();
-		m_fDesiredSpeed = currMovement.GetDesiredSpeed();
+		m_fPseudoSpeed = currMovement.HasPseudoSpeed() ? currMovement.GetPseudoSpeed() : 0.0f;
+		m_fDesiredSpeed = currMovement.HasDesiredSpeed() ? currMovement.GetDesiredSpeed() : 0.0f;
 
 		// Int
 		int nPreviousStance = m_nStance;
 		int nPreviousAlert = m_nAlertness;
 
-		m_nStance = currMovement.GetStance();
+		m_nStance = currMovement.HasStance() ? currMovement.GetStance() : EStance::STANCE_RELAXED;
 		m_nAlertness = currMovement.GetAlertness();
 
 		if (m_nAlertness != nPreviousAlert || m_nStance != nPreviousStance) { bStaticsChanged = true; }
