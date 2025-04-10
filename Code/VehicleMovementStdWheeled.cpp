@@ -869,6 +869,43 @@ void CVehicleMovementStdWheeled::Update(const float deltaTime)
 
     const SVehicleDamageParams& damageParams = m_pVehicle->GetDamageParams();
     m_submergedRatioMax = damageParams.submergedRatioMax;
+
+    //TheOtherSide
+
+    NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_actorId);
+    NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_action.pedal);
+    NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_action.steer);
+    NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_action.bHandBrake);
+    NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_action.iGear);
+    NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_bForceSleep);
+    NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_bMovementProcessingEnabled);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_movementAction.brake);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_movementAction.isAI);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_movementAction.power);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_movementAction.rotatePitch);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_movementAction.rotateRoll);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_movementAction.rotateYaw);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_aiRequest.GetMoveTarget());
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_aiRequest.GetLookTarget());
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_aiRequest.GetDesiredSpeed());
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_vehicleStatus.steer);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_vehicleStatus.pedal);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_vehicleStatus.vel);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_vehicleStatus.type);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_vehicleStatus.bWheelContact);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_havePublished);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_lastCancelation);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_lastReceived);    
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_published.m_boost);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_published.m_brake);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_published.m_pedal);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_published.m_steer);   
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_received.m_boost);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_received.m_brake);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_received.m_pedal);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_netActionSync.m_received.m_steer);
+
+    //~TheOtherSide
 }
 
 //------------------------------------------------------------------------
@@ -1433,6 +1470,18 @@ void CVehicleMovementStdWheeled::ProcessAI(const float deltaTime)
         Limit(inputSpeed, -m_maxSpeed, m_maxSpeed);
     }
 
+    //TheOtherSide fix wont work: car dont reverse on dedicated server 
+    /*if (gEnv->pSystem->IsDedicated() && m_aiRequest.HasMoveTarget())
+    {
+        const Vec3 moveDir = (m_aiRequest.GetMoveTarget() - m_pEntity->GetWorldPos()).GetNormalized();
+        const Vec3 lookDir = m_pEntity->GetWorldTM().GetColumn1().GetNormalized();
+        const float dot = moveDir.Dot(lookDir);
+
+        if (dot < 0.0f)
+            inputSpeed = -inputSpeed;
+    }
+    *///~TheOtherSide
+
     Vec3 vMove(ZERO);
     {
         if (m_aiRequest.HasMoveTarget())
@@ -1480,7 +1529,8 @@ void CVehicleMovementStdWheeled::ProcessAI(const float deltaTime)
 
         float cosAngle = vFwd.Dot(vMoveR);
         float angle = RAD2DEG(acos_tpl(cosAngle));
-        if (vMoveR.Dot(Vec3(1.0f, 0.0f, 0.0f)) < 0)
+        float dot = vMoveR.Dot(Vec3(1.0f, 0.0f, 0.0f)) < 0;
+        if (dot)
             angle = -angle;
 
         int step = 0;
@@ -1542,7 +1592,7 @@ void CVehicleMovementStdWheeled::ProcessMovement(const float deltaTime)
 
     IPhysicalEntity* pPhysics = GetPhysics();
 
-    NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_action.pedal);
+    //NETINPUT_TRACE(m_pVehicle->GetEntityId(), m_action.pedal);
 
     float speed = m_PhysDyn.v.len();
 
@@ -1692,7 +1742,7 @@ void CVehicleMovementStdWheeled::ProcessMovement(const float deltaTime)
     }
 
     if (m_netActionSync.PublishActions(CNetworkMovementStdWheeled(this)))
-        m_pVehicle->GetGameObject()->ChangedNetworkState(eEA_GameClientDynamic);
+        m_pVehicle->GetGameObject()->ChangedNetworkState(CNetworkMovementStdWheeled::CONTROLLED_ASPECT);
 
 }
 
@@ -1783,8 +1833,7 @@ void CVehicleMovementStdWheeled::Serialize(TSerialize ser, unsigned aspects)
 
     if (ser.GetSerializationTarget() == eST_Network)
     {
-        if (aspects & CNetworkMovementStdWheeled::CONTROLLED_ASPECT ||
-            aspects & CNetworkMovementStdWheeled::AI_CONTROLLED_ASPECT)
+        if (aspects & CNetworkMovementStdWheeled::CONTROLLED_ASPECT)
             m_netActionSync.Serialize(ser, aspects);
     }
     else
@@ -2074,8 +2123,7 @@ void CNetworkMovementStdWheeled::Serialize(TSerialize ser, unsigned aspects)
 {
     if (ser.GetSerializationTarget() == eST_Network)
     {
-        if (aspects & CONTROLLED_ASPECT ||
-            aspects * AI_CONTROLLED_ASPECT)
+        if (aspects & CONTROLLED_ASPECT)
         {
             ser.Value("pedal", m_pedal, 'vPed');
             ser.Value("steer", m_steer, 'vStr');

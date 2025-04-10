@@ -20,6 +20,7 @@ History:
 #include <IGameTokens.h>
 #include <IEffectSystem.h>
 #include "GameUtils.h"
+#include <Coop/Utilities/DedicatedServerHackScope.h>
 
 
 const float RUNSOUND_FADEIN_TIME = 0.5f;
@@ -356,7 +357,13 @@ void CVehicleMovementBase::ProcessMovement(const float deltaTime)
 		else
 		{
 			m_movementAction.isAI = true;
-			ProcessAI(deltaTime);
+
+			//TheOtherSide add is server condition
+			if (gEnv->bServer)
+			{
+				ProcessAI(deltaTime);
+			}
+			//~TheOtherSide
 		}
 	}
 }

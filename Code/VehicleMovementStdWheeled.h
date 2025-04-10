@@ -25,6 +25,10 @@ class CVehicleMovementStdWheeled;
 class CNetworkMovementStdWheeled
 {
 public:
+    //TheOtherSide
+    friend class CVehicleMovementStdWheeled;
+    //~TheOtherSide
+
     CNetworkMovementStdWheeled();
     CNetworkMovementStdWheeled(CVehicleMovementStdWheeled* pMovement);
 
@@ -45,7 +49,6 @@ public:
     void Serialize(TSerialize ser, unsigned aspects);
 
     static const uint8 CONTROLLED_ASPECT = eEA_GameClientDynamic;
-    static const uint8 AI_CONTROLLED_ASPECT = eEA_GameServerDynamic;
 
 private:
     float m_steer;

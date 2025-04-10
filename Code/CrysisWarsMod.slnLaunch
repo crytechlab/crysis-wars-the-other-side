@@ -9,7 +9,7 @@
     ]
   },
   {
-    "Name": "Server \u002B Client",
+    "Name": "Server + Client x2",
     "Projects": [
       {
         "Path": "Helpers\\LaunchServer\\LaunchServer.vcxproj",
@@ -21,6 +21,19 @@
       },
       {
         "Path": "Helpers\\LaunchClient2\\LaunchClient2.vcxproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "Server + Client",
+    "Projects": [
+      {
+        "Path": "Helpers\\LaunchServer\\LaunchServer.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Helpers\\LaunchClient\\LaunchClient.vcxproj",
         "Action": "Start"
       }
     ]

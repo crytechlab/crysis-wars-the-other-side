@@ -36,14 +36,13 @@ function ExposeVehicleToNetwork( class )
 	Net.Expose {
 		Class = class,
 		ClientMethods = {
-			HideVehicle = { RELIABLE_ORDERED, POST_ATTACH, BOOL },
+			--HideVehicle = { RELIABLE_ORDERED, POST_ATTACH, BOOL },
 		},
 
 		ServerMethods = {
 		},
 	}
 end
-
 
 --------------------------------------------------------------------------
 function VehicleSystem.LoadXML(vehicleImpl)
