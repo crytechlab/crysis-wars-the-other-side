@@ -30,6 +30,7 @@ Copyright (C), AlienKeeper, 2024.
 #include "TheOtherSideMP/Control/ControlSystem.h"
 #include <stdexcept>
 #include <TheOtherSideMP/Helpers/TOS_Entity.h>
+#include <TheOtherSideMP/Helpers/TOS_Script.h>
 
 CTOSActor::CTOSActor()
 	:
@@ -135,6 +136,9 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 	if (pMC)
 		pMC->OnEntityEvent(GetEntity(), event);
 
+	if (gEnv->bEditor)
+		return;
+
 	switch (event.event)
 	{
 	case ENTITY_EVENT_HIDE:
@@ -173,17 +177,17 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 	case ENTITY_EVENT_TIMER:
 	{
 		// Фикс бага #29
-		if (event.nParam[0] == eMPTIMER_REMOVEWEAPONSDELAY)
-		{
-			const auto pInventory = GetInventory();
-			if (pInventory)
-			{
-				pInventory->HolsterItem(true);
-				pInventory->RemoveAllItems();
-				pInventory->Clear();
-			}
-		}
-		else if (event.nParam[0] == eMPTIMER_GIVEWEAPONDELAY)
+		//if (event.nParam[0] == eMPTIMER_REMOVEWEAPONSDELAY)
+		//{
+		//	const auto pInventory = GetInventory();
+		//	if (pInventory)
+		//	{
+		//		pInventory->HolsterItem(true);
+		//		pInventory->RemoveAllItems();
+		//		pInventory->Clear();
+		//	}
+		//}
+		if (event.nParam[0] == eMPTIMER_GIVEWEAPONDELAY)
 		{
 			IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
 			SmartScriptTable props;
@@ -238,31 +242,7 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 	if (aspect == tos::net::CLIENT_ASPECT_STATIC || 
 		aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
-		//Блок скопирован из CPlayer::NetSerialize()
-
-		//Inventory
-		//IInventory* pInventory = GetInventory();
-		//if (!IsPlayer() && pInventory && gEnv->bServer)
-		//{
-			// pInventory->NetSerialize(ser, aspect, profile, flags);
-
-			//CryLogAlways("[%s] Synchronizing inventory...", GetEntity()->GetName());
-			//const int nItemCount = pInventory->GetCount();
-			//for (int nItem = 0; nItem < nItemCount; ++nItem)
-			//{
-			//	EntityId nCurrentItemId = pInventory->GetCurrentItem();
-			//	EntityId nItemId = pInventory->GetItem(nItem);
-
-			//	if (IItem* pItem = gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GetItem(nItemId))
-			//	{
-			//		// Only call if the item isn't client or server exclusive.
-			//		if ((pItem->GetEntity()->GetFlags() & (ENTITY_FLAG_CLIENT_ONLY | ENTITY_FLAG_SERVER_ONLY)) == 0)
-			//			pItem->PickUp(GetEntityId(), false, nItemId == nCurrentItemId, false);
-			//	}
-			//}
-		//}
-		//~Inventory
-
+		// Current Weapon Serialize
 		const bool writing = ser.IsWriting();
 		bool	   hasWeapon = false;
 
