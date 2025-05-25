@@ -20,14 +20,13 @@ public:
 		int playerChannelId;
 		string spawnedName;
 		string className;
+		string archetypeName;
 		Vec3 pos;
 		Vec3 dir;
 
 		NetSpawnParams()
 			:
 			playerChannelId(0),
-			spawnedName(""),
-			className(""),
 			pos(ZERO),
 			dir(ZERO)
 		{};
@@ -37,10 +36,23 @@ public:
 			ser.Value("playerChannelId", playerChannelId, 'i8');
 			ser.Value("spawnedName", spawnedName, 'stab');
 			ser.Value("className", className, 'stab');
+			ser.Value("archetypeName", archetypeName, 'stab');
 			ser.Value("pos", pos, 'wrld');
 			ser.Value("dir", dir, 'dir0');
 		}
-	};	
+	};
+
+	struct NetCopyParams
+	{
+		int playerChannelId;
+		EntityId copiedId;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("playerChannelId", playerChannelId, 'i8');
+			ser.Value("copiedId", copiedId, 'eid');
+		}
+	};
 	
 	struct NetSpawnedInfo
 	{
@@ -274,7 +286,7 @@ public:
 	DECLARE_SERVER_RMI_POSTATTACH_FAST(SvRequestTransformEntity, NetTransformParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_POSTATTACH_FAST(ClTransformEntity, NetTransformParams, eNRT_ReliableOrdered);
 
-	DECLARE_SERVER_RMI_POSTATTACH(SvRequestCopyEntity, NetSpawnParams, eNRT_ReliableOrdered);
+	DECLARE_SERVER_RMI_POSTATTACH(SvRequestCopyEntity, NetCopyParams, eNRT_ReliableOrdered);
 	DECLARE_SERVER_RMI_POSTATTACH(SvRequestSpawnEntity, NetSpawnParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_POSTATTACH(ClSpawnEntity, NetSpawnedInfo, eNRT_ReliableOrdered);
 

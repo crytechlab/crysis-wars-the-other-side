@@ -270,9 +270,7 @@ bool CTOSZeusModule::Local::SelectionFilter(EntityId id) const
 {
 	auto pEntity = TOS_GET_ENTITY(id);
 	if (!pEntity)
-	{
 		return false;
-	}
 
 	if (m_debugZModifier)
 		return true;
@@ -922,11 +920,9 @@ bool CTOSZeusModule::Local::ExecuteCommand(ECommand command)
 			if (pEntity)
 			{
 				auto& method = CTOSZeusSynchronizer::SvRequestCopyEntity();
-				auto netParams = CTOSZeusSynchronizer::NetSpawnParams();
+				auto netParams = CTOSZeusSynchronizer::NetCopyParams();
+				netParams.copiedId = id;
 				netParams.playerChannelId = g_pGame->GetIGameFramework()->GetClientActor()->GetChannelId();
-				netParams.className = pEntity->GetClass()->GetName();
-				netParams.pos = pEntity->GetWorldPos();
-				netParams.dir = pEntity->GetWorldRotation().GetColumn1();
 
 				pParent->GetSynchronizer()->RMISend(method, netParams, eRMI_ToServer);
 			}

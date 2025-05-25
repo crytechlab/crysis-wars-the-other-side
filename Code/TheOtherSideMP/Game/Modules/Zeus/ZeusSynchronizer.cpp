@@ -11,8 +11,7 @@
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 {
-	//TODO:
-	// 2) Через меню паузы можно кликнуть по объектам...
+	//TODO: Через меню паузы можно кликнуть по объектам...
 
 	CryLog("<C++>[%s][%s][SvRequestMakeZeus]",
 		tos::debug::GetEnv(), tos::debug::GetAct(3));
@@ -260,7 +259,10 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestHideEntity)
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (pEntity)
+	{
 		pEntity->Hide(params.bHide);
+	}
+		
 
 	RMISend(ClHideEntity(), params, eRMI_ToAllClients | eRMI_NoLocalCalls);
 
@@ -312,6 +314,12 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 		assert(pZeusModule != nullptr);
 
 		STOSEntityDelaySpawnParams spawnParams;
+		spawnParams.clientChannelId = params.playerChannelId;
+		spawnParams.hide = true;
+		spawnParams.spawnDelay = 1.0f;
+		spawnParams.saveParams = false;
+		spawnParams.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)
+		spawnParams.vanilla.bIgnoreLock = false; // spawn lock игнор
 		spawnParams.pCallback = std::bind(
 			&CTOSZeusModule::ClientServer::ServerOnEntityCopied,
 			&pZeusModule->GetClientServer(),
@@ -319,41 +327,25 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 			std::placeholders::_2,
 			std::placeholders::_3);
 
-		spawnParams.clientChannelId = params.playerChannelId;
-		spawnParams.hide = true;
-		spawnParams.spawnDelay = 1.0f;
-		spawnParams.saveParams = false;
-		spawnParams.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)
-		spawnParams.vanilla.bIgnoreLock = false; // spawn lock игнор
-
-		//auto pPlayer = TOS_GET_ACTOR_CHANNELID(params.playerChannelId);
-		//if (pPlayer)
-		//	spawnParams.authorityPlayerName = pPlayer->GetEntity()->GetName();
-
-		const string* const psClassName = &params.className;
-		IEntityClass* pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(psClassName->c_str());
-
-		const string name = string("zeus_") + psClassName->c_str();
-		spawnParams.vanilla.sName = name;
-		spawnParams.vanilla.pClass = pClass;
-		spawnParams.vanilla.vPosition = params.pos;
-
-		const auto pArchetype = gEnv->pEntitySystem->LoadEntityArchetype(psClassName->c_str());
-		if (pArchetype)
-			spawnParams.vanilla.pArchetype = pArchetype;
-
-		if (!pClass && !pArchetype)
+		auto pCopiedEntity = TOS_GET_ENTITY(params.copiedId);
+		if (!pCopiedEntity)
 		{
-			CryLogError("[Zeus] not defined entity class '%s'", psClassName->c_str());
+			CryLogError("[Zeus] copied entity with id '%i' not found!", params.copiedId);
 			return true;
 		}
 
-		bool bSpawned = tos::entity::SpawnDelay(spawnParams, true);
-		if (!bSpawned)
-		{
-			CryLogError("[Zeus] entity with class '%s' copy failed!", psClassName->c_str());
-			return true;
-		}
+		SmartScriptTable props;
+		SmartScriptTable propsIns;
+		tos::script::GetEntityScriptValue(pCopiedEntity, "Properties", props);
+		tos::script::GetEntityScriptValue(pCopiedEntity, "PropertiesInstance", propsIns);
+
+		spawnParams.properties = props;
+		spawnParams.propertiesInstance = propsIns;
+		spawnParams.vanilla.sName = string("zeus_") + pCopiedEntity->GetClass()->GetName();
+		spawnParams.vanilla.pClass = pCopiedEntity->GetClass();
+		spawnParams.vanilla.vPosition = pCopiedEntity->GetWorldPos();
+		spawnParams.archetypeName = pCopiedEntity->GetArchetype() ? pCopiedEntity->GetArchetype()->GetName() : "";
+		tos::entity::SpawnDelay(spawnParams, true);
 	}
 
 	return true;
