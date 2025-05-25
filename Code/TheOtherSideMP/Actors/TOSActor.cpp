@@ -96,6 +96,10 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 	{
 		pRenderProxy->UpdateCharactersBeforePhysics(true);
 	}
+
+	const char* model = "";
+	tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
+	m_modelFilename = model;
 }
 
 void CTOSActor::InitClient(const int channelId)
@@ -195,9 +199,28 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 			{
 				auto pEquipManager = gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GetIEquipmentManager();
 				char* equip;
-				if (pEquipManager && props->GetValue("equip_EquipmentPack", equip))
-					pEquipManager->GiveEquipmentPack(this, equip, true, true);
+				if (pEquipManager && props->GetValue("equip_EquipmentPack", equip))			
+				{
+					pEquipManager->GiveEquipmentPack(this, equip, true, false);
+
+					if (!IsPlayer() && gEnv->bServer)
+					{
+						GetEntity()->SetTimer(eMPTIMER_SELECTPRIMARY, 300);
+					}
+				}
 			}
+		}
+		else if (event.nParam[0] == eMPTIMER_SELECTPRIMARY)
+		{
+			tos::inventory::SelectPrimary(this);
+		}
+		else if (event.nParam[0] == eMPTIMER_RAGDOLL)
+		{
+			RagDollize(false);
+			pe_action_impulse imp;
+			imp.impulse = Vec3(1, 1, 1);
+
+			GetEntity()->GetPhysics()->Action(&imp);
 		}
 	}
 	default: 
@@ -244,33 +267,9 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 		if (aspect == tos::net::CLIENT_ASPECT_STATIC ||
 			aspect == tos::net::SERVER_ASPECT_STATIC)
 		{
-			// Current Weapon Serialize
-			const bool writing = ser.IsWriting();
-			bool	   hasWeapon = false;
-
-			if (writing)
-				hasWeapon = NetGetCurrentItem() != 0;
-
-			ser.Value("hasWeapon", hasWeapon, 'bool');
-			ser.Value("currentItemId",
-				static_cast<CActor*>(this),
-				&CActor::NetGetCurrentItem,
-				&CActor::NetSetCurrentItem,
-				'eid');
-
-			if (!writing && hasWeapon && NetGetCurrentItem() == 0)
-			{
-				ser.FlagPartialRead();
-			}
-
 			// Model Serialize
 			if (ser.IsWriting())
-			{
-				const char* model = "";
-				tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
-				m_modelFilename = model;
 				ser.Value("m_modelFilename", m_modelFilename);
-			}
 
 			if (ser.IsReading())
 			{
@@ -290,9 +289,29 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 					else
 					{
 						// FIXME: это делает неживых нпс с новой моделькой без Т-ПОЗЫ
-						GetAnimatedCharacter()->ResetState();
+						GetEntity()->SetTimer(eMPTIMER_RAGDOLL, 500);
 					}
+					
 				}
+			}
+
+			// Current Weapon Serialize
+			const bool writing = ser.IsWriting();
+			bool	   hasWeapon = false;
+
+			if (writing)
+				hasWeapon = NetGetCurrentItem() != 0;
+
+			ser.Value("hasWeapon", hasWeapon, 'bool');
+			ser.Value("currentItemId",
+				static_cast<CActor*>(this),
+				&CActor::NetGetCurrentItem,
+				&CActor::NetSetCurrentItem,
+				'eid');
+
+			if (!writing && hasWeapon && NetGetCurrentItem() == 0)
+			{
+				ser.FlagPartialRead();
 			}
 		}
 

@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "TOSActor.h"
 #include <TheOtherSideMP/Helpers/TOS_Entity.h>
+#include <TheOtherSideMP/Helpers/TOS_Script.h>
 #include <Fists.h>
 
 IMPLEMENT_RMI(CTOSActor, SvRequestPlayAnimation)
@@ -422,16 +423,12 @@ IMPLEMENT_RMI(CTOSActor, ClPlayNetworkedAnimation)
 //
 //	return true;
 //}  
-//
-//IMPLEMENT_RMI(CTOSActor, ClSetActorModel)
-//{
-//	if (IScriptTable* pScriptTable = GetEntity()->GetScriptTable())
-//	{
-//		SmartScriptTable actorProps;
-//		pScriptTable->GetValue("Properties", actorProps);
-//		actorProps->SetValue("fileModel", params.fileModel.c_str());
-//		Script::CallMethod(pScriptTable, "SetActorModel", IsClient());
-//	}
-//
-//	return true;
-//}
+
+
+IMPLEMENT_RMI(CTOSActor, ClSetActorModel)
+{
+	tos::script::SetEntityProperty(GetEntity(), "fileModel", params.fileModel.c_str());
+	Physicalize();
+
+	return true;
+}

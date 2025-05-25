@@ -205,6 +205,8 @@ public:
 	{
 		eMPTIMER_GIVEWEAPONDELAY = 0x110,
 		eMPTIMER_REMOVEWEAPONSDELAY = 0x111,
+		eMPTIMER_SELECTPRIMARY = 0x112,
+		eMPTIMER_RAGDOLL = 0x113,
 	};
 
 	struct NetAttachChild
@@ -435,20 +437,20 @@ public:
 		}
 	};
 
-	//struct SSetActorModelParams
-	//{
-	//	SSetActorModelParams() {};
-	//	SSetActorModelParams(const char* _fileModel) :
-	//		fileModel(_fileModel)
-	//	{};
+	struct SSetActorModelParams
+	{
+		SSetActorModelParams() {};
+		SSetActorModelParams(const char* _fileModel) :
+			fileModel(_fileModel)
+		{};
 
-	//	string fileModel;
+		string fileModel;
 
-	//	void SerializeWith(TSerialize ser)
-	//	{
-	//		ser.Value("fileModel", fileModel);
-	//	}
-	//};
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("fileModel", fileModel);
+		}
+	};
 
 	static const EEntityAspects ASPECT_COOP_ALIVE = eEA_GameServerDynamic;
 	static const EEntityAspects ASPECT_COOP_HIDE = eEA_GameServerStatic;
@@ -521,7 +523,7 @@ private:
 	DECLARE_CLIENT_RMI_PREATTACH(ClClearInventory, NoParams, eNRT_ReliableOrdered);
 
 	//DECLARE_SERVER_RMI_POSTATTACH(SvRequestSetActorModel, SSetActorModelParams, eNRT_ReliableOrdered);
-	//DECLARE_CLIENT_RMI_POSTATTACH(ClSetActorModel, SSetActorModelParams, eNRT_ReliableOrdered);
+	DECLARE_CLIENT_RMI_POSTATTACH(ClSetActorModel, SSetActorModelParams, eNRT_ReliableOrdered);
 
 protected:
 	bool m_chargingJump;///< Если *true, то высота прыжка зависит от длительности нажатия на дейсвие прыжка [jump]
