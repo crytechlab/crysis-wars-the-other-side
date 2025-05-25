@@ -227,71 +227,75 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 		}
 	}
 
-	if (aspect == ASPECT_COOP_HIDE)
+	if (!IsPlayer())
 	{
-		ser.Value("bHide", m_isEntityHidden, 'bool');
-
-		if (ser.IsReading())
+		if (aspect == ASPECT_COOP_HIDE)
 		{
-			GetEntity()->Hide(m_isEntityHidden);
-			HideMe(m_isEntityHidden);
-		}
-			
-	}
+			ser.Value("bHide", m_isEntityHidden, 'bool');
 
-	if (aspect == tos::net::CLIENT_ASPECT_STATIC || 
-		aspect == tos::net::SERVER_ASPECT_STATIC)
-	{
-		// Current Weapon Serialize
-		const bool writing = ser.IsWriting();
-		bool	   hasWeapon = false;
-
-		if (writing)
-			hasWeapon = NetGetCurrentItem() != 0;
-
-		ser.Value("hasWeapon", hasWeapon, 'bool');
-		ser.Value("currentItemId", 
-			static_cast<CActor*>(this), 
-			&CActor::NetGetCurrentItem, 
-			&CActor::NetSetCurrentItem, 
-			'eid');
-
-		if (!writing && hasWeapon && NetGetCurrentItem() == 0)
-		{
-			ser.FlagPartialRead();
-		}
-
-		// Model Serialize
-		if (ser.IsWriting())
-		{
-			const char* model = "";
-			tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
-			m_modelFilename = model;
-			ser.Value("m_modelFilename", m_modelFilename);
-		}
-
-		if (ser.IsReading())
-		{
-			string newModel;
-			ser.Value("m_modelFilename", newModel);
-
-			if (m_modelFilename != newModel)
+			if (ser.IsReading())
 			{
-				m_modelFilename = newModel;
-				tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
+				GetEntity()->Hide(m_isEntityHidden);
+				HideMe(m_isEntityHidden);
+			}
 
-				CActor::Physicalize();
-				if (GetHealth() > 0)
+		}
+
+		if (aspect == tos::net::CLIENT_ASPECT_STATIC ||
+			aspect == tos::net::SERVER_ASPECT_STATIC)
+		{
+			// Current Weapon Serialize
+			const bool writing = ser.IsWriting();
+			bool	   hasWeapon = false;
+
+			if (writing)
+				hasWeapon = NetGetCurrentItem() != 0;
+
+			ser.Value("hasWeapon", hasWeapon, 'bool');
+			ser.Value("currentItemId",
+				static_cast<CActor*>(this),
+				&CActor::NetGetCurrentItem,
+				&CActor::NetSetCurrentItem,
+				'eid');
+
+			if (!writing && hasWeapon && NetGetCurrentItem() == 0)
+			{
+				ser.FlagPartialRead();
+			}
+
+			// Model Serialize
+			if (ser.IsWriting())
+			{
+				const char* model = "";
+				tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
+				m_modelFilename = model;
+				ser.Value("m_modelFilename", m_modelFilename);
+			}
+
+			if (ser.IsReading())
+			{
+				string newModel;
+				ser.Value("m_modelFilename", newModel);
+
+				if (m_modelFilename != newModel)
 				{
-					CActor::SelectLastItem(true, true);
-				}
-				else
-				{
-					// FIXME: это делает неживых нпс с новой моделькой без Т-ПОЗЫ
-					GetAnimatedCharacter()->ResetState();
+					m_modelFilename = newModel;
+					tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
+
+					CActor::Physicalize();
+					if (GetHealth() > 0)
+					{
+						SelectLastItem(true, true);
+					}
+					else
+					{
+						// FIXME: это делает неживых нпс с новой моделькой без Т-ПОЗЫ
+						GetAnimatedCharacter()->ResetState();
+					}
 				}
 			}
 		}
+
 	}
 
 	return true;

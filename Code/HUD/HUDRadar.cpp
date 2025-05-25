@@ -1049,14 +1049,18 @@ void CHUDRadar::UpdateRadarEntities(CActor* pActor, float& fRadius, Matrix34& pl
 						// if cloak enabled then disable mp threat
 
 						bool enableMPThreat = true;
-						auto pOtherPlayer = static_cast<CTOSPlayer*>(tempActor);
-
-						if (pOtherPlayer && 
-							pOtherPlayer->GetNanoSuit())
+						auto pOtherActor = static_cast<CTOSActor*>(tempActor);
+				
+						if (pOtherActor && pOtherActor->GetActorClass() == CTOSPlayer::GetActorClassType())
 						{
-							auto pCloak = pOtherPlayer->GetNanoSuit()->GetCloak();
-							if (pCloak)
-								enableMPThreat = pCloak->GetState() == 0;
+							auto pOtherPlayer = static_cast<CTOSPlayer*>(pOtherActor);
+
+							if (pOtherPlayer->GetNanoSuit())
+							{
+								auto pCloak = pOtherPlayer ? pOtherPlayer->GetNanoSuit()->GetCloak() : nullptr;
+								if (pCloak)
+									enableMPThreat = pCloak->GetState() == 0;
+							}
 						}
 
 						if (enableMPThreat)
