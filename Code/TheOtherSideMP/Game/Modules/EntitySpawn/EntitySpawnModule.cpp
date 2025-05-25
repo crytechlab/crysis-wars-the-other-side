@@ -339,18 +339,9 @@ IEntity* CTOSEntitySpawnModule::SpawnEntity(STOSEntitySpawnParams& params, bool 
 	{
 		if (pArchetype && gEnv->bMultiplayer && !pActor->IsPlayer())
 		{
-			//FIX: Применение модели архетипа
 			const char* fileModel = "";
-			const char* equipPack = "";
 			pArchetype->GetProperties()->GetValue("fileModel", fileModel);
-			pArchetype->GetProperties()->GetValue("equip_EquipmentPack", equipPack);
-
-			CTOSActor::SSetActorModelParams modelParams;
-			modelParams.fileModel = fileModel;
-			pActor->GetGameObject()->InvokeRMI(
-				CTOSActor::ClSetActorModel(), 
-				modelParams, 
-				eRMI_ToAllClients);
+			pActor->NetSetActorModel(fileModel);	
 		}
 
 		if (params.moveSpawnedToAuthorityPos)

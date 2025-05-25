@@ -295,6 +295,7 @@ public:
 	bool UpdateLastMPSpawnPointRotation(const Quat& rotation);
 	bool UpdateLastShooterId(const EntityId id);
 	void GiveEquipmentPack();
+	void NetSetActorModel(const char* model);
 
 	// Crysis Co-op
 
@@ -434,23 +435,24 @@ public:
 		}
 	};
 
-	struct SSetActorModelParams
-	{
-		SSetActorModelParams() {};
-		SSetActorModelParams(const char* _fileModel) :
-			fileModel(_fileModel)
-		{};
+	//struct SSetActorModelParams
+	//{
+	//	SSetActorModelParams() {};
+	//	SSetActorModelParams(const char* _fileModel) :
+	//		fileModel(_fileModel)
+	//	{};
 
-		string fileModel;
+	//	string fileModel;
 
-		void SerializeWith(TSerialize ser)
-		{
-			ser.Value("fileModel", fileModel);
-		}
-	};
+	//	void SerializeWith(TSerialize ser)
+	//	{
+	//		ser.Value("fileModel", fileModel);
+	//	}
+	//};
 
 	static const EEntityAspects ASPECT_COOP_ALIVE = eEA_GameServerDynamic;
 	static const EEntityAspects ASPECT_COOP_HIDE = eEA_GameServerStatic;
+	static const EEntityAspects ASPECT_MODEL_CHANGE = eEA_GameClientStatic;
 
 	DECLARE_CLIENT_RMI_PREATTACH(ClAISelectItem, SAISelectItemParams, eNRT_ReliableUnordered);
 	DECLARE_CLIENT_RMI_PREATTACH(ClPlayNetworkedAnimation, SPlayNetworkedAnimationParams, eNRT_ReliableOrdered);
@@ -502,6 +504,7 @@ private:
 	bool m_isZeus;
 	bool m_isSlave; // сериализованное по сети значение, является ли актёр рабом
 	bool m_isMaster; // сериализованное по сети значение, является ли актёр мастером
+	string m_modelFilename;
 
 	DECLARE_SERVER_RMI_NOATTACH(SvRequestPlayAnimation, NetPlayAnimationParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_NOATTACH(ClPlayAnimation, NetPlayAnimationParams, eNRT_ReliableOrdered);
@@ -517,8 +520,8 @@ private:
 
 	DECLARE_CLIENT_RMI_PREATTACH(ClClearInventory, NoParams, eNRT_ReliableOrdered);
 
-	DECLARE_SERVER_RMI_POSTATTACH(SvRequestSetActorModel, SSetActorModelParams, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_POSTATTACH(ClSetActorModel, SSetActorModelParams, eNRT_ReliableOrdered);
+	//DECLARE_SERVER_RMI_POSTATTACH(SvRequestSetActorModel, SSetActorModelParams, eNRT_ReliableOrdered);
+	//DECLARE_CLIENT_RMI_POSTATTACH(ClSetActorModel, SSetActorModelParams, eNRT_ReliableOrdered);
 
 protected:
 	bool m_chargingJump;///< Если *true, то высота прыжка зависит от длительности нажатия на дейсвие прыжка [jump]

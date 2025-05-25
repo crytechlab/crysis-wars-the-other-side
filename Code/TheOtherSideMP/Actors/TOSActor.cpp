@@ -283,6 +283,28 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 			// FIX: на 2м клиенте оружие существует само по себе
 			SelectLastItem(true, true);
 		}
+
+		// Model Serialize
+		if (ser.IsWriting())
+		{
+			const char* model = "";
+			tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
+			m_modelFilename = model;
+			ser.Value("m_modelFilename", m_modelFilename);
+		}
+
+		if (ser.IsReading())
+		{
+			string newModel;
+			ser.Value("m_modelFilename", newModel);
+
+			if (m_modelFilename != newModel)
+			{
+				m_modelFilename = newModel;
+				tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
+				CActor::Physicalize();
+			}
+		}
 	}
 
 	return true;
@@ -817,6 +839,15 @@ void CTOSActor::GiveEquipmentPack()
 			CryLogAlways("[%s] acquired equipment pack %s", GetEntity()->GetName(), equip);
 		}
 	}
+}
+
+void CTOSActor::NetSetActorModel(const char* model)
+{
+	m_modelFilename = model;
+	if (gEnv->bClient)
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+	else if (gEnv->bServer)
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 }
 
 bool CTOSActor::HideMe(bool value)
