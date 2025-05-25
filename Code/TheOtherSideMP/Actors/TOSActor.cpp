@@ -118,6 +118,13 @@ void CTOSActor::PostInitClient(const int channelId)
 	//		SelectLastItem(true, true);
 	//	}
 	//}
+
+	CActor::PostInitClient(channelId);
+
+	if (gEnv->bMultiplayer && !IsPlayer())
+	{
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+	}
 }
 
 void CTOSActor::ProcessEvent(SEntityEvent& event)
@@ -178,30 +185,6 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		}
 		else if (event.nParam[0] == eMPTIMER_GIVEWEAPONDELAY)
 		{
-			//string       equipName;
-			//const string actorClass = GetEntity()->GetClass()->GetName();
-
-			//if (actorClass == "Trooper")
-			//{
-			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_TrooperMPEquipPack")->GetString();
-			//}
-			//else if (actorClass == "Scout")
-			//{
-			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_ScoutMPEquipPack")->GetString();
-			//}
-			//else if (actorClass == "Alien")
-			//{
-			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_AlienMPEquipPack")->GetString();
-			//}
-			//else if (actorClass == "Hunter")
-			//{
-			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HunterMPEquipPack")->GetString();
-			//}
-			//else if (actorClass == "Grunt")
-			//{
-			//	equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HumanGruntMPEquipPack")->GetString();
-			//}
-
 			IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
 			SmartScriptTable props;
 			if (pScriptTable->GetValue("Properties", props))
@@ -294,7 +277,12 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 			'eid');
 
 		if (!writing && hasWeapon && NetGetCurrentItem() == 0)
+		{
 			ser.FlagPartialRead();
+
+			// FIX: на 2м клиенте оружие существует само по себе
+			SelectLastItem(true, true);
+		}
 	}
 
 	return true;
