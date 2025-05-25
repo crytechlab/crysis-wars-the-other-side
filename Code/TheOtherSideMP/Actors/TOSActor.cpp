@@ -259,9 +259,6 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 		if (!writing && hasWeapon && NetGetCurrentItem() == 0)
 		{
 			ser.FlagPartialRead();
-
-			// FIX: на 2м клиенте оружие существует само по себе
-			SelectLastItem(true, true);
 		}
 
 		// Model Serialize
@@ -282,7 +279,17 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 			{
 				m_modelFilename = newModel;
 				tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
+
 				CActor::Physicalize();
+				if (GetHealth() > 0)
+				{
+					CActor::SelectLastItem(true, true);
+				}
+				else
+				{
+					// FIXME: это делает неживых нпс с новой моделькой без Т-ПОЗЫ
+					GetAnimatedCharacter()->ResetState();
+				}
 			}
 		}
 	}
