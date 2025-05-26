@@ -18,22 +18,22 @@ const bool mustDrawDesc = (eventDesc).length() > 1;\
 const bool mustDrawEnt = (entName).length() > 1 || (entId) > 0;\
 if (mustDrawDesc && mustDrawEnt)\
 {\
-	CryLog("[ExtraGameplayEvent] [%s] %s: %s, %s",\
-		tos::debug::GetEnv(), (eventName).c_str(), (entName).c_str(), (eventDesc).c_str());\
+	CryLogAlways("[TOS] [%s] %s %s %s",\
+		tos::debug::GetEnv(), (entName).c_str(), (eventName).c_str(), (eventDesc).c_str());\
 }\
 else if (mustDrawEnt && !mustDrawDesc)\
 {\
-	CryLog("[OnExtraGameplayEvent] [%s]: %s %s",\
-		tos::debug::GetEnv(), (eventName).c_str(), (entName).c_str());\
+	CryLogAlways("[TOS] [%s] %s %s",\
+		tos::debug::GetEnv(), (entName).c_str(), (eventName).c_str());\
 }\
 else if (mustDrawDesc && !mustDrawEnt)\
 {\
-	CryLog("[OnExtraGameplayEvent] [%s]: %s %s",\
+	CryLogAlways("[TOS] [%s] - %s %s",\
 		tos::debug::GetEnv(), (eventName).c_str(), (eventDesc).c_str());\
 }\
 else\
 {\
-	CryLog("[OnExtraGameplayEvent] [%s]: %s",\
+	CryLogAlways("[TOS] [%s] - %s",\
 		tos::debug::GetEnv(), (eventName).c_str());\
 }\
 

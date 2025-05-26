@@ -68,9 +68,6 @@ function HandleOrder(executorTable, orderTable)
             -- Посадка в транспорт
             if (targetVehicle) then
 
-                --output = string.format("[ORDER] target is vehicle = %s", tostring(targetVehicle ~= nil))
-                --System.LogAlways(output)
-
                 AI_ENTERVEHICLE(executor, orderTarget)
             elseif(targetActor) then
 

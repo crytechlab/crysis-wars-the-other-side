@@ -39,6 +39,7 @@ enum EExtraGameplayEvent
 	eEGE_ActorDropped, //NOT USED
 	eEGE_ActorGrab, //NOT USED
 	eEGE_ActorDrop, //NOT USED
+	eEGE_ActorInit,
 	eEGE_ActorPostInit,
 	eEGE_ActorRevived,
 	eEGE_ActorRelease,
@@ -388,6 +389,8 @@ public:
 				return "EntityFactionChanged";
 			case eEGE_FactionReactionChanged:
 				return "FactionReactionChanged";
+			case eEGE_ActorInit:
+				return "ActorInit";
 			case eEGE_Last:
 				return "Last";
 			default:

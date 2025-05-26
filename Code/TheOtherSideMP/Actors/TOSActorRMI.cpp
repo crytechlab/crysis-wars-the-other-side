@@ -425,10 +425,10 @@ IMPLEMENT_RMI(CTOSActor, ClPlayNetworkedAnimation)
 //}  
 
 
-IMPLEMENT_RMI(CTOSActor, ClSetActorModel)
-{
-	tos::script::SetEntityProperty(GetEntity(), "fileModel", params.fileModel.c_str());
-	Physicalize();
-
-	return true;
-}
+//IMPLEMENT_RMI(CTOSActor, ClSetActorModel)
+//{
+//	tos::script::SetEntityProperty(GetEntity(), "fileModel", params.fileModel.c_str());
+//	Physicalize();
+//
+//	return true;
+//}

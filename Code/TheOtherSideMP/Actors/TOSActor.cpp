@@ -51,14 +51,16 @@ CTOSActor::~CTOSActor() {};
 
 bool CTOSActor::Init(IGameObject* pGameObject)
 {
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorInit, "", true));
+
 	if (!CActor::Init(pGameObject))
 		return false;
+
+	m_debugName = GetEntity()->GetName();
 
 	auto pExtension = GetGameObject()->AcquireExtension("TOSEnergyConsumer");
 	m_pEnergyConsumer = static_cast<CTOSEnergyConsumer*>(pExtension);
 	m_pEnergyConsumer->Reset();
-
-	m_debugName = GetEntity()->GetName();
 
 	return true;
 }
@@ -97,9 +99,21 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 		pRenderProxy->UpdateCharactersBeforePhysics(true);
 	}
 
-	const char* model = "";
-	tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
-	m_modelFilename = model;
+	if (gEnv->bServer)
+	{
+		const char* model = 0;
+		tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
+		m_modelFilename = model;
+	}
+	else
+	{
+		if (m_modelFilename.length() > 0)
+		{
+			// предполагаем, что при спавне движок уже загрузил m_modelFilename из SpawnInfo
+			tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
+			CActor::Physicalize();  // пересоздать физику под новую модель
+		}
+	}
 }
 
 void CTOSActor::InitClient(const int channelId)
@@ -115,15 +129,6 @@ void CTOSActor::InitClient(const int channelId)
 
 void CTOSActor::PostInitClient(const int channelId)
 {
-	//if (gEnv->bMultiplayer)
-	//{
-	//	if (!IsPlayer())
-	//	{
-	//		GiveEquipmentPack();
-	//		SelectLastItem(true, true);
-	//	}
-	//}
-
 	CActor::PostInitClient(channelId);
 
 	if (gEnv->bMultiplayer && !IsPlayer())
@@ -268,32 +273,32 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 			aspect == tos::net::SERVER_ASPECT_STATIC)
 		{
 			// Model Serialize
-			if (ser.IsWriting())
-				ser.Value("m_modelFilename", m_modelFilename);
+			//if (ser.IsWriting())
+			//	ser.Value("m_modelFilename", m_modelFilename);
+			//else
+			//{
+			//	string newModel;
+			//	ser.Value("m_modelFilename", newModel);
 
-			if (ser.IsReading())
-			{
-				string newModel;
-				ser.Value("m_modelFilename", newModel);
+			//	if (m_modelFilename != newModel)
+			//	{
+			//		m_modelFilename = newModel;
 
-				if (m_modelFilename != newModel)
-				{
-					m_modelFilename = newModel;
-					tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
+			//		tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
+			//		CActor::Physicalize();
 
-					CActor::Physicalize();
-					if (GetHealth() > 0)
-					{
-						SelectLastItem(true, true);
-					}
-					else
-					{
-						// FIXME: это делает неживых нпс с новой моделькой без Т-ПОЗЫ
-						GetEntity()->SetTimer(eMPTIMER_RAGDOLL, 500);
-					}
-					
-				}
-			}
+			//		if (GetHealth() > 0)
+			//		{
+			//			SelectLastItem(true, true);
+			//		}
+			//		else
+			//		{
+			//			// FIXME: это делает неживых нпс с новой моделькой без Т-ПОЗЫ
+			//			GetEntity()->SetTimer(eMPTIMER_RAGDOLL, 500);
+			//		}
+			//		
+			//	}
+			//}
 
 			// Current Weapon Serialize
 			const bool writing = ser.IsWriting();
@@ -697,6 +702,37 @@ void CTOSActor::NetSimpleKill()
 void CTOSActor::SerializeSpawnInfo(TSerialize ser)
 {
 	CActor::SerializeSpawnInfo(ser);
+
+	string model;
+	ser.Value("modelFilename", model, 'stab');
+	m_modelFilename = model;
+
+	// Клиент: таблица lua здесь ещё не создана
+}
+
+ISerializableInfoPtr CTOSActor::GetSpawnInfo()
+{
+	struct SInfo : public ISerializableInfo
+	{
+		int teamId;
+		string modelFilename;
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("teamId", teamId, 'team');
+			ser.Value("modelFilename", modelFilename, 'stab');
+		}
+	};
+
+	SInfo* p = new SInfo();
+
+	CGameRules* pGameRules = g_pGame->GetGameRules();
+	p->teamId = pGameRules ? pGameRules->GetTeam(GetEntityId()) : 0;
+
+	const char* model = 0;
+	tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
+	p->modelFilename = m_modelFilename = model;
+
+	return p;
 }
 
 //bool CTOSActor::ResetActorWeapons(int delayMilliseconds)
@@ -851,14 +887,14 @@ void CTOSActor::GiveEquipmentPack()
 	}
 }
 
-void CTOSActor::NetSetActorModel(const char* model)
-{
-	m_modelFilename = model;
-	if (gEnv->bClient)
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
-	else if (gEnv->bServer)
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
-}
+//void CTOSActor::NetSetActorModel(const char* model)
+//{
+//	m_modelFilename = model;
+//	if (gEnv->bClient)
+//		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+//	else if (gEnv->bServer)
+//		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+//}
 
 bool CTOSActor::HideMe(bool value)
 {
@@ -1008,7 +1044,7 @@ bool CTOSActor::SetAnimationInput(const char* inputID, const char* value)
 	if (!gEnv->bServer)
 		return false;
 
-	CryLog("[%s] Animation input %s received with animation %s.", GetEntity()->GetName(), inputID, value);
+	CryLog("[CTOSActor] %s: Animation input %s received with animation %s.", GetEntity()->GetName(), inputID, value);
 
 	bool	bSignal = strcmp(inputID, "Signal") == 0;
 	bool	bAction = strcmp(inputID, "Action") == 0;

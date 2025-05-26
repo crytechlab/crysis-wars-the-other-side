@@ -347,8 +347,8 @@ IEntity* CTOSEntitySpawnModule::SpawnEntity(STOSEntitySpawnParams& params, bool 
 
 			if (fileModel != 0)
 			{
-				pActor->NetSetActorModel(fileModel);
-				pActor->GetGameObject()->InvokeRMI(CTOSActor::ClSetActorModel(), CTOSActor::SSetActorModelParams(fileModel), eRMI_ToAllClients);
+				//pActor->NetSetActorModel(fileModel);
+				//pActor->GetGameObject()->InvokeRMI(CTOSActor::ClSetActorModel(), CTOSActor::SSetActorModelParams(fileModel), eRMI_ToAllClients);
 			}
 		}
 

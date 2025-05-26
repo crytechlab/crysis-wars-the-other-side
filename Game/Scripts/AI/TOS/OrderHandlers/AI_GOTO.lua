@@ -9,7 +9,7 @@
 ---@param speed integer скорость с которой нужно добраться (0, 1, 2, 3)
 function AI_GOTO(entity, position, speed)
     if (not entity) then
-        LogAlways("[ORDER] <AI_GOTO> entity not found")
+        LogAlways("[AI_GOTO] entity not found")
         return
     end
 
@@ -59,7 +59,7 @@ end
 
 function CLEAR_DATA_AI_GOTO(entity)
     if (not entity) then
-        LogError("<CLEAR_DATA_AI_GOTO> entity not found")
+        LogError("[CLEAR_DATA_AI_GOTO] entity not found")
         return
     end
 
@@ -67,14 +67,14 @@ function CLEAR_DATA_AI_GOTO(entity)
 
     if (entity.orderRefEnt) then
         System.RemoveEntity(entity.orderRefEnt.id)
-        Log("<CLEAR_DATA_AI_GOTO> order ref entity removed")
+        Log("[%s] AI_GOTO::CLEAR_DATA_AI_GOTO order reference entity removed", EntityName(entity))
     end
 
     entity.orderRefEnt = nil
 end
 
 function AIBehaviour.DEFAULT:START_AI_GOTO(entity, sender)
-    System.LogAlways(string.format("[ORDER] <START_AI_GOTO> entity: %s", 
+    System.LogAlways(string.format("[%s] AI_GOTO::START_AI_GOTO", 
         EntityName(entity))
     )
 
@@ -82,13 +82,13 @@ function AIBehaviour.DEFAULT:START_AI_GOTO(entity, sender)
 end
 
 function AIBehaviour.DEFAULT:AI_GOTO_STARTED(entity, sender)
-    System.LogAlways(string.format("[ORDER] <AI_GOTO_STARTED> entity: %s", 
+    System.LogAlways(string.format("[%s] AI_GOTO::AI_GOTO_STARTED", 
         EntityName(entity))
     )
 end
 
 function AIBehaviour.DEFAULT:AI_GOTO_ENDED(entity, sender)
-    System.LogAlways(string.format("[ORDER] <AI_GOTO_ENDED> entity: %s", 
+    System.LogAlways(string.format("[%s] AI_GOTO::AI_GOTO_ENDED", 
         EntityName(entity))
     )
 

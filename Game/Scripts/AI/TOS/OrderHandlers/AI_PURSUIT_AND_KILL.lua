@@ -14,15 +14,15 @@ function AI_PURSUIT_AND_KILL(executor, target, distance, speed)
     --TODO: сделать версию для скаутов
 
     if (not executor) then
-        LogAlways("[ORDER] <AI_PURSUIT_AND_KILL> executor not found")
+        LogAlways("[AI_PURSUIT_AND_KILL] executor not found")
         return
     end
     if (not target) then
-        LogAlways("[ORDER] <AI_PURSUIT_AND_KILL> target not found")
+        LogAlways("[AI_PURSUIT_AND_KILL] target not found")
         return
     end
 
-    LogAlways("[ORDER] <AI_PURSUIT_AND_KILL> target: "..target:GetName())
+    LogAlways("[%s] AI_PURSUIT_AND_KILL target: "..target:GetName(), EntityName(executor))
 
     executor.orderRefEnt = target
     executor.currentExecutedOrder = EOrders.AI_PURSUIT_AND_KILL
@@ -82,7 +82,7 @@ end
 
 function CLEAR_DATA_AI_PURSUIT_AND_KILL(entity)
     if (not entity) then
-        LogError("<CLEAR_DATA_AI_PURSUIT_AND_KILL> entity not found")
+        LogError("[CLEAR_DATA_AI_PURSUIT_AND_KILL] entity not found")
         return
     end
 
@@ -98,7 +98,7 @@ function CLEAR_DATA_AI_PURSUIT_AND_KILL(entity)
 end
 
 function AIBehaviour.DEFAULT:START_AI_PURSUIT_AND_KILL(entity, sender)
-    System.LogAlways(string.format("[ORDER] <START_AI_PURSUIT_AND_KILL> entity: %s", 
+    System.LogAlways(string.format("[%s] AI_PURSUIT_AND_KILL::START_AI_PURSUIT_AND_KILL", 
         EntityName(entity))
     )
 
@@ -107,13 +107,13 @@ function AIBehaviour.DEFAULT:START_AI_PURSUIT_AND_KILL(entity, sender)
 end
 
 function AIBehaviour.DEFAULT:AI_PURSUIT_AND_KILL_STARTED(entity, sender)
-    System.LogAlways(string.format("[ORDER] <AI_PURSUIT_AND_KILL_STARTED> entity: %s", 
+    System.LogAlways(string.format("[%s] AI_PURSUIT_AND_KILL::AI_PURSUIT_AND_KILL_STARTED", 
         EntityName(entity))
     )
 end
 
 function AIBehaviour.DEFAULT:AI_PURSUIT_AND_KILL_ENDED(entity, sender)
-    System.LogAlways(string.format("[ORDER] <AI_PURSUIT_AND_KILL_ENDED> entity: %s", 
+    System.LogAlways(string.format("[%s] AI_PURSUIT_AND_KILL::AI_PURSUIT_AND_KILL_ENDED", 
         EntityName(entity))
     )
 

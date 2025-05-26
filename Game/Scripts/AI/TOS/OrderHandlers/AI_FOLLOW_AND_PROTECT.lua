@@ -22,16 +22,16 @@ function AI_FOLLOW_AND_PROTECT(executor, target, distance, speed, max_alertness)
     --TODO: сделать версию для скаутов
 
     if (not executor) then
-        LogAlways("[ORDER] <AI_FOLLOW_AND_PROTECT> executor not found")
+        LogAlways("[AI_FOLLOW_AND_PROTECT] executor not found")
         return
     end
     
     if (not target) then
-        LogAlways("[ORDER] <AI_FOLLOW_AND_PROTECT> target not found")
+        LogAlways("[AI_FOLLOW_AND_PROTECT] target not found")
         return
     end
 
-    LogAlways("[ORDER] <AI_FOLLOW_AND_PROTECT> target: "..target:GetName())
+    LogAlways("[%s] AI_FOLLOW_AND_PROTECT target: "..target:GetName(), EntityName(executor))
 
     executor.orderRefEnt = target
     executor.currentExecutedOrder = EOrders.AI_FOLLOW_AND_PROTECT
@@ -53,13 +53,13 @@ end
 
 function CLEAR_DATA_AI_FOLLOW_AND_PROTECT(entity)
     if (not entity) then
-        LogError("<CLEAR_DATA_AI_FOLLOW_AND_PROTECT> entity not found")
+        LogError("[CLEAR_DATA_AI_FOLLOW_AND_PROTECT] entity not found")
         return
     end
 
     if (entity.followUpdateTimer) then
         Script.KillTimer(entity.followUpdateTimer)
-        LogAlways("<CLEAR_DATA_AI_FOLLOW_AND_PROTECT> kill timer %s", tostring(entity.followUpdateTimer))
+        LogAlways("[%s] CLEAR_DATA_AI_FOLLOW_AND_PROTECT kill timer %s", tostring(entity.followUpdateTimer))
         entity.followUpdateTimer = nil
     end
 
@@ -70,7 +70,7 @@ end
 
 function UPDATE_AI_FOLLOW_AND_PROTECT(entity)
     if (not entity) then
-        LogError("<UPDATE_AI_FOLLOW_AND_PROTECT> entity not found")
+        LogError("[UPDATE_AI_FOLLOW_AND_PROTECT] entity not found")
         return
     end
 
@@ -87,7 +87,7 @@ function UPDATE_AI_FOLLOW_AND_PROTECT(entity)
 end
 
 function AIBehaviour.DEFAULT:START_AI_FOLLOW_AND_PROTECT(entity, sender)
-    System.LogAlways(string.format("[ORDER] <START_AI_FOLLOW_AND_PROTECT> entity: %s", 
+    System.LogAlways(string.format("[%s] AI_FOLLOW_AND_PROTECT::START_AI_FOLLOW_AND_PROTECT", 
         EntityName(entity))
     )
 
@@ -100,13 +100,13 @@ function AIBehaviour.DEFAULT:START_AI_FOLLOW_AND_PROTECT(entity, sender)
 end
 
 function AIBehaviour.DEFAULT:AI_FOLLOW_AND_PROTECT_STARTED(entity, sender)
-    System.LogAlways(string.format("[ORDER] <AI_FOLLOW_AND_PROTECT_STARTED> entity: %s", 
+    System.LogAlways(string.format("[%s] AI_FOLLOW_AND_PROTECT::AI_FOLLOW_AND_PROTECT_STARTED", 
         EntityName(entity))
     )
 end
 
 function AIBehaviour.DEFAULT:AI_FOLLOW_AND_PROTECT_ENDED(entity, sender)
-    System.LogAlways(string.format("[ORDER] <AI_FOLLOW_AND_PROTECT_ENDED> entity: %s", 
+    System.LogAlways(string.format("[%s] AI_FOLLOW_AND_PROTECT::AI_FOLLOW_AND_PROTECT_ENDED", 
         EntityName(entity))
     )
 

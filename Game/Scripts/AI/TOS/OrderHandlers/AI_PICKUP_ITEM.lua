@@ -9,12 +9,12 @@
 ---@param speed integer скорость с которой нужно добраться (0, 1, 2, 3)
 function AI_PICKUP_ITEM(entity, item, speed)
     if (not entity) then
-        LogAlways("[ORDER] <AI_PICKUP_ITEM> entity not found")
+        LogAlways("[AI_PICKUP_ITEM] entity not found")
         return
     end
 
     if (not item) then
-        LogAlways("[ORDER] <AI_PICKUP_ITEM> item not found")
+        LogAlways("[AI_PICKUP_ITEM] item not found")
         return
     end
     
@@ -65,7 +65,7 @@ end
 
 function CLEAR_DATA_AI_PICKUP_ITEM(entity)
     if (not entity) then
-        LogError("[ORDER] <CLEAR_DATA_AI_PICKUP_ITEM> entity not found")
+        LogError("[CLEAR_DATA_AI_PICKUP_ITEM] entity not found")
         return
     end
 
@@ -76,14 +76,14 @@ function CLEAR_DATA_AI_PICKUP_ITEM(entity)
 
     if (entity.orderRefEnt) then
         System.RemoveEntity(entity.orderRefEnt.id)
-        Log("<CLEAR_DATA_AI_GOTO> order ref entity removed")
+        Log("[%s][CLEAR_DATA_AI_PICKUP_ITEM] order reference entity removed", EntityName(entity))
     end
     entity.orderRefEnt = nil
     entity.currentExecutedOrder = EOrders.NONE
 end
 
 function AIBehaviour.DEFAULT:START_AI_PICKUP_ITEM(entity, sender)
-    System.LogAlways(string.format("[ORDER] <START_AI_PICKUP_ITEM> entity: %s", 
+    System.LogAlways(string.format("[%s][START_AI_PICKUP_ITEM]", 
         EntityName(entity))
     )
 
@@ -91,12 +91,12 @@ function AIBehaviour.DEFAULT:START_AI_PICKUP_ITEM(entity, sender)
 end
 
 function AIBehaviour.DEFAULT:AI_PICKUP_ITEM_STARTED(entity, sender)
-    System.LogAlways(string.format("[ORDER] <AI_PICKUP_ITEM_STARTED> entity: %s", 
+    System.LogAlways(string.format("[%s][AI_PICKUP_ITEM_STARTED]", 
         EntityName(entity)))
 end
 
 function AIBehaviour.DEFAULT:AI_PICKUP_ITEM_ENDED(entity, sender)
-    System.LogAlways(string.format("[ORDER] <AI_PICKUP_ITEM_ENDED> entity: %s", 
+    System.LogAlways(string.format("[%s][AI_PICKUP_ITEM_ENDED]", 
         EntityName(entity))
     )
 

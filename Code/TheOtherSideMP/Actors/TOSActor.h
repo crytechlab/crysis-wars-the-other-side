@@ -267,6 +267,7 @@ public:
 	void NetReviveInVehicle(EntityId vehicleId, int seatId, int teamId) ;
 	void NetSimpleKill() ;
 	void SerializeSpawnInfo(TSerialize ser);
+	ISerializableInfoPtr GetSpawnInfo();
 	// ~CActor
 
 	//ITOSMasterControllable
@@ -297,7 +298,7 @@ public:
 	bool UpdateLastMPSpawnPointRotation(const Quat& rotation);
 	bool UpdateLastShooterId(const EntityId id);
 	void GiveEquipmentPack();
-	void NetSetActorModel(const char* model);
+	//void NetSetActorModel(const char* model);
 
 	// Crysis Co-op
 
