@@ -243,7 +243,7 @@ public:
 		void SetPP(int amount);
 		int  GetPP();
 		void ServerOnEntitySpawned(EntityId id, const Vec3& pos, int clientChannelId);
-		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId);
+		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId, EntityId originalId);
 
 		static bool DispatchMakeZeus(IActor* pPlayer, bool bMake);
 		static bool ServerMakeZeus(int playerChannelId, bool make);

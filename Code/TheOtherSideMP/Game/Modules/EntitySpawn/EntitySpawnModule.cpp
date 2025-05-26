@@ -162,6 +162,7 @@ void CTOSEntitySpawnModule::Update(float frametime)
 	{
 		const int scheduledRecordId = it->first;
 		_smart_ptr<STOSEntityDelaySpawnParams> pSpawnParams = it->second;
+		auto& pCallback = pSpawnParams->pCallback;
 
 		assert(pSpawnParams.get() != NULL);
 
@@ -172,11 +173,10 @@ void CTOSEntitySpawnModule::Update(float frametime)
 		if (curTime - recordedTime > delay)
 		{
 			auto pSpawned = SpawnEntity(*pSpawnParams, true);
+			if (pSpawned)
+				pCallback(pSpawned->GetId(), pSpawned->GetWorldPos(), pSpawnParams->clientChannelId);
+
 			s_scheduledSpawnsDelay.erase(it++);
-
-			if (pSpawned && pSpawnParams->pCallback)
-				pSpawnParams->pCallback(pSpawned->GetId(), pSpawned->GetWorldPos(), pSpawnParams->clientChannelId);
-
 			break;
 		}
 		else

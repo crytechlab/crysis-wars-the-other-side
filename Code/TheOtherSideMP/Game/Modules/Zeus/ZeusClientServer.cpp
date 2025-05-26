@@ -72,7 +72,7 @@ void CTOSZeusModule::ClientServer::ServerOnEntitySpawned(EntityId id, const Vec3
 		clientChannelId);
 }
 
-void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId)
+void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId, EntityId originalId)
 {
 	auto pSpawned = TOS_GET_ENTITY(id);
 	assert(pSpawned != nullptr);
@@ -86,12 +86,13 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3&
 	pSpawned->SetName(string(pSpawned->GetName()) + "_" + buffer);
 
 	// Извещаем клиента, о том, что он может перемещать заспавненную сущность
-	CTOSZeusSynchronizer::NetSpawnedInfo info;
-	info.spawnedId = id;
-	info.spawnedPos = pos;
+	CTOSZeusSynchronizer::NetCopiedInfo info;
+	info.originalId = originalId;
+	info.copiedId = id;
+	info.copiedPos = pos;
 
 	pParent->GetSynchronizer()->RMISend(
-		CTOSZeusSynchronizer::ClSpawnEntity(),
+		CTOSZeusSynchronizer::ClCopyEntity(),
 		info,
 		eRMI_ToClientChannel,
 		clientChannelId);

@@ -42,19 +42,18 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 		assert(pZeusModule != nullptr);
 
 		STOSEntityDelaySpawnParams spawnParams;
-		spawnParams.pCallback = std::bind(
-			&CTOSZeusModule::ClientServer::ServerOnEntitySpawned, 
-			&pZeusModule->GetClientServer(), 
-			std::placeholders::_1, 
-			std::placeholders::_2,
-			std::placeholders::_3);
-
 		spawnParams.clientChannelId = params.playerChannelId;
 		spawnParams.hide = true;
 		spawnParams.spawnDelay = 1.0f;
 		spawnParams.saveParams = false;
 		spawnParams.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)
 		spawnParams.vanilla.bIgnoreLock = false; // spawn lock игнор
+		spawnParams.pCallback = [clientServer = &pZeusModule->GetClientServer()]
+		(EntityId id, const Vec3& pos, int clientChannelId)
+			{
+				clientServer->ServerOnEntitySpawned(id, pos, clientChannelId);
+			};
+
 
 		//auto pPlayer = TOS_GET_ACTOR_CHANNELID(params.playerChannelId);
 		//if (pPlayer)
@@ -109,6 +108,25 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClSpawnEntity)
 	//TODO: не выделяется сущность после спавна
 	pZeusModule->GetLocal().SelectEntity(params.spawnedId);
 	pZeusModule->GetLocal().ClickEntity(params.spawnedId, params.spawnedPos);
+
+	return true;
+}
+
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CTOSZeusSynchronizer, ClCopyEntity)
+{
+	// Здесь пишем всё, что должно выполниться на клиенте
+
+	CryLog("<C++>[%s][%s][ClCopyEntity]",
+		tos::debug::GetEnv(), tos::debug::GetAct(3));
+	 
+	auto pZeusModule = g_pTOSGame->GetZeusModule();
+	assert(pZeusModule != nullptr);
+
+	pZeusModule->GetLocal().DeselectEntity(params.originalId);
+	pZeusModule->GetLocal().m_dragging = true;
+	pZeusModule->GetLocal().SelectEntity(params.copiedId);
+	pZeusModule->GetLocal().ClickEntity(params.copiedId, params.copiedPos);
 
 	return true;
 }
@@ -320,12 +338,11 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 		spawnParams.saveParams = false;
 		spawnParams.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)
 		spawnParams.vanilla.bIgnoreLock = false; // spawn lock игнор
-		spawnParams.pCallback = std::bind(
-			&CTOSZeusModule::ClientServer::ServerOnEntityCopied,
-			&pZeusModule->GetClientServer(),
-			std::placeholders::_1,
-			std::placeholders::_2,
-			std::placeholders::_3);
+		spawnParams.pCallback = [clientServer = &pZeusModule->GetClientServer(),
+			copiedId = params.copiedId](EntityId id, const Vec3& pos, int clientChannelId)
+			{
+				clientServer->ServerOnEntityCopied(id, pos, clientChannelId, copiedId);
+			};
 
 		auto pCopiedEntity = TOS_GET_ENTITY(params.copiedId);
 		if (!pCopiedEntity)
