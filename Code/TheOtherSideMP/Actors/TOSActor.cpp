@@ -225,6 +225,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		else if (event.nParam[0] == eMPTIMER_SELECTPRIMARY)
 		{
 			tos::inventory::SelectPrimary(this);
+			tos::ai::SetStance(this->GetEntity()->GetAI(), EStance::STANCE_STAND);
 		}
 		else if (event.nParam[0] == eMPTIMER_RAGDOLL)
 		{
