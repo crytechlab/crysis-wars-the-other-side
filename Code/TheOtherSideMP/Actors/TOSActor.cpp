@@ -114,6 +114,13 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 			CActor::Physicalize();  // пересоздать физику под новую модель
 		}
 	}
+
+	// Для обновления текущего оружия
+	pGameObject->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC | 
+		tos::net::SERVER_ASPECT_STATIC | 
+		tos::net::CLIENT_ASPECT_DYNAMIC | 
+		tos::net::CLIENT_ASPECT_STATIC
+	);
 }
 
 void CTOSActor::InitClient(const int channelId)
