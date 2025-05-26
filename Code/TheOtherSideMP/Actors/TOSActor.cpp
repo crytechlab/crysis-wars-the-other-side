@@ -29,6 +29,7 @@ Copyright (C), AlienKeeper, 2024.
 
 #include "TheOtherSideMP/Control/ControlSystem.h"
 #include <stdexcept>
+#include <TheOtherSideMP/Helpers/TOS_AI.h>
 #include <TheOtherSideMP/Helpers/TOS_Entity.h>
 #include <TheOtherSideMP/Helpers/TOS_Script.h>
 
@@ -80,6 +81,7 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 
 	m_netBodyInfo.Reset();
 	m_slaveStats = STOSSlaveStats();
+	m_debugName = GetEntity()->GetName();
 
 	// Факт: если оружие выдаётся на сервере, оно выдаётся и на всех клиентах тоже.
 	//ResetActorWeapons(1000);
@@ -88,17 +90,15 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 	// Но к сожалению это не позволяет включить PrePhysicsUpdate в одиночной игре 
 	// отравки запроса на движение в MasterClient. 
 	GetGameObject()->EnablePrePhysicsUpdate(ePPU_Always);
-	m_debugName = GetEntity()->GetName();
 
 	if (ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0))
 		pCharacter->SetFlags(pCharacter->GetFlags() | CS_FLAG_UPDATE_ALWAYS);
 
 	IEntityRenderProxy* pRenderProxy = (IEntityRenderProxy*)(GetEntity()->GetProxy(ENTITY_PROXY_RENDER));
 	if (pRenderProxy)
-	{
 		pRenderProxy->UpdateCharactersBeforePhysics(true);
-	}
 
+	// сохранение и применение модели персонажа
 	if (gEnv->bServer)
 	{
 		const char* model = 0;
@@ -227,14 +227,14 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 			tos::inventory::SelectPrimary(this);
 			tos::ai::SetStance(this->GetEntity()->GetAI(), EStance::STANCE_STAND);
 		}
-		else if (event.nParam[0] == eMPTIMER_RAGDOLL)
-		{
-			RagDollize(false);
-			pe_action_impulse imp;
-			imp.impulse = Vec3(1, 1, 1);
+		//else if (event.nParam[0] == eMPTIMER_RAGDOLL)
+		//{
+		//	RagDollize(false);
+		//	pe_action_impulse imp;
+		//	imp.impulse = Vec3(1, 1, 1);
 
-			GetEntity()->GetPhysics()->Action(&imp);
-		}
+		//	GetEntity()->GetPhysics()->Action(&imp);
+		//}
 	}
 	default: 
 		break;
@@ -280,34 +280,6 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 		if (aspect == tos::net::CLIENT_ASPECT_STATIC ||
 			aspect == tos::net::SERVER_ASPECT_STATIC)
 		{
-			// Model Serialize
-			//if (ser.IsWriting())
-			//	ser.Value("m_modelFilename", m_modelFilename);
-			//else
-			//{
-			//	string newModel;
-			//	ser.Value("m_modelFilename", newModel);
-
-			//	if (m_modelFilename != newModel)
-			//	{
-			//		m_modelFilename = newModel;
-
-			//		tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
-			//		CActor::Physicalize();
-
-			//		if (GetHealth() > 0)
-			//		{
-			//			SelectLastItem(true, true);
-			//		}
-			//		else
-			//		{
-			//			// FIXME: это делает неживых нпс с новой моделькой без Т-ПОЗЫ
-			//			GetEntity()->SetTimer(eMPTIMER_RAGDOLL, 500);
-			//		}
-			//		
-			//	}
-			//}
-
 			// Current Weapon Serialize
 			const bool writing = ser.IsWriting();
 			bool	   hasWeapon = false;
@@ -446,7 +418,7 @@ void CTOSActor::Release()
 	//CryLogAlways("<C++>[%s][%s][CTOSActor::Release] Actor: %s|%i",
 	//	tos::debug::GetEnv(), tos::debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
 
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorRelease, "", true));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorRelease, m_debugName, true));
 
 	CActor::Release();
 }
@@ -890,7 +862,7 @@ void CTOSActor::GiveEquipmentPack()
 		if (props->GetValue("equip_EquipmentPack", equip))
 		{
 			tos::inventory::GiveEquipmentPack(this, string(equip), false);
-			CryLogAlways("[%s] acquired equipment pack %s", GetEntity()->GetName(), equip);
+			CryLogAlways("[CTOSActor::GiveEquipmentPack] %s acquired equipment pack %s", GetEntity()->GetName(), equip);
 		}
 	}
 }
@@ -1030,7 +1002,7 @@ void CTOSActor::UpdateAnimEvents(float fFrameTime)
 			m_AnimEventQueue.erase(iterator);
 
 			if (CCoopSystem::GetInstance()->GetDebugLog() > 1)
-				CryLogAlways("[CActor::UpdateAnimEvents] Animation Event Played %s", animEvent.sAnimEventName);
+				CryLogAlways("[CTOSActor::UpdateAnimEvents] Animation Event Played %s", animEvent.sAnimEventName);
 
 			break;
 		}

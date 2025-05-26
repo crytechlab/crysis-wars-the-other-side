@@ -206,7 +206,6 @@ public:
 		eMPTIMER_GIVEWEAPONDELAY = 0x110,
 		eMPTIMER_REMOVEWEAPONSDELAY = 0x111,
 		eMPTIMER_SELECTPRIMARY = 0x112,
-		eMPTIMER_RAGDOLL = 0x113,
 	};
 
 	struct NetAttachChild
@@ -455,7 +454,6 @@ public:
 
 	static const EEntityAspects ASPECT_COOP_ALIVE = eEA_GameServerDynamic;
 	static const EEntityAspects ASPECT_COOP_HIDE = eEA_GameServerStatic;
-	static const EEntityAspects ASPECT_MODEL_CHANGE = eEA_GameClientStatic;
 
 	DECLARE_CLIENT_RMI_PREATTACH(ClAISelectItem, SAISelectItemParams, eNRT_ReliableUnordered);
 	DECLARE_CLIENT_RMI_PREATTACH(ClPlayNetworkedAnimation, SPlayNetworkedAnimationParams, eNRT_ReliableOrdered);

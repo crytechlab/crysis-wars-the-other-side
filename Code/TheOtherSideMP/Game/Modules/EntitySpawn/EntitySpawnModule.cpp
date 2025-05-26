@@ -337,21 +337,6 @@ IEntity* CTOSEntitySpawnModule::SpawnEntity(STOSEntitySpawnParams& params, bool 
 
 	if (pActor)
 	{
-		if (gEnv->bMultiplayer && !pActor->IsPlayer())
-		{
-			const char* fileModel = 0;
-			if (pArchetype)
-				pArchetype->GetProperties()->GetValue("fileModel", fileModel);
-			else if (props.GetPtr())
-				props->GetValue("fileModel", fileModel);
-
-			if (fileModel != 0)
-			{
-				//pActor->NetSetActorModel(fileModel);
-				//pActor->GetGameObject()->InvokeRMI(CTOSActor::ClSetActorModel(), CTOSActor::SSetActorModelParams(fileModel), eRMI_ToAllClients);
-			}
-		}
-
 		if (params.moveSpawnedToAuthorityPos)
 		{
 			IEntity* pAuthorityPlayerEnt = gEnv->pEntitySystem->FindEntityByName(params.authorityPlayerName);
