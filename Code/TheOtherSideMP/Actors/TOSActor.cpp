@@ -114,13 +114,6 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 			CActor::Physicalize();  // пересоздать физику под новую модель
 		}
 	}
-
-	// Для обновления текущего оружия
-	pGameObject->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC | 
-		tos::net::SERVER_ASPECT_STATIC | 
-		tos::net::CLIENT_ASPECT_DYNAMIC | 
-		tos::net::CLIENT_ASPECT_STATIC
-	);
 }
 
 void CTOSActor::InitClient(const int channelId)
@@ -138,10 +131,17 @@ void CTOSActor::PostInitClient(const int channelId)
 {
 	CActor::PostInitClient(channelId);
 
-	if (gEnv->bMultiplayer && !IsPlayer())
-	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
-	}
+	//if (gEnv->bMultiplayer && !IsPlayer())
+	//{
+	//	GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+	//}
+
+	// Для обновления состояния во время подключения клиента
+	GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC |
+		tos::net::SERVER_ASPECT_STATIC |
+		tos::net::CLIENT_ASPECT_DYNAMIC |
+		tos::net::CLIENT_ASPECT_STATIC
+	);
 }
 
 void CTOSActor::ProcessEvent(SEntityEvent& event)
