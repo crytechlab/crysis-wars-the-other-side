@@ -67,7 +67,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 		spawnParams.vanilla.sName = name;
 		spawnParams.vanilla.pClass = pClass;
 		spawnParams.vanilla.vPosition = params.pos;
-		spawnParams.vanilla.nFlags |= ENTITY_FLAG_NET_PRESENT | ENTITY_FLAG_CASTSHADOW;
+		spawnParams.vanilla.nFlags |= ENTITY_FLAG_NET_PRESENT | ENTITY_FLAG_CASTSHADOW | ENTITY_FLAG_TRIGGER_AREAS;
 
 		const auto pArchetype = gEnv->pEntitySystem->LoadEntityArchetype(psClassName->c_str());
 		if (pArchetype)
@@ -341,10 +341,12 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 
 		spawnParams.properties = props;
 		spawnParams.propertiesInstance = propsIns;
+		spawnParams.archetypeName = pCopiedEntity->GetArchetype() ? pCopiedEntity->GetArchetype()->GetName() : "";
 		spawnParams.vanilla.sName = string("zeus_") + pCopiedEntity->GetClass()->GetName();
 		spawnParams.vanilla.pClass = pCopiedEntity->GetClass();
 		spawnParams.vanilla.vPosition = pCopiedEntity->GetWorldPos();
-		spawnParams.archetypeName = pCopiedEntity->GetArchetype() ? pCopiedEntity->GetArchetype()->GetName() : "";
+		spawnParams.vanilla.nFlags = pCopiedEntity->GetFlags();
+
 		tos::entity::SpawnDelay(spawnParams, true);
 	}
 
