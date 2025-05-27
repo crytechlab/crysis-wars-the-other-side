@@ -389,6 +389,10 @@ void CGameRules::ProcessEvent(SEntityEvent& event)
 {
 	FUNCTION_PROFILER(gEnv->pSystem, PROFILE_GAME);
 
+	//Crysis Co-op
+	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+	//~Crysis Co-op
+
 	static ICVar* pTOD = gEnv->pConsole->GetCVar("sv_timeofdayenable");
 
 	switch (event.event)
@@ -425,11 +429,14 @@ void CGameRules::ProcessEvent(SEntityEvent& event)
 		m_timeOfDayInitialized = false;
 		g_pGame->GetWeaponSystem()->GetTracerManager().Reset();
 
-		if (gEnv->bServer && gEnv->bMultiplayer && pTOD && pTOD->GetIVal() && g_pGame->GetIGameFramework()->IsImmersiveMPEnabled())
+		if (!bIsCoop)
 		{
-			static ICVar* pStart = gEnv->pConsole->GetCVar("sv_timeofdaystart");
-			if (pStart)
-				gEnv->p3DEngine->GetTimeOfDay()->SetTime(pStart->GetFVal(), true);
+			if (gEnv->bServer && gEnv->bMultiplayer && pTOD && pTOD->GetIVal() && g_pGame->GetIGameFramework()->IsImmersiveMPEnabled())
+			{
+				static ICVar* pStart = gEnv->pConsole->GetCVar("sv_timeofdaystart");
+				if (pStart)
+					gEnv->p3DEngine->GetTimeOfDay()->SetTime(pStart->GetFVal(), true);
+			}
 		}
 
 	//TheOtherSide
@@ -1128,18 +1135,20 @@ void CGameRules::KillPlayer(CTOSActor *pActor, const bool dropItem, const bool r
 			pActor->DropItem(itemId, 1.0f, false, true);
 	}
 
-	//TheOtherSide
-	const auto pPlayer = static_cast<CTOSPlayer*>(pActor);
-	if (pPlayer)
+	// Crysis Co-op
+
+	// Only change the nanosuit stance if the actor is a player.
+	// TODO: Maybe refactor to allow NK nanosuits to behave the same.
+	if (pActor->IsPlayer())
 	{
-		CNanoSuit* pSuit = pPlayer->GetNanoSuit();
+		CNanoSuit* pSuit = (static_cast<CTOSPlayer*>(pActor))->GetNanoSuit();
 		if (pSuit)
 		{
 			pSuit->SetMode(NANOMODE_DEFENSE, true, true);
 			pSuit->SetCloakLevel(CLOAKMODE_REFRACTION);
 		}
 	}
-	//~TheOtherSide
+	// ~Crysis Co-op
 
 	uint16      weaponClassId   = 0;
 	if (const IEntity* pEntity = gEnv->pEntitySystem->GetEntity(weaponId))

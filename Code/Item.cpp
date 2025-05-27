@@ -172,8 +172,12 @@ bool CItem::Init(IGameObject* pGameObject)
 {
 	SetGameObject(pGameObject);
 
-	// if not allowed, don't init
-	if (gEnv->bMultiplayer && g_pGame->GetGameRules() && !g_pGame->GetGameRules()->IsItemAllowed(GetEntity()->GetClass()->GetName()))
+	//Crysis Co-op
+	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+	//~Crysis Co-op
+
+	// We don't want to disallow items in co-op.
+	if (gEnv->bMultiplayer && g_pGame->GetGameRules() && (!bIsCoop && !g_pGame->GetGameRules()->IsItemAllowed(GetEntity()->GetClass()->GetName())))
 		return false;
 
 #ifdef ITEM_DEBUG_MEMALLOC
@@ -228,6 +232,11 @@ bool CItem::Init(IGameObject* pGameObject)
 	// bind to network
 	if (0 == (GetEntity()->GetFlags() & (ENTITY_FLAG_CLIENT_ONLY | ENTITY_FLAG_SERVER_ONLY)))
 	{
+		// Crysis Co-op
+		// RaZoR: CryAction & CryNetwork thought weapons given on AI initialization were static level objects.
+		//		  MUST be called before BindToNetwork for proper behavior.
+		GetEntity()->SetFlags(this->GetEntity()->GetFlags() | ENTITY_FLAG_NEVER_NETWORK_STATIC);
+		// ~Crysis Co-op
 		if (!GetGameObject()->BindToNetwork())
 		{
 			GetGameObject()->ReleaseProfileManager(this);

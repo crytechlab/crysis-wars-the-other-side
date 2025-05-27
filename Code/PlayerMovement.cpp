@@ -1389,7 +1389,11 @@ void CPlayerMovement::AdjustMovementForEnvironment(Vec3& move, bool sprinting)
 	//nanoSuit
 	if (const CNanoSuit* pSuit = m_player.GetNanoSuit())
 	{
-		if (gEnv->bMultiplayer)
+		//Crysis Co-op
+		bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+		//~Crysis Co-op
+
+		if (gEnv->bMultiplayer && !bIsCoop)
 		{
 			if (pSuit->GetMode() == NANOMODE_SPEED)
 			{

@@ -795,6 +795,155 @@ public:
 		// HUDInterfaceEffects.cpp sets this
 	};
 
+	// Crysis Co-op
+	struct PlayReadabilitySoundParams
+	{
+	public:
+		PlayReadabilitySoundParams() : sSoundEventName("") {};
+		PlayReadabilitySoundParams(string s) : sSoundEventName(s) {}
+
+		string sSoundEventName;
+
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("name", sSoundEventName);
+		}
+	};
+
+	struct SPlayNetworkedSoundEvent
+	{
+	public:
+		SPlayNetworkedSoundEvent() {};
+		SPlayNetworkedSoundEvent(const char* sSoundOrEventName, Vec3 vOffset, Vec3 vDirection, uint32 nSoundFlags, uint32 nSemantic)
+			: sSoundOrEventName(sSoundOrEventName), vOffset(vOffset), vDirection(vDirection), nSoundFlags(nSoundFlags), nSemantic(nSemantic)
+		{
+		}
+
+		string sSoundOrEventName;
+		Vec3 vOffset;
+		Vec3 vDirection;
+		uint32 nSoundFlags;
+		uint32 nSemantic;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("sSoundOrEventName", sSoundOrEventName);
+			ser.Value("vOffset", vOffset);
+			ser.Value("vDirection", vDirection);
+			ser.Value("nSoundFlags", nSoundFlags);
+			ser.Value("nSemantic", nSemantic);
+		}
+	};
+
+	struct SNetworkedAttachmentEffect
+	{
+		SNetworkedAttachmentEffect() {};
+		SNetworkedAttachmentEffect(int characterSlot, const char* attachmentName, const char* effectName, Vec3 offset, Vec3 dir, float scale, int flags)
+			: characterSlot(characterSlot), attachmentName(attachmentName), effectName(effectName), offset(offset), dir(dir), scale(scale), flags(flags)
+		{
+		}
+
+		int characterSlot;
+		string attachmentName;
+		string effectName;
+		Vec3 offset;
+		Vec3 dir;
+		float scale;
+		int flags;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("characterSlot", characterSlot);
+			ser.Value("attachmentName", attachmentName);
+			ser.Value("effectName", effectName);
+			ser.Value("offset", offset);
+			ser.Value("dir", dir);
+			ser.Value("scale", scale);
+			ser.Value("flags", flags);
+		}
+	};
+
+	struct SLooseHelmetParams
+	{
+		SLooseHelmetParams() {};
+		SLooseHelmetParams(Vec3 dir, Vec3 pos) :
+			hitDir(dir),
+			hitPos(pos)
+		{
+		};
+
+		Vec3 hitDir;
+		Vec3 hitPos;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("hitDir", hitDir, 'wrld');
+			ser.Value("hitPos", hitPos, 'wrld');
+		}
+	};
+
+	CAnimationGraphState* m_pAnimationGraphStateWrapper{nullptr};
+
+	struct SPlayNetworkedAnimationParams
+	{
+		SPlayNetworkedAnimationParams() {};
+		SPlayNetworkedAnimationParams(int Mode, const string& Animation) :
+			nMode(Mode),
+			sAnimation(Animation)
+		{
+		};
+
+		// Type of the animation (EAnimationMode as integer)
+		int nMode;
+		// Animation name.
+		string sAnimation;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("nMode", nMode);
+			ser.Value("sAnimation", sAnimation);
+		}
+	};
+
+	struct SAISelectItemParams
+	{
+		SAISelectItemParams() {
+
+		}
+
+		SAISelectItemParams(EntityId id, bool holsterOnly, bool holstered)
+		{
+			itemId = id;
+			select = !holsterOnly;
+			isHolstered = holstered;
+		}
+
+		EntityId itemId;
+		bool select;
+		bool isHolstered;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("item", itemId, 'eid');
+			ser.Value("select", select);
+			ser.Value("holstered", isHolstered);
+		}
+	};
+
+	DECLARE_CLIENT_RMI_PREATTACH(ClAISelectItem, SAISelectItemParams, eNRT_ReliableUnordered);
+	DECLARE_CLIENT_RMI_PREATTACH(ClPlayNetworkedAnimation, SPlayNetworkedAnimationParams, eNRT_ReliableOrdered);
+	DECLARE_SERVER_RMI_PREATTACH(SvRequestPlayNetworkedAnimation, SPlayNetworkedAnimationParams, eNRT_ReliableOrdered);
+
+
+	DECLARE_CLIENT_RMI_PREATTACH(ClLooseHelmet, SLooseHelmetParams, eNRT_ReliableUnordered);
+
+	DECLARE_CLIENT_RMI_NOATTACH(ClPlayNetworkedSoundEvent, SPlayNetworkedSoundEvent, eNRT_ReliableUnordered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClSetNetworkedAttachmentEffect, SNetworkedAttachmentEffect, eNRT_ReliableUnordered);
+
+	DECLARE_CLIENT_RMI_NOATTACH(ClPlayReadabilitySound, PlayReadabilitySoundParams, eNRT_ReliableOrdered);
+	// ~Crysis Co-op
+
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestDropItem, DropItemParams, eNRT_ReliableOrdered);
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestPickUpItem, ItemIdParam, eNRT_ReliableOrdered);
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestUseItem, ItemIdParam, eNRT_ReliableOrdered);
@@ -1069,7 +1218,7 @@ public:
 	}
 
 	//for animations
-	void PlayAction(const char* action, const char* extension, bool looping = false)  {};
+	virtual void PlayAction(const char* action, const char* extension, bool looping = false);
 	//
 	virtual void SetMovementTarget(const Vec3& position, const Vec3& looktarget, const Vec3& up, float speed) {};
 	//
@@ -1202,44 +1351,7 @@ public:
 	void QueueAnimationState(const char* state);
 	void ChangeAnimGraph(const char* graph, int layer);
 
-	virtual bool SetAnimationInput(const char* inputID, const char* value)
-	{
-		// Handle action and signal inputs via AIproxy, since the AI system and
-		// the AI agent behavior depend on those inputs.
-		if (IEntity*               pEntity = GetEntity())
-			if (const IAIObject*   pAI     = pEntity->GetAI())
-				if (IUnknownProxy* pProxy  = pAI->GetProxy())
-					if (pProxy->IsEnabled())
-					{
-						const bool bSignal = strcmp(inputID, "Signal") == 0;
-						const bool bAction = strcmp(inputID, "Action") == 0;
-						if (bSignal)
-						{
-							return pProxy->SetAGInput(AIAG_SIGNAL, value);
-						}
-						if (bAction)
-						{
-							// Dejan: actions should not go through the ai proxy anymore!
-							/*
-							if(_stricmp(value, "idle") == 0)
-								return pProxy->ResetAGInput( AIAG_ACTION );
-							else
-							{
-								return pProxy->SetAGInput( AIAG_ACTION, value );
-							}
-							*/
-						}
-					}
-
-		if (IAnimationGraphState* pState = GetAnimationGraphState())
-		{
-			pState->SetInput(pState->GetInputId(inputID), value);
-			return true;
-		}
-
-		return false;
-	}
-
+	virtual bool SetAnimationInput(const char* inputID, const char* value);
 	//
 	virtual int  GetBoneID(int ID, int slot = 0) const;
 	Vec3         GetLocalEyePos(int slot = 0) const ;
@@ -1519,6 +1631,38 @@ public:
 	int m_saturationID;
 
 	int m_hitReactionID;
+
+public:
+	// Crysis Co-op
+
+	struct SQueuedAnimEvent
+	{
+		SQueuedAnimEvent() : sAnimEventName(""), fEventTime(0.f), fElapsed(0.f) {};
+		SQueuedAnimEvent(string name, float eventTime) : sAnimEventName(name), fEventTime(eventTime), fElapsed(0.f) {};
+		string sAnimEventName;
+		float fEventTime;
+		float fElapsed;
+	};
+
+	virtual bool IsAnimEvent(const char* sAnimSignal, string* sAnimEventName, float* fEventTime)
+	{
+		*sAnimEventName = "";
+		*fEventTime = 0.f;
+		return false;
+	};
+	void QueueAnimationEvent(SQueuedAnimEvent sEvent);
+	void UpdateAnimEvents(float fFrameTime);
+
+	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, float value, TAnimationGraphQueryID* pQueryID);
+	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, int value, TAnimationGraphQueryID* pQueryID);
+	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID);
+
+private:
+
+	std::list<SQueuedAnimEvent> m_AnimEventQueue;
+	string m_sLastNetworkedAnim;
+
+	// ~Crysis Co-op
 };
 
 #endif //__Actor_H__

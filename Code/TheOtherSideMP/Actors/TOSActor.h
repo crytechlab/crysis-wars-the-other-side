@@ -35,59 +35,6 @@ struct STOSSlaveStats
 	float chargingJumpPressDur;
 };
 
-struct NetPlayAnimationParams
-{
-	NetPlayAnimationParams()
-		: mode(0) {} ;
-	NetPlayAnimationParams(const uint _mode, const string& _animation) :
-		mode(_mode),
-		animation(_animation)
-	{};
-
-	uint mode;
-	string animation;
-
-	void SerializeWith(TSerialize ser)
-	{
-		ser.Value("mode", mode, 'ui2');
-		ser.Value("animation", animation, 'stab');
-	}
-};
-
-struct NetMarkMeParams
-{
-	NetMarkMeParams()
-		: value(false) {};
-
-	explicit NetMarkMeParams(const bool _slave_or_master) :
-		value(_slave_or_master)
-	{}
-
-	bool value;
-
-	void SerializeWith(TSerialize ser)
-	{
-		ser.Value("value", value, 'bool');
-	}
-};
-
-struct NetHideMeParams
-{
-	NetHideMeParams()
-		: hide(false) {};
-
-	explicit NetHideMeParams(const bool _hide) :
-		hide(_hide)
-	{}
-
-	bool hide;
-
-	void SerializeWith(TSerialize ser)
-	{
-		ser.Value("hide", hide, 'bool');
-	}
-};
-
 /**
  * \brief Информация о состоянии тела актёра, передеваемая по сети
 	\note Канал, владеющий сущностью будет записывать данные, а остальные в т.ч сервер, будут принимать данные.
@@ -208,6 +155,44 @@ public:
 		eMPTIMER_SELECTPRIMARY = 0x112,
 	};
 
+	struct NetMarkMeParams
+	{
+		NetMarkMeParams()
+			: value(false) {
+		};
+
+		explicit NetMarkMeParams(const bool _slave_or_master) :
+			value(_slave_or_master)
+		{
+		}
+
+		bool value;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("value", value, 'bool');
+		}
+	};
+
+	struct NetHideMeParams
+	{
+		NetHideMeParams()
+			: hide(false) {
+		};
+
+		explicit NetHideMeParams(const bool _hide) :
+			hide(_hide)
+		{
+		}
+
+		bool hide;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("hide", hide, 'bool');
+		}
+	};
+
 	struct NetAttachChild
 	{
 		NetAttachChild()
@@ -258,7 +243,6 @@ public:
 	void Release() ;
 	void Revive(bool fromInit = false) ;
 	void Kill() ;
-	void PlayAction(const char* action, const char* extension, bool looping = false) ;
 	void AnimationEvent(ICharacterInstance* pCharacter, const AnimEventInstance& event) ;
 
 	void NetKill(EntityId shooterId, uint16 weaponClassId, int damage, int material, int hit_type, int killerHealthOnKill) ;
@@ -299,198 +283,8 @@ public:
 	void GiveEquipmentPack();
 	//void NetSetActorModel(const char* model);
 
-	// Crysis Co-op
-
-	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, float value, TAnimationGraphQueryID* pQueryID);
-	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, int value, TAnimationGraphQueryID* pQueryID);
-	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID);
-	IAnimationGraphState* GetAnimationGraphState();
-
-	struct PlayReadabilitySoundParams
-	{
-	public:
-		PlayReadabilitySoundParams() : sSoundEventName("") {};
-		PlayReadabilitySoundParams(string s) : sSoundEventName(s) { }
-
-		string sSoundEventName;
-
-
-		void SerializeWith(TSerialize ser)
-		{
-			ser.Value("name", sSoundEventName);
-		}
-	};
-
-	struct SPlayNetworkedSoundEvent
-	{
-	public:
-		SPlayNetworkedSoundEvent() {};
-		SPlayNetworkedSoundEvent(const char* sSoundOrEventName, Vec3 vOffset, Vec3 vDirection, uint32 nSoundFlags, uint32 nSemantic)
-			: sSoundOrEventName(sSoundOrEventName), vOffset(vOffset), vDirection(vDirection), nSoundFlags(nSoundFlags), nSemantic(nSemantic)
-		{ }
-
-		string sSoundOrEventName;
-		Vec3 vOffset;
-		Vec3 vDirection;
-		uint32 nSoundFlags;
-		uint32 nSemantic;
-
-		void SerializeWith(TSerialize ser)
-		{
-			ser.Value("sSoundOrEventName", sSoundOrEventName);
-			ser.Value("vOffset", vOffset);
-			ser.Value("vDirection", vDirection);
-			ser.Value("nSoundFlags", nSoundFlags);
-			ser.Value("nSemantic", nSemantic);
-		}
-	};
-
-	struct SNetworkedAttachmentEffect
-	{
-		SNetworkedAttachmentEffect() {};
-		SNetworkedAttachmentEffect(int characterSlot, const char* attachmentName, const char* effectName, Vec3 offset, Vec3 dir, float scale, int flags)
-			: characterSlot(characterSlot), attachmentName(attachmentName), effectName(effectName), offset(offset), dir(dir), scale(scale), flags(flags)
-		{ }
-
-		int characterSlot;
-		string attachmentName;
-		string effectName;
-		Vec3 offset;
-		Vec3 dir;
-		float scale;
-		int flags;
-
-		void SerializeWith(TSerialize ser)
-		{
-			ser.Value("characterSlot", characterSlot);
-			ser.Value("attachmentName", attachmentName);
-			ser.Value("effectName", effectName);
-			ser.Value("offset", offset);
-			ser.Value("dir", dir);
-			ser.Value("scale", scale);
-			ser.Value("flags", flags);
-		}
-	};
-
-	struct SLooseHelmetParams
-	{
-		SLooseHelmetParams() {};
-		SLooseHelmetParams(Vec3 dir, Vec3 pos) :
-			hitDir(dir),
-			hitPos(pos)
-		{};
-
-		Vec3 hitDir;
-		Vec3 hitPos;
-
-		void SerializeWith(TSerialize ser)
-		{
-			ser.Value("hitDir", hitDir, 'wrld');
-			ser.Value("hitPos", hitPos, 'wrld');
-		}
-	};
-
-	CAnimationGraphState* m_pAnimationGraphStateWrapper;
-
-	struct SPlayNetworkedAnimationParams
-	{
-		SPlayNetworkedAnimationParams() {};
-		SPlayNetworkedAnimationParams(int Mode, const string& Animation) :
-			nMode(Mode),
-			sAnimation(Animation)
-		{};
-
-		// Type of the animation (EAnimationMode as integer)
-		int nMode;
-		// Animation name.
-		string sAnimation;
-
-		void SerializeWith(TSerialize ser)
-		{
-			ser.Value("nMode", nMode);
-			ser.Value("sAnimation", sAnimation);
-		}
-	};
-
-	struct SAISelectItemParams
-	{
-		SAISelectItemParams() {
-
-		}
-
-		SAISelectItemParams(EntityId id, bool holsterOnly, bool holstered)
-		{
-			itemId = id;
-			select = !holsterOnly;
-			isHolstered = holstered;
-		}
-
-		EntityId itemId;
-		bool select;
-		bool isHolstered;
-
-		void SerializeWith(TSerialize ser)
-		{
-			ser.Value("item", itemId, 'eid');
-			ser.Value("select", select);
-			ser.Value("holstered", isHolstered);
-		}
-	};
-
-	struct SSetActorModelParams
-	{
-		SSetActorModelParams() {};
-		SSetActorModelParams(const char* _fileModel) :
-			fileModel(_fileModel)
-		{};
-
-		string fileModel;
-
-		void SerializeWith(TSerialize ser)
-		{
-			ser.Value("fileModel", fileModel);
-		}
-	};
-
-	static const EEntityAspects ASPECT_COOP_ALIVE = eEA_GameServerDynamic;
-	static const EEntityAspects ASPECT_COOP_HIDE = eEA_GameServerStatic;
-
-	DECLARE_CLIENT_RMI_PREATTACH(ClAISelectItem, SAISelectItemParams, eNRT_ReliableUnordered);
-	DECLARE_CLIENT_RMI_PREATTACH(ClPlayNetworkedAnimation, SPlayNetworkedAnimationParams, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_PREATTACH(ClLooseHelmet, SLooseHelmetParams, eNRT_ReliableUnordered);
-	DECLARE_CLIENT_RMI_NOATTACH(ClPlayNetworkedSoundEvent, SPlayNetworkedSoundEvent, eNRT_ReliableUnordered);
-	DECLARE_CLIENT_RMI_NOATTACH(ClSetNetworkedAttachmentEffect, SNetworkedAttachmentEffect, eNRT_ReliableUnordered);
-	DECLARE_CLIENT_RMI_NOATTACH(ClPlayReadabilitySound, PlayReadabilitySoundParams, eNRT_ReliableOrdered);
-	
-
-public:
-	struct SQueuedAnimEvent
-	{
-		SQueuedAnimEvent() : sAnimEventName(""), fEventTime(0.f), fElapsed(0.f) {};
-		SQueuedAnimEvent(string name, float eventTime) : sAnimEventName(name), fEventTime(eventTime), fElapsed(0.f) {};
-		string sAnimEventName;
-		float fEventTime;
-		float fElapsed;
-	};
-
-	virtual bool IsAnimEvent(const char* sAnimSignal, string* sAnimEventName, float* fEventTime)
-	{
-		*sAnimEventName = "";
-		*fEventTime = 0.f;
-		return false;
-	};
-	void QueueAnimationEvent(SQueuedAnimEvent sEvent);
-	bool SetAnimationInput(const char* inputID, const char* value);
-	void UpdateAnimEvents(float fFrameTime);
-	// Скрыть актера на стороне клиента
-	bool HideMe(bool value);
-
-private:
-	std::list<SQueuedAnimEvent> m_AnimEventQueue;
-	string m_sLastNetworkedAnim;
-	// ~Crysis Co-op
-
 protected:
+	bool HideMe(bool value);
 	// Сделать мастером или рабом на стороне сервера
 	bool SetMeSlave(bool value);
 	bool SetMeMaster(bool value);
@@ -507,12 +301,6 @@ private:
 	bool m_isMaster; // сериализованное по сети значение, является ли актёр мастером
 	string m_modelFilename;
 
-	DECLARE_SERVER_RMI_NOATTACH(SvRequestPlayAnimation, NetPlayAnimationParams, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_NOATTACH(ClPlayAnimation, NetPlayAnimationParams, eNRT_ReliableOrdered);
-
-	//DECLARE_SERVER_RMI_PREATTACH(SvRequestHideMe, NetHideMeParams, eNRT_ReliableOrdered);
-	//DECLARE_CLIENT_RMI_PREATTACH(ClMarkHideMe, NetHideMeParams, eNRT_ReliableOrdered);
-
 	DECLARE_CLIENT_RMI_NOATTACH_FAST(ClTOSJump, NoParams, eNRT_ReliableUnordered);
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestTOSJump, NoParams, eNRT_ReliableUnordered);
 
@@ -520,9 +308,6 @@ private:
 	DECLARE_SERVER_RMI_POSTATTACH(SvRequestAttachChild, NetAttachChild, eNRT_ReliableUnordered);
 
 	DECLARE_CLIENT_RMI_PREATTACH(ClClearInventory, NoParams, eNRT_ReliableOrdered);
-
-	//DECLARE_SERVER_RMI_POSTATTACH(SvRequestSetActorModel, SSetActorModelParams, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_POSTATTACH(ClSetActorModel, SSetActorModelParams, eNRT_ReliableOrdered);
 
 protected:
 	bool m_chargingJump;///< Если *true, то высота прыжка зависит от длительности нажатия на дейсвие прыжка [jump]

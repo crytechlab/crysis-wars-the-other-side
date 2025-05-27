@@ -2036,9 +2036,13 @@ void CPlayer::SetParams(SmartScriptTable &rTable,bool resetFirst)
 
 	CActor::SetParams(rTable,resetFirst);
 
+	//Crysis Co-op
+	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+	//~Crysis Co-op
+
 	CScriptSetGetChain params(rTable);
 	params.GetValue("sprintMultiplier",m_params.sprintMultiplier);
-	if(gEnv->bMultiplayer)
+	if(gEnv->bMultiplayer && !bIsCoop)
 		params.GetValue("strafeMultiplierMP",m_params.strafeMultiplier);
 	else
 		params.GetValue("strafeMultiplier",m_params.strafeMultiplier);
@@ -2099,10 +2103,14 @@ bool CPlayer::GetParams(SmartScriptTable &rTable)
 {
 	FUNCTION_PROFILER(gEnv->pSystem, PROFILE_GAME);
 
+	//Crysis Co-op
+	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+	//~Crysis Co-op
+
 	CScriptSetGetChain params(rTable);
 
 	params.SetValue("sprintMultiplier", m_params.sprintMultiplier);
-	if(gEnv->bMultiplayer)
+	if(gEnv->bMultiplayer && !bIsCoop)
 		params.SetValue("strafeMultiplierMP", m_params.strafeMultiplier);
 	else
 		params.SetValue("strafeMultiplier", m_params.strafeMultiplier);
@@ -2313,8 +2321,13 @@ void CPlayer::UpdateSwimStats(float frameTime)
 	// Update inWater timer (positive is in water, negative is out of water).
 	if (ShouldSwim())
 	{
+		//Crysis Co-op
+		bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+
 		//by design : AI cannot swim and drowns no matter what
-		if((GetHealth() > 0) && !isClient && !gEnv->bMultiplayer)
+		if ((GetHealth() > 0) && !IsPlayer() && (!gEnv->bMultiplayer || bIsCoop))
+			//if((GetHealth() > 0) && !isClient && !gEnv->bMultiplayer)
+			//~Crysis Co-op
 		{
 			// apply damage same way as all the other kinds
 			HitInfo hitInfo;
@@ -4260,7 +4273,10 @@ bool CPlayer::NetSerialize( TSerialize ser, EEntityAspects aspect, uint8 profile
 			ser.FlagPartialRead();
 	}
 
-	if(m_pNanoSuit)													// nanosuit needs to be serialized before input
+	// Crysis Co-op
+	//if(m_pNanoSuit)													// nanosuit needs to be serialized before input
+	if (m_pNanoSuit && IsPlayer()) // Fixes crash for nanosuited AI
+		//~Crysis Co-op
 		m_pNanoSuit->Serialize(ser, aspect);	// because jumping/punching/sprinting energy consumption will vary with suit settings
 
 	if (aspect == IPlayerInput::INPUT_ASPECT)
@@ -5124,7 +5140,13 @@ void CPlayer::UpdateFootSteps(float frameTime)
 		//switch foot
 		m_currentFootID = footID;	
 
-		if (!gEnv->bMultiplayer && gEnv->pAISystem)
+		// Crysis Co-op :: we certainly want footsteps alerting AI in co-op
+		bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+
+		//if (!gEnv->bMultiplayer && gEnv->pAISystem)
+		//if ((!gEnv->bMultiplayer || bIsCoop) && gEnv->pAISystem)
+		if (gEnv->pAISystem) // TheOtherSide
+			//~Crysis Co-op
 		{
 			float pseudoSpeed = 0.0f;
 			if (m_stats.velocity.GetLengthSquared() > sqr(0.01f))

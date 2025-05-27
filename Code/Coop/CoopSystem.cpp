@@ -203,6 +203,4 @@ bool CCoopSystem::IsCoop()
 {
 	const char* gameRulesName = gEnv->pGame->GetIGameFramework()->GetIGameRulesSystem()->GetCurrentGameRules()->GetEntity()->GetClass()->GetName();
 	return (strcmp(gameRulesName, "Coop") == 0);
-
-
 }

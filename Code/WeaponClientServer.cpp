@@ -183,32 +183,23 @@ void CWeapon::RequestShoot(IEntityClass* pAmmoType, const Vec3& pos, const Vec3&
 
 	if (NOT_PLAYER_IN_MP(pOwnerActor))
 	{
-		/* TheOtherSide код из Crysis Co-op
-		if (IsServerSpawn(pAmmoType) || forceExtended)
+		if (IsServer())
 		{
-			GetGameObject()->InvokeRMI(CWeapon::ClShoot(), ClShootParams(pos + dir * 5.0f, predictionHandle), eRMI_ToAllClients);
-			NetShootEx(pos, dir, vel, hit, extra, predictionHandle);
-		}
-		else
-		{
-			GetGameObject()->InvokeRMI(CWeapon::ClShoot(), ClShootParams(hit, predictionHandle), eRMI_ToAllClients);
-			NetShoot(hit, predictionHandle);
-		}
-		*/
-
-		if (gEnv->bServer)
-		{
+			//TheOtherSide код из Crysis Co-op
 			if (IsServerSpawn(pAmmoType) || forceExtended)
-				GetGameObject()->InvokeRMI(ClShoot(), ClShootParams(pos + dir*5.0f, predictionHandle), eRMI_ToRemoteClients);
+			{
+				GetGameObject()->InvokeRMI(ClShoot(), ClShootParams(pos + dir * 5.0f, predictionHandle), IsClient() ? eRMI_ToRemoteClients : eRMI_ToAllClients);
+				NetShootEx(pos, dir, vel, hit, extra, predictionHandle);
+			}
 			else
-				GetGameObject()->InvokeRMI(ClShoot(), ClShootParams(hit, predictionHandle), eRMI_ToRemoteClients);}
+			{
+				GetGameObject()->InvokeRMI(ClShoot(), ClShootParams(hit, predictionHandle), IsClient() ? eRMI_ToRemoteClients : eRMI_ToAllClients);
+				NetShoot(hit, predictionHandle);
+			}
+			//~
+		}
 		else
 		{
-			if (pOwnerActor)
-				pOwnerActor->GetGameObject()->Pulse('bang');
-
-			GetGameObject()->Pulse('bang');
-
 			if (IsServerSpawn(pAmmoType) || forceExtended)
 				GetGameObject()->InvokeRMI(SvRequestShootEx(), SvRequestShootExParams(pos, dir, vel, hit, extra, predictionHandle, seq, seqr), eRMI_ToServer);
 			else

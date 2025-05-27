@@ -1042,7 +1042,11 @@ void CAlien::UpdateStats(float frameTime)
 	m_stats.gravity = simPar.gravity;
 	m_stats.velocity = m_stats.velocityUnconstrained = dynStat.v;
 	m_stats.angVelocity = dynStat.w;
-	m_stats.speed = m_stats.speedFlat = m_stats.velocity.len();
+
+	// Crysis Co-op :: stops the client from overriding server value
+	if (!gEnv->bClient && gEnv->bServer)
+		m_stats.speed = m_stats.speedFlat = m_stats.velocity.len();
+	// ~Crysis Co-op
 
 	// [Mikko] The velocity from the physics in some weird cases have been #INF because of the player
 	// Zero-G movement calculations. If this asserts triggers, the alien might have just collided with

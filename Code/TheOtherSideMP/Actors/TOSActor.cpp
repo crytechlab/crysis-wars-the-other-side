@@ -42,8 +42,7 @@ CTOSActor::CTOSActor()
 	m_isZeus(false),
 	m_chargingJump(false),
 	m_lastShooterId(0),
-	m_pEnergyConsumer(nullptr),
-	m_pAnimationGraphStateWrapper(nullptr)
+	m_pEnergyConsumer(nullptr)
 {
 	
 }
@@ -163,7 +162,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		{
 			GetInventory()->Clear();
 			m_isEntityHidden = true;
-			GetGameObject()->ChangedNetworkState(ASPECT_COOP_HIDE);
+			GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 		}
 
 		break;
@@ -174,7 +173,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		{
 			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
 			m_isEntityHidden = false;
-			GetGameObject()->ChangedNetworkState(ASPECT_COOP_HIDE);
+			GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 		}
 
 		break;
@@ -185,7 +184,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		{
 			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
 			m_isEntityHidden = false;
-			GetGameObject()->ChangedNetworkState(ASPECT_COOP_HIDE);
+			GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 		}
 
 		break;
@@ -265,7 +264,7 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 
 	if (!IsPlayer())
 	{
-		if (aspect == ASPECT_COOP_HIDE)
+		if (aspect == tos::net::SERVER_ASPECT_STATIC)
 		{
 			ser.Value("bHide", m_isEntityHidden, 'bool');
 
@@ -483,24 +482,6 @@ void CTOSActor::Kill()
 
 	// Вызывается только на сервере
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorDead, "", true));
-}
-
-void CTOSActor::PlayAction(const char* action, const char* extension, const bool looping)
-{
-	CActor::PlayAction(action, extension, looping);
-
-	NetPlayAnimationParams params;
-	params.animation = action;
-	params.mode = looping ? AIANIM_ACTION : AIANIM_SIGNAL;
-
-	if (gEnv->bClient)
-	{
-		GetGameObject()->InvokeRMI(SvRequestPlayAnimation(), params, eRMI_ToServer);
-	}
-	else
-	{
-		GetGameObject()->InvokeRMI(ClPlayAnimation(), params, eRMI_ToRemoteClients);
-	}
 }
 
 void CTOSActor::AnimationEvent(ICharacterInstance* pCharacter, const AnimEventInstance& event)
@@ -922,161 +903,4 @@ bool CTOSActor::SetMeZeus(bool value)
 	m_isZeus = value;
 	GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	return true;
-}
-
-// Crysis Co-op
-void CTOSActor::UpdateAnimEvents(float fFrameTime)
-{
-	if (!gEnv->bServer)
-		return;
-
-	std::list<SQueuedAnimEvent>::iterator iterator;
-	for (iterator = m_AnimEventQueue.begin(); iterator != m_AnimEventQueue.end(); ++iterator)
-	{
-		SQueuedAnimEvent& animEvent = (*iterator);
-
-		animEvent.fElapsed += fFrameTime;
-
-		if (animEvent.fElapsed > animEvent.fEventTime)
-		{
-			//this->CreateScriptEvent("animationevent", 0.f, animEvent.sAnimEventName);
-
-			AnimEventInstance sEvent;
-			sEvent.m_EventName = animEvent.sAnimEventName;
-
-			this->AnimationEvent(GetEntity()->GetCharacter(0), sEvent);
-
-			m_AnimEventQueue.erase(iterator);
-
-			if (CCoopSystem::GetInstance()->GetDebugLog() > 1)
-				CryLogAlways("[CTOSActor::UpdateAnimEvents] Animation Event Played %s", animEvent.sAnimEventName);
-
-			break;
-		}
-	}
-}
-
-void CTOSActor::QueueAnimationEvent(SQueuedAnimEvent sEvent)
-{
-	if (!gEnv->bServer || gEnv->bEditor)
-		return;
-
-	CryLog("[CTOSActor::QueueAnimationEvent] Animation Event Queued %s", sEvent.sAnimEventName);
-
-	m_AnimEventQueue.push_back(sEvent);
-}
-
-bool CTOSActor::SetAnimationInput(const char* inputID, const char* value)
-{
-	if (!gEnv->bServer)
-		return false;
-
-	CryLog("[CTOSActor] %s: Animation input %s received with animation %s.", GetEntity()->GetName(), inputID, value);
-
-	bool	bSignal = strcmp(inputID, "Signal") == 0;
-	bool	bAction = strcmp(inputID, "Action") == 0;
-
-	if (strcmp(value, m_sLastNetworkedAnim) != 0)
-	{
-		this->GetGameObject()->InvokeRMI(ClPlayNetworkedAnimation(), 
-			SPlayNetworkedAnimationParams(
-				bSignal ? 
-				EAnimationMode::AIANIM_SIGNAL : 
-				EAnimationMode::AIANIM_ACTION, 
-				value), 
-			eRMI_ToRemoteClients);
-		m_sLastNetworkedAnim = value;
-	}
-
-	// Handle action and signal inputs via AIproxy, since the AI system and
-	// the AI agent behavior depend on those inputs.
-	if (IEntity* pEntity = GetEntity())
-		if (IAIObject* pAI = pEntity->GetAI())
-			if (IUnknownProxy* pProxy = pAI->GetProxy())
-			{
-				if (pProxy->IsEnabled())
-				{
-					if (bSignal)
-					{
-						return pProxy->SetAGInput(AIAG_SIGNAL, value);
-					}
-					else if (bAction)
-					{
-						// Dejan: actions should not go through the ai proxy anymore!
-						/*
-						if(_stricmp(value, "idle") == 0)
-						return pProxy->ResetAGInput( AIAG_ACTION );
-						else
-						{
-						return pProxy->SetAGInput( AIAG_ACTION, value );
-						}
-						*/
-					}
-				}
-			}
-
-	if (IAnimationGraphState* pState = GetAnimationGraphState())
-	{
-		pState->SetInput(pState->GetInputId(inputID), value);
-		return true;
-	}
-
-	return false;
-}
-
-void CTOSActor::OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, float value, TAnimationGraphQueryID* pQueryID)
-{
-
-}
-
-void CTOSActor::OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, int value, TAnimationGraphQueryID* pQueryID)
-{
-
-}
-
-void CTOSActor::OnAGSetInput(const bool bSucceeded, const IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID)
-{
-	//TODO:
-	//20/10/2023 Не уверен, что это вообще работает
-	//21/10/2023 Брейкпоинты так и не вызывались
-
-	IAnimationGraphState* pState = m_pAnimatedCharacter ? m_pAnimatedCharacter->GetAnimationGraphState() : nullptr;
-	if (bSucceeded && gEnv->bServer && !this->IsPlayer())
-	{
-		if (strcmp(value, m_sLastNetworkedAnim) != 0)
-		{
-			if (pState->GetInputId("Action") == id)
-				GetGameObject()->InvokeRMI(ClPlayAnimation(), NetPlayAnimationParams(AIANIM_ACTION, value), eRMI_ToRemoteClients);
-			if (pState->GetInputId("Signal") == id)
-				GetGameObject()->InvokeRMI(ClPlayAnimation(), NetPlayAnimationParams(AIANIM_SIGNAL, value), eRMI_ToRemoteClients);
-
-			m_sLastNetworkedAnim = value;
-		}
-		//SQueuedAnimEvent sAnimEvent = SQueuedAnimEvent();
-
-		//if (this->IsAnimEvent(value, &sAnimEvent.sAnimEventName, &sAnimEvent.fEventTime))
-		//{
-		//	QueueAnimationEvent(sAnimEvent);
-		//}
-
-		//GetAnimationGraphState()->GetInputName(id);
-	}
-
-}
-
-IAnimationGraphState* CTOSActor::GetAnimationGraphState()
-{
-	if (!m_pAnimationGraphStateWrapper)
-		m_pAnimationGraphStateWrapper = new CAnimationGraphState(this, 0);
-
-	if (m_pAnimatedCharacter)
-	{
-		m_pAnimationGraphStateWrapper->m_pAnimationGraphState = m_pAnimatedCharacter->GetAnimationGraphState();
-		return gEnv->bServer ? m_pAnimationGraphStateWrapper : m_pAnimatedCharacter->GetAnimationGraphState();
-	}
-	else
-	{
-		m_pAnimationGraphStateWrapper->m_pAnimationGraphState = 0;
-		return NULL;
-	}
 }

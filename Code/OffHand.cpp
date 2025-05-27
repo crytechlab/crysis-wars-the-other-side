@@ -534,6 +534,22 @@ void COffHand::Update(SEntityUpdateContext &ctx, int slot)
 
 	if (slot==eIUS_General)
 	{
+		//Crysis Co-op		
+		if (m_physTimer > 0.f)
+		{
+			m_physTimer -= ctx.fFrameTime;
+		}
+		else
+		{
+			if (m_previousHeldEntityId)
+			{
+				IgnoreCollisions(false, m_previousHeldEntityId);
+				m_previousHeldEntityId = 0;
+			}
+		}
+
+		//~Crysis Co-op
+
 		if(m_resetTimer>=0.0f)
 		{
 			m_resetTimer -= ctx.fFrameTime;
@@ -1741,35 +1757,62 @@ void COffHand::PerformThrow(int activationMode, EntityId throwableId, int oldFMI
 	if (!m_fm)
 		return;
 
-	if(activationMode==eAAM_OnPress)
+	if (activationMode == eAAM_OnPress)
 		m_currentState = eOHS_HOLDING_GRENADE;
 
 	//Throw objects...
 	if (throwableId && activationMode == eAAM_OnPress)
 	{
-		if(!isLivingEnt)
+		if (IEntity* pEntity = gEnv->pEntitySystem->GetEntity(throwableId))
+		{
+			CryLogAlways("[COffHand::PerformThrow] Throwing Object %s", pEntity->GetName());
+		}
+
+		// Crysis Co-op :: Force server to stop handling this object
+		if (!IsLocalClient())
+		{
+			//this->IgnoreCollisions(false, m_heldEntityId);
+			m_physTimer = 0.3f;
+			m_previousHeldEntityId = m_heldEntityId;
+			m_heldEntityId = 0;
+		}
+		// ~Crysis Co-op
+
+		if (!isLivingEnt)
 		{
 			m_currentState = eOHS_THROWING_OBJECT;
-			CThrow *pThrow = static_cast<CThrow *>(m_fm);
-			pThrow->SetThrowable(throwableId, m_forceThrow, CSchedulerAction<FinishOffHandAction>::Create(FinishOffHandAction(eOHA_THROW_OBJECT,this)));
+			CThrow* pThrow = static_cast<CThrow*>(m_fm);
+			pThrow->SetThrowable(throwableId, m_forceThrow, CSchedulerAction<FinishOffHandAction>::Create(FinishOffHandAction(eOHA_THROW_OBJECT, this)));
+
+			// Crysis Co-op :: Force the throw animation and sounds
+			if (IsLocalClient() && gEnv->bMultiplayer)
+			{
+				pThrow->ThrowingGrenade(false);
+				pThrow->DoThrow();
+				pThrow->ThrowingGrenade(true);
+			}
+			// ~Crysis Co-op
 		}
 		else
 		{
 			m_currentState = eOHS_THROWING_NPC;
-			CThrow *pThrow = static_cast<CThrow *>(m_fm);
-			pThrow->SetThrowable(throwableId, true, CSchedulerAction<FinishOffHandAction>::Create(FinishOffHandAction(eOHA_THROW_NPC,this)));
+			CThrow* pThrow = static_cast<CThrow*>(m_fm);
+			pThrow->SetThrowable(throwableId, true, CSchedulerAction<FinishOffHandAction>::Create(FinishOffHandAction(eOHA_THROW_NPC, this)));
 		}
 		m_forceThrow = false;
 
 		// enable leg IK again
-		CActor* pActor = GetOwnerActor();
-		if (pActor && pActor->IsClient() && m_grabType==GRAB_TYPE_TWO_HANDED)
+		if (IsLocalClient())
 		{
-			if (ICharacterInstance* pCharacter = pActor->GetEntity()->GetCharacter(0))
+			CActor* pActor = GetOwnerActor();
+			if (pActor && pActor->IsClient() && m_grabType == GRAB_TYPE_TWO_HANDED)
 			{
-				if (ISkeletonPose* pSkeletonPose = pCharacter->GetISkeletonPose())
+				if (ICharacterInstance* pCharacter = pActor->GetEntity()->GetCharacter(0))
 				{
-					pSkeletonPose->EnableFootGroundAlignment(true);
+					if (ISkeletonPose* pSkeletonPose = pCharacter->GetISkeletonPose())
+					{
+						pSkeletonPose->EnableFootGroundAlignment(true);
+					}
 				}
 			}
 		}
@@ -1851,7 +1894,11 @@ int COffHand::CanPerformPickUp(CActor *pActor, IPhysicalEntity *pPhysicalEntity 
 	SMovementState info;
 	pMC->GetMovementState(info);
 
-	if(gEnv->bMultiplayer)
+	//Crysis Co-op
+	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+	//~Crysis Co-op
+
+	if(gEnv->bMultiplayer && !bIsCoop)
 		return CheckItemsInProximity(info.eyePosition,info.eyeDirection,getEntityInfo);
 
 	EStance playerStance = pActor->GetStance();
@@ -2341,7 +2388,11 @@ void COffHand::DrawNear(bool drawNear, EntityId entityId /*=0*/)
 //=========================================================================================
 void COffHand::SelectGrabType(IEntity* pEntity)
 {
-	if(gEnv->bMultiplayer)
+	//Crysis Co-op
+	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+	//~Crysis Co-op
+
+	if(gEnv->bMultiplayer && !bIsCoop)
 		return;
 
 	CActor *pActor=GetOwnerActor();
@@ -2734,6 +2785,26 @@ void COffHand::ThrowObject(int activationMode, bool isLivingEnt /*= false*/)
 		m_lastFireModeId = GetCurrentFireMode();
 		if (m_heldEntityId)
 			SetCurrentFireMode(GetFireModeIdx(m_grabTypes[m_grabType].throwFM));
+
+		// Crysis Co-op :: Force firemode can't wait for it to be networked
+		if (gEnv->bMultiplayer && IsLocalClient())
+		{
+			int nFireMode = GetFireModeIdx(m_grabTypes[m_grabType].throwFM);
+
+			if (m_fm)
+				m_fm->Activate(false);
+
+			if (nFireMode >= m_firemodes.size())
+				m_fm = 0;
+			else
+				m_fm = m_firemodes[nFireMode];
+
+			if (m_fm)
+			{
+				m_fm->Activate(true);
+			}
+		}
+		// ~Crysis Co-op
 	}
 
 	PerformThrow(activationMode, m_heldEntityId, m_lastFireModeId, isLivingEnt);
