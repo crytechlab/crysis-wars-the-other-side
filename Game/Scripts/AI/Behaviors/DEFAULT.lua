@@ -9,6 +9,13 @@ AIBehaviour.DEFAULT = {
 
 
 --TheOtherSide
+
+		--------------------------------------------------
+	SIMPLE_THROW_GRENADE = function( self, entity, sender )
+		entity:Readibility("throwing_grenade",1);
+		entity:InsertSubpipe(AIGOALPIPE_NOTDUPLICATE,"throw_grenade_execute");
+	end,
+
 	GET_RANDOM_POINT = function( self, entity, sender, data )
 
 		local pos = entity:GetPos()
