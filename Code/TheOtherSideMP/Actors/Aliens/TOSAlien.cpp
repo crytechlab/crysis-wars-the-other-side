@@ -73,36 +73,47 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 
 	if (aspect == tos::net::CLIENT_ASPECT_DYNAMIC || aspect == tos::net::SERVER_ASPECT_DYNAMIC)
 	{
-		m_netBodyInfo.Serialize(GetEntity(), ser);// ок
+		m_netBodyInfo.Serialize(GetEntity(), ser);
 
 		if (ser.IsReading())
 		{
-			// Скопировано из CCoopAlien::UpdateMovementState()
 			CMovementRequest request;
 		
-			request.SetMoveTarget(GetEntity()->GetPos() + m_netBodyInfo.moveTarget); // не проверено
-			request.SetLookTarget(m_netBodyInfo.lookTarget);// не проверено
-			request.SetBodyTarget(GetEntity()->GetWorldRotation() * Vec3(0, 1, 0));// не проверено
-			request.SetFireTarget(m_netBodyInfo.fireTarget);// не проверено
+			request.SetMoveTarget(GetEntity()->GetPos() + m_netBodyInfo.moveTarget);
+			request.SetLookTarget(m_netBodyInfo.lookTarget);
+			request.SetBodyTarget(m_netBodyInfo.bodyTarget);
+			request.SetFireTarget(m_netBodyInfo.fireTarget);
+			request.AddDeltaMovement(m_netBodyInfo.deltaMov);
 
-			request.SetDesiredSpeed(m_netBodyInfo.desiredSpeed);// не проверено
-			m_stats.speed = m_netBodyInfo.desiredSpeed;// не проверено
-			m_stats.fireDir = Vec3(ZERO);// не проверено
+			request.SetDesiredSpeed(m_netBodyInfo.desiredSpeed);
+			m_stats.speed = m_netBodyInfo.desiredSpeed;
+			m_stats.fireDir = Vec3(ZERO);
 
-			request.SetStance(static_cast<EStance>(m_netBodyInfo.stance));// не проверено		
-			//if (m_bHasAimTarget)
-			//	request.SetAimTarget(m_vAimTarget);
-			//else
+			request.SetStance(static_cast<EStance>(m_netBodyInfo.stance));
+			
+			if (m_netBodyInfo.hasAimTarget)
+				request.SetAimTarget(m_netBodyInfo.aimTarget);
+			else
 				request.ClearAimTarget();
 
 			GetMovementController()->RequestMovement(request);
+
+			// Update view matrices
+			Vec3 viewDir = (m_netBodyInfo.lookTarget - GetEntity()->GetWorldPos()).GetNormalized();
+			Vec3 bodyDir = (m_netBodyInfo.bodyTarget - GetEntity()->GetWorldPos()).GetNormalized();
+			Vec3 aimDir = (m_netBodyInfo.aimTarget - GetEntity()->GetWorldPos()).GetNormalized();
+
+			if (viewDir.len2() > 0.001f)
+				m_viewMtx.SetRotationVDir(viewDir);
+			if (bodyDir.len2() > 0.001f)
+				m_baseMtx.SetRotationVDir(bodyDir);
+			if (aimDir.len2() > 0.001f)
+				m_eyeMtx.SetRotationVDir(aimDir);
 		}
 	}
 
 	if (aspect == tos::net::CLIENT_ASPECT_STATIC)
 	{
-		//Блок скопирован из CPlayer::NetSerialize()
-
 		const bool writing = ser.IsWriting();
 		bool	   hasWeapon = false;
 
@@ -116,7 +127,6 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 			ser.FlagPartialRead();
 	}
 
-
 	return true;
 }
 
@@ -128,26 +138,29 @@ void CTOSAlien::ProcessEvent(SEntityEvent& event)
 void CTOSAlien::PrePhysicsUpdate()
 {
 	CAlien::PrePhysicsUpdate();
-	// если раскомментировать, то сервер будет только считывать
-	// если оставить как есть, то сервер будет и считывать и записывать (отрицательно не влияет на геймплей)
-	//if (!gEnv->bClient)
-	//	return;
 
 	const SMovementState currentState = static_cast<CTOSAlienMovementController*>(GetMovementController())->GetCurrentMovementState();
 
-	m_netBodyInfo.moveTarget = GetEntity()->GetWorldPos() + currentState.movementDirection; // не проверено
-	m_netBodyInfo.aimTarget = currentState.eyePosition + currentState.aimDirection; // не проверено
-	m_netBodyInfo.lookTarget = currentState.eyePosition + currentState.eyeDirection; // не проверено
-	m_netBodyInfo.fireTarget = currentState.fireTarget; // не проверено
+	m_netBodyInfo.moveTarget = GetEntity()->GetWorldPos() + currentState.movementDirection;
+	// m_netBodyInfo.aimTarget = currentState.eyePosition + currentState.aimDirection;
+	// m_netBodyInfo.lookTarget = currentState.eyePosition + currentState.eyeDirection;
+	// m_netBodyInfo.bodyTarget = currentState.eyePosition + currentState.bodyDirection;
+	m_netBodyInfo.fireTarget = currentState.fireTarget;
+	m_netBodyInfo.deltaMov = m_input.deltaMovement;
 
 	// Float
-	m_netBodyInfo.desiredSpeed = m_moveRequest.velocity.GetLength(); // не проверено
+	m_netBodyInfo.desiredSpeed = m_moveRequest.velocity.GetLength();
 
 	// Int
-	m_netBodyInfo.stance = static_cast<int>(currentState.stance); // не проверено
+	m_netBodyInfo.stance = static_cast<int>(currentState.stance);
 
 	// Bool
 	m_netBodyInfo.hasAimTarget = currentState.isAiming;
+
+	// View direction sync
+	m_netBodyInfo.lookTarget = GetEntity()->GetWorldPos() + m_viewMtx.GetColumn(1) * 10.0f;
+	m_netBodyInfo.bodyTarget = GetEntity()->GetWorldPos() + m_baseMtx.GetColumn(1) * 10.0f;
+	m_netBodyInfo.aimTarget = GetEntity()->GetWorldPos() + m_eyeMtx.GetColumn(1) * 10.0f;
 
 	if (gEnv->bClient)
 	{
