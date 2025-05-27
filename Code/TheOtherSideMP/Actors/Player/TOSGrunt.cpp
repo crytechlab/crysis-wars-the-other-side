@@ -310,7 +310,7 @@ void CTOSGrunt::ApplyMasterMovement(const Vec3& delta)
 
 bool CTOSGrunt::NetSerialize( TSerialize ser, EEntityAspects aspect, uint8 profile, int flags )
 {
-	if (!CTOSActor::NetSerialize(ser, aspect, profile, flags))
+	if (!CTOSPlayer::NetSerialize(ser, aspect, profile, flags))
 		return false;
 
 	bool bReading = ser.IsReading();

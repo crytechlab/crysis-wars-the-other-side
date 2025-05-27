@@ -5245,6 +5245,13 @@ void CPlayer::ActivateNanosuit(bool active)
 	{
 		m_pNanoSuit->Activate(false);
 	}
+
+	//TheOtherSide	
+	if (gEnv->bServer)
+	{
+		GetGameObject()->InvokeRMI(ClActivateNanoSuit(), ActivateNanoSuitParams(active), eRMI_ToAllClients | eRMI_NoLocalCalls);
+	}
+	//~TheOtherSide
 }
 
 void CPlayer::SetFlyMode(uint8 flyMode)
@@ -6076,6 +6083,15 @@ IMPLEMENT_RMI(CPlayer, ClLeaveLadder)
 	}
 	return true;
 }
+
+//TheOtherSide
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CPlayer, ClActivateNanoSuit)
+{
+	ActivateNanosuit(params.activate);
+	return true;
+}
+//~TheOtherSide
 
 //-----------------------------------------------------------------------
 bool CPlayer::UpdateLadderAnimation(ELadderState eLS, ELadderDirection eLDIR, float time /*=0.0f*/)

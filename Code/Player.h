@@ -490,6 +490,21 @@ public:
 		}
 	};
 
+	//TheOtherSide
+	struct ActivateNanoSuitParams
+	{
+		ActivateNanoSuitParams(): activate(false) {};
+		ActivateNanoSuitParams(bool _activate): activate(_activate) {};
+
+		bool activate;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("activate", activate, 'bool');
+		}
+	};
+	//~TheOtherSide
+
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestGrabOnLadder, LadderParams, eNRT_ReliableOrdered);
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestLeaveLadder, LadderParams, eNRT_ReliableOrdered);
 
@@ -505,6 +520,10 @@ public:
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestJump, JumpParams, eNRT_ReliableUnordered);
 	DECLARE_SERVER_RMI_PREATTACH(SvRequestParachute, NoParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_PREATTACH(ClParachute, NoParams, eNRT_ReliableOrdered);
+
+	//TheOtherSide
+	DECLARE_CLIENT_RMI_NOATTACH(ClActivateNanoSuit, ActivateNanoSuitParams, eNRT_ReliableOrdered);
+	//~TheOtherSide
 
 	//set/get actor status
 	virtual void SetStats(SmartScriptTable &rTable);
@@ -792,7 +811,7 @@ protected:
 	SPlayerStats		m_stats;
 	SPlayerParams		m_params;
 	
-	std::auto_ptr<IPlayerInput> m_pPlayerInput;
+	std::unique_ptr<IPlayerInput> m_pPlayerInput;
 
 	// for foot/leg ik
 	Vec3 m_feetWpos[2];
