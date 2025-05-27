@@ -73,7 +73,7 @@ int CScriptBind_GameRules::SpawnAndAssignSlaveToPlayer(IFunctionHandler* pH, int
 
 	STOSEntityDelaySpawnParams params;
 	params.authorityName = playerName;
-	params.savedName = playerName + "_slave";
+	params.name = playerName + "_slave";
 	params.scheduledTimeStamp = gEnv->pTimer->GetFrameStartTime().GetSeconds();
 	params.spawnDelay = spawnDelaySec;
 	//params.tosFlags |= TOS_ENTITY_FLAG_MUST_RECREATED;

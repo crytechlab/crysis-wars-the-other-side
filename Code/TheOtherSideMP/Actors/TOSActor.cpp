@@ -916,68 +916,7 @@ bool CTOSActor::SetMeZeus(bool value)
 	return true;
 }
 
-//void CTOSActor::NetMarkMeSlave(const bool slave) const
-//{
-//	CRY_ASSERT_MESSAGE(!IsPlayer(), "[MarkMeSlave] by design at 21/10/2023 the player cannot be a slave");
-//	if (IsPlayer())
-//		return;
-//
-//	if (gEnv->bClient)
-//	{
-//		NetMarkMeParams params;
-//		params.value = slave;
-//
-//		GetGameObject()->InvokeRMI(SvRequestMarkMeAsSlave(), params, eRMI_ToServer);
-//	}
-//}
-//
-//void CTOSActor::NetMarkMeMaster(const bool master) const
-//{
-//	if (gEnv->bClient)
-//	{
-//		NetMarkMeParams params;
-//		params.value = master;
-//
-//		GetGameObject()->InvokeRMI(SvRequestMarkMeAsMaster(), params, eRMI_ToServer);
-//	}
-//}
-
-//const Vec3& CTOSActor::FilterDeltaMovement(const Vec3& deltaMov)
-//{
-//	//Скопировано из PlayerInput.cpp
-//
-//	const float frameTimeCap(min(gEnv->pTimer->GetFrameTime(), 0.033f));
-//	const float inputAccel(gEnv->pConsole->GetCVar("tos_sv_pl_inputAccel")->GetFVal());
-//
-//	//const Vec3 oldFilteredMovement = m_filteredDeltaMovement;
-//
-//	if (deltaMov.len2() < 0.01f)
-//	{
-//		m_filteredDeltaMovement = {0,0,0};
-//	}
-//	else if (inputAccel < 0.1f)
-//	{
-//		m_filteredDeltaMovement = deltaMov;
-//	}
-//	else
-//	{
-//		Vec3 delta(deltaMov - m_filteredDeltaMovement);
-//
-//		const float len(delta.len());
-//		if (len <= 1.0f)
-//			delta = delta * (1.0f - len * 0.55f);
-//
-//		m_filteredDeltaMovement += delta * min(frameTimeCap * inputAccel, 1.0f);
-//	}
-//
-//	//if (oldFilteredMovement.GetDistance(m_filteredDeltaMovement) > 0.001f)
-//	//	GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_INPUT);
-//
-//	return m_filteredDeltaMovement;
-//}
-
 // Crysis Co-op
-
 void CTOSActor::UpdateAnimEvents(float fFrameTime)
 {
 	if (!gEnv->bServer)

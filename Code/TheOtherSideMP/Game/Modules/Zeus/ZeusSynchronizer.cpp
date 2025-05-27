@@ -63,7 +63,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 		IEntityClass* pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(psClassName->c_str());
 
 		const string name = string("zeus_") + psClassName->c_str();
-		spawnParams.vanilla.sName = name;
+		spawnParams.name = name;
 		spawnParams.vanilla.pClass = pClass;
 		spawnParams.vanilla.vPosition = params.pos;
 		spawnParams.vanilla.nFlags |= ENTITY_FLAG_NET_PRESENT | ENTITY_FLAG_CASTSHADOW | ENTITY_FLAG_TRIGGER_AREAS;
@@ -359,7 +359,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 		spawnParams.properties = props;
 		spawnParams.propertiesInstance = propsIns;
 		spawnParams.archetypeName = pCopiedEntity->GetArchetype() ? pCopiedEntity->GetArchetype()->GetName() : "";
-		spawnParams.vanilla.sName = string("zeus_") + pCopiedEntity->GetClass()->GetName();
+		spawnParams.name = string("zeus_") + pCopiedEntity->GetClass()->GetName();
 		spawnParams.vanilla.pClass = pCopiedEntity->GetClass();
 		spawnParams.vanilla.vPosition = pCopiedEntity->GetWorldPos();
 		spawnParams.vanilla.nFlags = pCopiedEntity->GetFlags();

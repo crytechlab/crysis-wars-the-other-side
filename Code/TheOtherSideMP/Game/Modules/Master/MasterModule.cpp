@@ -196,7 +196,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 					{
 						STOSEntityDelaySpawnParams params;
 						params.authorityName = entName;
-						params.savedName = slaveName;
+						params.name = slaveName;
 						params.scheduledTimeStamp = gEnv->pTimer->GetFrameStartTime().GetSeconds();
 						params.spawnDelay = tos_sv_SlaveSpawnDelay;
 						params.tosFlags |= ENTITY_MUST_RECREATED;

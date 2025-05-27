@@ -73,7 +73,7 @@ void CTOSEntitySpawnModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGam
             //pParams->sName = pEntity->GetName();
 
             if (gEnv->pSystem->IsDevMode())
-                CryLog("<c++> [OnExtraGameplayEvent] Save spawn params for spawned entity with saved name '%s', with real name '%s', id '%i'", pParams->savedName, pEntity->GetName(), entId);
+                CryLog("<c++> [OnExtraGameplayEvent] Save spawn params for spawned entity with saved name '%s', with real name '%s', id '%i'", pParams->name, pEntity->GetName(), entId);
 
             m_savedSpawnParams[entId] = pParams;
         }
@@ -387,6 +387,9 @@ IEntity* CTOSEntitySpawnModule::SpawnAndInit(IEntitySystem* pEntitySystem, STOSE
     if (!pEntitySystem)
         return nullptr;
 
+    if (!params.name.empty())
+        params.vanilla.sName = params.name.c_str();
+
     auto pArchetype = pEntitySystem->LoadEntityArchetype(params.archetypeName);
     if (pArchetype)
         params.vanilla.pArchetype = pArchetype;
@@ -394,10 +397,7 @@ IEntity* CTOSEntitySpawnModule::SpawnAndInit(IEntitySystem* pEntitySystem, STOSE
     IEntity* pSpawned = pEntitySystem->SpawnEntity(params.vanilla, false);
 
     if (pArchetype)
-        tos::script::SetEntityValue(pSpawned, "Properties", pArchetype->GetProperties());
-
-    if (!params.savedName.empty())
-        pSpawned->SetName(params.savedName);
+        tos::script::SetEntityValue(pSpawned, "Properties", pArchetype->GetProperties());;
 
     auto& props = params.properties;
     auto& propsInstance = params.propertiesInstance;
@@ -625,9 +625,7 @@ void CTOSEntitySpawnModule::ScheduleRecreation(const IEntity* pEntity)
         return;
 
     const auto entId = pEntity->GetId();
-
-    auto it = m_scheduledRecreations.find(entId);
-    const bool alreadyScheduled = it != m_scheduledRecreations.end();
+    const bool alreadyScheduled = m_scheduledRecreations.find(entId) != m_scheduledRecreations.end();
     if (alreadyScheduled)
         return;
 
@@ -638,15 +636,12 @@ void CTOSEntitySpawnModule::ScheduleRecreation(const IEntity* pEntity)
 
     pParams->tosFlags |= ENTITY_RECREATION_SCHEDULED;
     pParams->vanilla = m_savedSpawnParams[entId]->vanilla;
-    pParams->savedName = pEntity->GetName();
+    pParams->name = pEntity->GetName();
     pParams->authorityName = m_savedSpawnParams[entId]->authorityName;
     pParams->forceStartControl = m_savedSpawnParams[entId]->forceStartControl;
 
     m_scheduledRecreations[entId] = pParams;
 
     stl::find_and_erase(s_markedForRecreation, entId);
-
-    auto it2 = m_savedSpawnParams.find(entId);
-    if (it2 != m_savedSpawnParams.end())
-        m_savedSpawnParams.erase(entId);
+    tos::stl::FindAndEraseMap(m_savedSpawnParams, entId);
 }

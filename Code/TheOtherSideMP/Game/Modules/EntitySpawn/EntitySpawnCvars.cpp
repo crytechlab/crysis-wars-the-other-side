@@ -78,7 +78,7 @@ void CTOSEntitySpawnModule::CmdSpawnEntity(IConsoleCmdArgs* pArgs)
 	params.authorityName = plName;
 	params.vanilla.bStaticEntityId = true;
 	params.vanilla.pClass = pClass;
-	params.savedName = newEntName.c_str();
+	params.name = newEntName.c_str();
 	params.vanilla.vPosition = pPlayerEntity->GetWorldPos();
 	params.vanilla.qRotation = pPlayerEntity->GetWorldRotation();
 	params.tosFlags |= ENTITY_MUST_RECREATED;
@@ -118,7 +118,7 @@ void CTOSEntitySpawnModule::CmdDumpSpawned(IConsoleCmdArgs* pArgs)
 	TMapTOSParams::const_iterator end = pModule->m_savedSpawnParams.end();
 	for (; it != end; ++it)
 	{
-		const string& savedName = it->second->savedName;
+		const string& savedName = it->second->name;
 		const string& savedAuthPlayer = it->second->authorityName;
 		const bool savedWillBeControlled = it->second->forceStartControl;
 

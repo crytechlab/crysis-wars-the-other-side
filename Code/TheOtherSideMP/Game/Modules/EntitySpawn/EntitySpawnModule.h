@@ -47,7 +47,7 @@ struct STOSEntitySpawnParams : public STOSSmartStruct
 
     string                archetypeName;
     string                authorityName;
-    string                savedName;
+    string                name;
 
     uint32_t                   tosFlags{ 0 };
 
