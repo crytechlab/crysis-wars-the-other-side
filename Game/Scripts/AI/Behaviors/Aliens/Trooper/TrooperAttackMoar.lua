@@ -65,10 +65,12 @@ AIBehaviour.TrooperAttackMoar = {
 		if (entity.AI.ignoreSignals == true) then
 			return;
 		end
+		local target = AI.GetAttentionTargetEntity(entity.id,true);
 		--~TheOtherSide
 
-		if(not entity.AI.firingMoar and not g_localActor.actorStats.isFrozen ) then
-			if(entity:GetDistance(g_localActor.id) > entity.melee.damageRadius+1) then 
+		
+		if(not entity.AI.firingMoar and not target.actorStats.isFrozen ) then
+			if(entity:GetDistance(target.id) > entity.melee.damageRadius+1) then 
 		
 				if( Trooper_Dodge(entity)) then 
 					AI.Signal(SIGNALFILTER_SENDER,1,"GO_TO_DODGE",entity.id);

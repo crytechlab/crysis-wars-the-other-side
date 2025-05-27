@@ -1564,116 +1564,71 @@ end
 
 ------------------------------------------------------------------------------
 function Hunter_x.Client:OnHit(hit, remote)
-  
-  if (hit.shooterId == self.id) then
-		return false;
-	end
-	
-	local damageMult = self:GetDamageMultiplier(hit);
-	if (damageMult<=0) then
-		return;
-	end
-	
-	if (not BasicAlien.Client.OnHit(self,hit,remote)) then
-		return false;
-	end
-	
-	-- make the shooter a bit more important depending on the amount of damage he made
-	--AI.UpTargetPriority( self.id, hit.shooterId, 0.2 * hit.damage*damageMult / self.actor:GetHealth() );
+    -- Игнорируем урон от самого себя
+    if (hit.shooterId == self.id) then
+        return false
+    end
+    
+    -- Проверяем множитель урона
+    local damageMult = self:GetDamageMultiplier(hit)
+    if (damageMult <= 0) then
+        return
+    end
+    
+    -- Проверяем базовую обработку урона
+    if (not BasicAlien.Client.OnHit(self, hit, remote)) then
+        return false
+    end
 
-	self:ProcessHighPose (hit, damageMult)
+    -- Обрабатываем высокую стойку при получении урона
+    self:ProcessHighPose(hit, damageMult)
 
-	-- react on hits only if huge damage is made in short time interval
-	if ( self.damageTimer >= 0 ) then
-		self.damageTimer = self.damageTimer + hit.damage * damageMult * 0.066;
-		--Log("self.damageTimer:"..self.damageTimer);
-	end;
-		
---		-- NOTE Jun 6, 2007: <pvl> request playing of hit reaction anim only if another
---		-- anim is not already playing.  Without this it happened a lot that a hit
---		-- reaction was requested even when another anim (e.g. screaming) was currently
---		-- playing.  The result was that the hit reaction was played only *after*
---		-- the currently playing anim finished, sometimes 5 or 10 seconds after the hunter
---		-- was actually hit.
---		if (self.damageTimer > self.Properties.Damage.HitAccumulator and self.isPlayingAnimation<0.01) then
---			
---	--		if (self.actor:SetAnimationInput( "Action", "high" )) then
---	--			self.pissedOffTime = self.Properties.Damage.HighPoseDuration;
---	--		end
---	
---			self.damageTimer = self.damageTimer * 0.33;
---			local painSignalName;
---			if ( hit.shooter ) then
---				local shooterDir = {};
---				FastDifferenceVectors( shooterDir, hit.shooter:GetWorldPos(), self:GetWorldPos() ); 
---				shooterDir.z = 0;
---				NormalizeVector( shooterDir );
---				
---				local fwd = self:GetDirectionVector(1);
---				fwd.z = 0;
---				NormalizeVector( fwd );
---				
---				local f = dotproduct3d( fwd, shooterDir );
---				if ( f > 0.7071 ) then
---					painSignalName = "damageFront";
---				elseif ( f < -0.7071 ) then
---					painSignalName = "damageBack";
---				else
---					f = fwd.x * shooterDir.y - fwd.y * shooterDir.x;
---					if ( f < 0 ) then
---						painSignalName = "damageRight";
---					else
---						painSignalName = "damageLeft";
---					end
---				end
---			else
---				local damageAnims = {"damageFront","damageLeft","damageRight","damageBack",};
---				painSignalName = damageAnims[math.random(4)];
---			end
---			
---			Log(self:GetName().." request pain animation: "..tostring(painSignalName))
---			if (self.actor:SetAnimationInput("Signal",painSignalName)) then
---				self.isPlayingAnimation = 3.5;	
---				--self:StopEverything();
---			end
---		end
-			
-	if(hit.shooter~=nil) then
-		--System.Log( "damageMult = "..damageMult );
-		--System.Log( "hit.damage = "..hit.damage );
-		g_SignalData.id = hit.shooter.id;
-		g_SignalData.fValue = hit.damage * damageMult;
-		CopyVector(g_SignalData.point, hit.shooter:GetWorldPos());
-		if (self.Properties.species ~= hit.shooter.Properties.species) then
-			if(self == g_localActor) then
-				-- manage here the player's CLeader since player doesn't have a character/behaviour
-				AI.Signal(SIGNALFILTER_LEADER,0,"ORD_ATTACK",self.id,g_SignalData);
-			else
-				if (self.isVulnerable) then
-					self:StopEvent("all");
-					self:PushEvent("shield_up");
-					AI.Signal(SIGNALFILTER_SENDER,0,"OnSoreDamage",self.id,g_SignalData);
-				else
-					AI.Signal(SIGNALFILTER_SENDER,0,"OnEnemyDamage",self.id,g_SignalData);
-				end
-			end
-		elseif (self.Behaviour.OnFriendlyDamage ~= nil) then
-			AI.Signal(SIGNALFILTER_SENDER,0,"OnFriendlyDamage",self.id,g_SignalData);
-		else
-			AI.Signal(SIGNALFILTER_SENDER,0,"OnDamage",self.id,g_SignalData);
-		end		
-	else
-		g_SignalData.id = 0;
-		g_SignalData.fValue = damage;
-		CopyVector(g_SignalData.point,g_Vectors.v000);
-		if (self.isVulnerable) then
-			self:StopEvent("all");
-			self:PushEvent("shield_up");
-			AI.Signal(SIGNALFILTER_SENDER,0,"OnSoreDamage",self.id,g_SignalData);
-		else
-			AI.Signal(SIGNALFILTER_SENDER,0,"OnDamage",self.id,g_SignalData);
-		end
-	end
+    -- Накапливаем урон за короткий промежуток времени
+    if (self.damageTimer >= 0) then
+        self.damageTimer = self.damageTimer + hit.damage * damageMult * 0.066
+    end
+            
+    -- Обработка сигналов при получении урона
+    if (hit.shooter) then
+        g_SignalData.id = hit.shooter.id
+        g_SignalData.fValue = hit.damage * damageMult
+        CopyVector(g_SignalData.point, hit.shooter:GetWorldPos())
+        
+        -- Проверяем принадлежность к разным видам
+        if (self.Properties.species ~= hit.shooter.Properties.species) then
+            -- Если это игрок
+            if (self == g_localActor) then
+                AI.Signal(SIGNALFILTER_LEADER, 0, "ORD_ATTACK", self.id, g_SignalData)
+            else
+                -- Если хантер уязвим
+                if (self.isVulnerable) then
+                    self:StopEvent("all")
+                    self:PushEvent("shield_up")
+                    AI.Signal(SIGNALFILTER_SENDER, 0, "OnSoreDamage", self.id, g_SignalData)
+                else
+                    AI.Signal(SIGNALFILTER_SENDER, 0, "OnEnemyDamage", self.id, g_SignalData)
+                end
+            end
+        -- Урон от союзника
+        elseif (self.Behaviour.OnFriendlyDamage) then
+            AI.Signal(SIGNALFILTER_SENDER, 0, "OnFriendlyDamage", self.id, g_SignalData)
+        else
+            AI.Signal(SIGNALFILTER_SENDER, 0, "OnDamage", self.id, g_SignalData)
+        end     
+    else
+        -- Обработка урона без стрелявшего
+        g_SignalData.id = 0
+        g_SignalData.fValue = hit.damage
+        CopyVector(g_SignalData.point, g_Vectors.v000)
+        
+        if (self.isVulnerable) then
+            self:StopEvent("all")
+            self:PushEvent("shield_up")
+            AI.Signal(SIGNALFILTER_SENDER, 0, "OnSoreDamage", self.id, g_SignalData)
+        else
+            AI.Signal(SIGNALFILTER_SENDER, 0, "OnDamage", self.id, g_SignalData)
+        end
+    end
 end
 
 
@@ -1979,7 +1934,16 @@ function HunterThrow(hunterName,grabName,scheme)
 	
 	local throwVec = {};
 	local hunterPos = {};
-	g_localActor:GetWorldPos(throwVec);
+
+	--TheOtherSide
+	local target = AI.GetAttentionTargetEntity(hunter.id, true);
+	if (target) then
+		target:GetWorldPos(throwVec);
+	else
+		g_localActor:GetWorldPos(throwVec);
+	end
+	--~TheOtherSide
+
 	hunter:GetWorldPos(hunterPos);
 	SubVectors(throwVec,throwVec,hunterPos);
 	

@@ -216,6 +216,14 @@ function EntityName(entity)
 	return "";
 end
 
+function IsPlayer(entity)
+	if(entity.actor and entity.actor:IsPlayer()) then 
+		return true;
+	else
+		return false;
+	end
+end
+
 
 -- easy way to get entity by name
 -- usefull for "console debugging"!

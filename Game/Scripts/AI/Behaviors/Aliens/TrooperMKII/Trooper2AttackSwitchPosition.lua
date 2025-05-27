@@ -79,7 +79,8 @@ AIBehaviour.Trooper2AttackSwitchPosition = {
 	
 	OnPlayerLooking = function(self,entity,sender)
 		if (entity.AI.ignoreSignals ~= true) then
-			if(entity:GetDistance(g_localActor.id) > entity.melee.damageRadius+1) then 
+			local target = AI.GetAttentionTargetEntity(entity.id);
+			if(target and entity:GetDistance(target.id) > entity.melee.damageRadius+1) then 
 				if( Trooper_Dodge(entity)) then 
 					AI.Signal(SIGNALFILTER_SENDER,1,"GO_TO_DODGE",entity.id);
 					return;

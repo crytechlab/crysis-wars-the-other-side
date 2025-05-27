@@ -8,7 +8,7 @@
 --
 ----------------------------------------------------------------------------------------------------
 --  History:
---  - 20:12:2004   17:35 : Created by MпїЅrcio Martins
+--  - 20:12:2004   17:35 : Created by M�rcio Martins
 --  - 					   taken over by Filippo De Luca
 ----------------------------------------------------------------------------------------------------
 Script.ReloadScript("scripts/entities/actor/basicactor.lua");
@@ -410,6 +410,7 @@ function BasicAlien.Client:OnHit(hit, remote)
 	end
 	
 	if (string.find(hit.type,"bullet")) then
+		--TODO: нужно это отправлять на клиент
 		if(hit.shooter and hit.shooter == g_localActor) then
 			if(tonumber(System.GetCVar("g_useHitSoundFeedback")) > 0) then
 				if(hit.target and hit.target.class == "Alien") then

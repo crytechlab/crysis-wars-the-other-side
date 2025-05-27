@@ -359,8 +359,12 @@ AIBehaviour.GuardNeueIdle = {
 
 	---------------------------------------------
 	ACC_READABILITY = function (self, entity)
-		local sound = GetRandomSound(entity.voiceTable.accelerate);
-		entity:PlaySoundEvent(sound[1], g_Vectors.v000, g_Vectors.v010, SOUND_DEFAULT_3D, SOUND_SEMANTIC_LIVING_ENTITY);
+		if entity.voiceTable and entity.voiceTable.accelerate then
+			local sound = GetRandomSound(entity.voiceTable.accelerate)
+			if sound then
+				entity:PlaySoundEvent(sound[1], g_Vectors.v000, g_Vectors.v010, SOUND_DEFAULT_3D, SOUND_SEMANTIC_LIVING_ENTITY)
+			end
+		end
 	end,
 
 	---------------------------------------------

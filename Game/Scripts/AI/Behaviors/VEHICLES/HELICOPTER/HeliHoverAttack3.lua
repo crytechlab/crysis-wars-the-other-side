@@ -423,9 +423,10 @@ AIBehaviour.HeliHoverAttack3 = {
 		if (entity.AI.ignoreSignals == true) then
 			return;
 		end
+		local targetEntity = AI.GetAttentionTargetEntity(entity.id, true);
+
 		--~TheOtherSide
 
-		local targetEntity = System.GetEntity( g_localActor.id );
 
 		if ( targetEntity ) then
 

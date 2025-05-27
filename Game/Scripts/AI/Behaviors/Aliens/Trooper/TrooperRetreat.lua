@@ -101,7 +101,10 @@ AIBehaviour.TrooperRetreat = {
 	--------------------------------------------------
 	OnPlayerUnFrozen = function (self,entity,sender)
 		entity.AI.bGoingToShatterPlayer = false;
-		g_localActor.AI.bFrozenNotified = false;
+		local target = AI.GetAttentionTargetEntity(entity.id,true);
+		if(target.actor and target.actor:IsPlayer()) then 
+			target.AI.bFrozenNotified = false;
+		end
 	end,
 	
 	--------------------------------------------------

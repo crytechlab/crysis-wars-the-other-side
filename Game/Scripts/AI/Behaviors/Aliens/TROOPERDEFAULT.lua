@@ -991,8 +991,9 @@ AIBehaviour.TROOPERDEFAULT = {
 		entity.AI.targetFrozenTime = _time;
 		if(entity.AI.usingMoar) then 
 			entity:SelectPipe(0,"tr_approach_target_timeout");
-			if(g_localActor == AI.GetAttentionTargetEntity(entity.id) and not g_localActor.AI.bFrozenNotified) then 
-				g_localActor.AI.bFrozenNotified = true;
+			local target = AI.GetAttentionTargetEntity(entity.id,true);
+			if(target and IsPlayer(target) and not target.AI.bFrozenNotified) then 
+				target.AI.bFrozenNotified = true;
 				if(AI.GetAttentionTargetDistance(entity.id)<6) then
 					entity:InsertSubpipe(AIGOALPIPE_NOTDUPLICATE,"tr_random_timeout");
 				end
@@ -1010,7 +1011,12 @@ AIBehaviour.TROOPERDEFAULT = {
 			AI.Signal(SIGNALFILTER_LEADER,10,"OnRequestUpdate",entity.id);
 			entity.AI.bGoingToShatterPlayer = false;
 		end
-		g_localActor.AI.bFrozenNotified = false;
+		--TheOtherSide
+		local target = AI.GetAttentionTargetEntity(entity.id,true);
+		if(target and IsPlayer(target)) then 
+			target.AI.bFrozenNotified = false;
+		end	
+		--~TheOtherSide
 	end,
 
 	--------------------------------------------------
@@ -1156,7 +1162,8 @@ AIBehaviour.TROOPERDEFAULT = {
 	REQUEST_CONVERSATION = function(self,entity,sender)
 		if(entity.Behaviour.hasConversation and entity.cloaked~= 1) then 
 			local numMembers = AI.GetGroupCount(entity.id,GROUP_ENABLED,AIOBJECT_PUPPET);
-			if(numMembers>1 and entity:GetDistance(g_localActor.id)>5 and 
+			local target = AI.GetAttentionTargetEntity(entity.id,true);
+			if(numMembers>1 and entity:GetDistance(target.id)>5 and 
 				AIBlackBoard.trooper_ConversationState == TROOPER_CONV_REQUESTING) then
 				if(entity.Behaviour.search) then 
 					entity:Readibility("search_call");

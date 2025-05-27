@@ -449,7 +449,7 @@ AIBehaviour.HeliAttack = {
 		end
 		--~TheOtherSide
 
-		local targetEntity = System.GetEntity( g_localActor.id );
+		local targetEntity = AI.GetAttentionTargetEntity(entity.id, true);
 
 		if ( targetEntity ) then
 

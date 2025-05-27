@@ -449,39 +449,54 @@ end
 
 ---------------------------------------------------------
 
-Trooper_CheckMelee = function(entity,target,timeCheck)
-	if(timeCheck == nil) then
-		timeCheck = 3;
-	end
-	local diffz = entity:GetPos().z - target:GetPos().z;
-	if(diffz>-1.5 and diffz<1.5) then 
-		local curTime = _time;
-		--AI.LogEvent("CLOSE CONTACT time = ".._time);
-		if(AIBlackBoard.lastTrooperMeleeTime==nil) then 
-			AIBlackBoard.lastTrooperMeleeTime = curTime - 4;
-		end
-		if(curTime - AIBlackBoard.lastTrooperMeleeTime > timeCheck ) then
-			if(target.actorStats and target.actorStats.isFrozen) then 
-				AI.Signal(SIGNALFILTER_SENDER,1,"GO_TO_MELEE",entity.id);
-		  	entity:SelectPipe(0,"tr_try_melee_inplace");
-				return true;
-			end
-			local dir = TrVector_v3;
-			FastDifferenceVectors(dir,target:GetPos(),entity:GetPos());
-			NormalizeVector(dir);
-			if(dotproduct2d(dir,target:GetDirectionVector(1)) < 0 or target ~= g_localActor) then 
-				AI.Signal(SIGNALFILTER_SENDER,1,"GO_TO_MELEE",entity.id);
-		  	entity:SelectPipe(0,"tr_try_melee_inplace");
-				return true;
-			else
-				-- warning sound for the player "I'm behind you"
-				entity:Readibility("taunt",1,100);
---				local sndFlags = bor(SOUND_DEFAULT_3D,SOUND_LOOP);
---				entity:PlaySoundEvent("sounds/alien:trooper:taunt",g_Vectors.v000, g_Vectors.v010, sndFlags, SOUND_SEMANTIC_AI_READABILITY);
-			end
-		end
-	end
-	return false;
+Trooper_CheckMelee = function(entity, target, timeCheck)
+    -- Установка дефолтного времени проверки
+    timeCheck = timeCheck or 3
+    
+    -- Проверка разницы высот между пришельцем и целью
+    local heightDifference = entity:GetPos().z - target:GetPos().z
+    if math.abs(heightDifference) > 1.5 then 
+        return false
+    end
+    
+    local currentTime = _time
+    
+    -- Инициализация времени последней атаки
+    if not AIBlackBoard.lastTrooperMeleeTime then
+        AIBlackBoard.lastTrooperMeleeTime = currentTime - 4
+    end
+    
+    -- Проверка прошло ли достаточно времени с последней атаки
+    if currentTime - AIBlackBoard.lastTrooperMeleeTime <= timeCheck then
+        return false
+    end
+    
+    -- Если цель заморожена - сразу атакуем
+    if target.actorStats and target.actorStats.isFrozen then
+        AI.Signal(SIGNALFILTER_SENDER, 1, "GO_TO_MELEE", entity.id)
+        entity:SelectPipe(0, "tr_try_melee_inplace")
+        return true
+    end
+    
+    -- Проверяем положение относительно цели
+    local directionToTarget = TrVector_v3
+    FastDifferenceVectors(directionToTarget, target:GetPos(), entity:GetPos())
+    NormalizeVector(directionToTarget)
+    
+    -- Атакуем если:
+    -- 1. Цель повернута к нам спиной (dot < 0) или
+    -- 2. Цель является игроком
+    if dotproduct2d(directionToTarget, target:GetDirectionVector(1)) < 0 or 
+       (target.actor and target.actor:IsPlayer()) then
+        AI.Signal(SIGNALFILTER_SENDER, 1, "GO_TO_MELEE", entity.id)
+        entity:SelectPipe(0, "tr_try_melee_inplace")
+        return true
+    else
+        -- Если не атакуем - проигрываем насмешку
+        entity:Readibility("taunt", 1, 100)
+    end
+    
+    return false
 end
 
 ---------------------------------------------------------
@@ -667,14 +682,18 @@ Trooper_DoubleJumpMelee2 = function(entity)
 			if(hDist < minHdist or hDist > maxHdist) then
 				return false;
 			end
-			NormalizeVector(dir);			
-			if(target == g_localActor) then 
-				g_localActor.actor:GetHeadDir(TrVector_v4);
+			NormalizeVector(dir);
+			
+			--TheOtherSide
+			if(target.actor and target.actor:IsPlayer()) then 
+				target.actor:GetHeadDir(TrVector_v4);
 				if(dotproduct3d(dir, TrVector_v4) > -0.5) then 
 					-- player is not facing the trooper, jump melee is not worth - trooper wants attention!
 					return;
 				end
 			end 
+			--~TheOtherSide
+
 			-- first vertical jump
 			-- compute height
 			-- higher jump if the trooper is farther
@@ -732,217 +751,197 @@ end
 
 -----------------------------------------------------
 Trooper_DoubleJumpMelee = function(entity)
---	if(Trooper_IsJumping(entity)) then 
-	if(entity.actor:IsFlying()) then 
-		return false;
-	end
+    -- Проверка что пришелец не в воздухе
+    if entity.actor:IsFlying() then 
+        return false
+    end
 
-	local curTime = _time;
-	if(AIBlackBoard.lastJumpMeleeTime==nil) then 
-		AIBlackBoard.lastJumpMeleeTime = curTime - 6;
-	end
-	if( curTime - AIBlackBoard.lastJumpMeleeTime > 0) then 
-		local target = AI.GetAttentionTargetEntity(entity.id,true);
-		if(target) then
+    -- Проверка таймаута между прыжками
+    local curTime = _time
+    if not AIBlackBoard.lastJumpMeleeTime then
+        AIBlackBoard.lastJumpMeleeTime = curTime - 6
+    end
+    if curTime - AIBlackBoard.lastJumpMeleeTime <= 0 then
+        return false
+    end
 
-			--TheOtherSide
-			entity:RequestCloakTurnOff();
-			--~TheOtherSide
-			local velocity = TrVector_v0;
-			local pos = TrVector_v1;
-			local startPos = TrVector_v2;
-			local dir = TrVector_v3;
-			local dirN = TrVector_v5;
-			
-			CopyVector(pos, entity:GetPos());
-			CopyVector(startPos, target:GetPos());
-			local targetZ = startPos.z;
-			
-			FastDifferenceVectors(dir,startPos,pos);
-			local hDist = math.sqrt(dir.x*dir.x + dir.y*dir.y) ;
---			if(hDist>25) then 
---				-- too far
---				return false;
---			end
-			local	minHdist = 5;
-			local	maxHdist = 15;
-			if(hDist < minHdist or hDist > maxHdist) then
-				return false;
-			end
-			-- add some rough target position prediction
-			target:GetVelocity(velocity);
-			ScaleVectorInPlace(velocity,0.5); 
-			FastSumVectors(startPos,startPos,velocity);
-			FastDifferenceVectors(dir,startPos,pos);
-			hDist = math.sqrt(dir.x*dir.x + dir.y*dir.y) ;
-			local vDist = dir.z;
---			local	minHdist = 5;
---			local	maxHdist = 15;
---			if(hDist < minHdist or hDist > maxHdist) then
---				return false;
---			end
-			dir.z = 0;
-			NormalizeVector(dir);			
-			if(target == g_localActor) then 
-				g_localActor.actor:GetHeadDir(TrVector_v4);
-				if(dotproduct2d(dir, TrVector_v4) > -0.5) then 
-					-- player is not facing the trooper, jump melee is not worth - trooper wants attention!
-					return;
-				end
-			end 
-			-- first vertical jump
-			-- compute height
-			-- higher jump if the trooper is farther
---			local height = (hDist-minHdist)/(maxHdist - minHdist)*1.5 + vDist + 3;
-			local	minHdist = 9;
-			local	maxHdist = 14;
-			if(hDist< minHdist) then
-				hDist = minHdist;
-			elseif(hDist> maxHdist) then
-				hDist = maxHdist;
-			end
-			
-			local height = hDist/2.5;
-			if(height < 1.3) then
-				return;
-			end
-			
-			CopyVector(dirN,dir);
-			
-			ScaleVectorInPlace(dir,hDist);
-			
-			startPos.x = startPos.x - dir.x;
-			startPos.y = startPos.y - dir.y; 
-			startPos.z = startPos.z + height;
-			if (startPos.z > targetZ+4) then
-				startPos.z = targetZ+4;
-			end
-			-- compute angle
-			
-			FastDifferenceVectors(dir,startPos,pos);
-			local module = dir.x*dir.x + dir.y*dir.y ;
-			local hMyDist = math.sqrt(module);
-		
-			if(hMyDist>25) then 
-				return false;
-			end
-		
-			local vMyDist = dir.z;
-		
-			local dist = math.sqrt(module + vMyDist*vMyDist);
-		
---			if(dist<5 and hMyDist > dist*0.6) then 
---				return false;
---			end
+    -- Получаем цель
+    local target = AI.GetAttentionTargetEntity(entity.id, true)
+    if not target then
+        return false
+    end
 
-			local angle;
-			if(hMyDist <1) then
-				angle = 90;
-			else			
-				local tang = vDist/hMyDist;
-				angle = math.atan(tang)*57.29577;
---				if(angle <-10) then 
---					angle = 10;
---				elseif(angle > 10 and angle <70) then 
---					angle = angle+25;
---				elseif(angle < 10 ) then 
---					angle = angle+20+hDist/2;
-				if(angle>60) then 
-					angle = angle + 5;
-				else
-					return false; -- weird first jump angle
-				end
-			end			
-			local angle2 = 1; -- default angle for second jump
-			local fromGround = false;
-			-- jump at least a little bit vertically to give some warning to the player
-			local t = AI.CanJumpToPoint(entity.id,startPos,angle,20,AI_JUMP_CHECK_COLLISION,velocity);
-		
-			local entityAI = entity.AI;
-			if(not entityAI.jumpVel) then 
-				entityAI.jumpVel = {x=0,y=0,z=0};
-				entityAI.jumpPos = {};
-			end
-			local jumpPos = entityAI.jumpPos;
-			CopyVector(jumpPos,target:GetPos());
+    -- Отключаем невидимость для атаки
+    entity:RequestCloakTurnOff()
 
-			if(not (t and (target==g_localActor and t>0.6 or t>0.2))) then 
-				-- if can't jump vertically, try jump from ground
-				CopyVector(startPos,entity:GetPos()); -- consider jumping from entity position
-				fromGround = true;
-				local dist;
-				angle2,dist = Trooper_GetJumpAngleDist(entity,jumpPos,0,60);
-				if(dist==nil or dist<6 or dist>12) then 
-					return false;
-				end
-				t = 1; -- approximate time to do the start animation
---				t = AI.CanJumpToPoint(entity.id,jumpPos,angle2,20,AI_JUMP_CHECK_COLLISION+AI_JUMP_ON_GROUND,velocity);
-			end
-	
---			if(t and (target==g_localActor and t>0.6 or t>0.2)) then 
-				-- second horizontal jump
-				--AI.SetRefPointPosition(entity.id,targetPos);--debug
+    -- Инициализация векторов
+    local velocity = TrVector_v0
+    local pos = TrVector_v1
+    local startPos = TrVector_v2
+    local dir = TrVector_v3
+    local dirN = TrVector_v5
 
-				--CopyVector(jumpPos,target:GetPos());
-				target:GetVelocity(jumpPos); -- predict the target position after t seconds
-				ScaleVectorInPlace(jumpPos,t);
-				FastSumVectors(jumpPos,jumpPos,target:GetPos());
-				
-				-- check if target is a vehicle
-				--if(AI.GetTypeOf(target.id) == AIOBJECT_VEHICLE) then 
-				if(target.vehicle) then 
---					local	hits = Physics.RayWorldIntersection(startPos,dir,1,ent_terrain+ent_static+ent_rigid+ent_sleeping_rigid+ent_living,entity.id,nil,g_HitTable);
---					if( hits and (hits > 0 )) then
---						CopyVector( jumpPos, g_HitTable[1].pos );
---					end					
-					CopyVector(jumpPos,AI.GetRefPointPosition(entity.id));
-				else
-					target:GetVelocity(jumpPos); -- predict the target position after t seconds
-					ScaleVectorInPlace(jumpPos,t);
-					FastSumVectors(jumpPos,jumpPos,target:GetPos());
-					--FastDifferenceVectors(jumpPos,jumpPos,dirN);
-				end
-				-- debug
---				AI.SetRefPointPosition(entity.id,jumpPos);
-		
-				local t1 = AI.CanJumpToPoint(entity.id,jumpPos,angle2,20,AI_JUMP_ON_GROUND + AI_JUMP_CHECK_COLLISION,entityAI.jumpVel,target.id, startPos);
-				if(t1 and t1>0.5 and t1<2.1) then 
-					entityAI.firstJumpTime = t;
-					entityAI.doubleJump = not fromGround;
-					entityAI.meleeJumpFromGround = fromGround;
-					entityAI.jumpTime = t1;
-					entityAI.lastJumpTime = curTime;
-					-- vertical jump first
-					CopyVector(g_SignalData.point,jumpPos);
-					CopyVector(entity.AI.jumpPos,jumpPos);
-					CopyVector(g_SignalData.point2,entity:GetPos());
-					g_SignalData.id = target.id;
-				 	AI.FreeSignal(1, "STAY_AWAY_FROM", jumpPos, 7, entity.id,g_SignalData);
-				 	if(fromGround) then 
-						--entity.actor:SetParams({jumpTo = startPos, jumpVelocity = velocity, jumpTime = t, jumpStart = true, useAnimEvent = true});
-						g_SignalData.iValue = 1; -- avoid dodge in melee behavior
-						AI.Signal(SIGNALFILTER_SENDER,0,"GO_TO_MELEE",entity.id,g_SignalData);
-						entity:SelectPipe(AIGOALPIPE_DONT_RESET_AG,"tr_jump_melee_ground");
-					else
-						entity:SetTimer(TROOPER_JUMP_TIMER,t*1000);
-						entity.actor:SetParams({jumpTo = startPos, jumpVelocity = velocity, jumpTime = t, jumpStart = true, useAnimEvent = true});
-						Trooper_SetJumpTimeout(entity);
-						AI.Signal(SIGNALFILTER_SENDER,0,"GO_TO_ATTACK_JUMP",entity.id,g_SignalData);
-					end
-					AIBlackBoard.lastJumpMeleeTime = curTime;
-					entity.AI.JumpType = TROOPER_JUMP_MELEE;
+    -- Получаем позиции
+    CopyVector(pos, entity:GetPos())
+    CopyVector(startPos, target:GetPos())
+    local targetZ = startPos.z
 
-					entity:InsertSubpipe(AIGOALPIPE_NOTDUPLICATE,"stop_fire");
+    -- Проверяем горизонтальную дистанцию
+    FastDifferenceVectors(dir, startPos, pos)
+    local hDist = math.sqrt(dir.x*dir.x + dir.y*dir.y)
+    
+    -- Проверка допустимой дистанции для прыжка
+    local minHdist, maxHdist = 5, 15
+    if hDist < minHdist or hDist > maxHdist then
+        return false
+    end
 
-					--TheOtherSide
-					entity:RequestCloakTurnOn()
-					--~TheOtherSide;
-					return true;
-				end
-		--	end
-		end			
-	end
-	return false;
+    -- Предсказание позиции цели
+    target:GetVelocity(velocity)
+    ScaleVectorInPlace(velocity, 0.5)
+    FastSumVectors(startPos, startPos, velocity)
+    FastDifferenceVectors(dir, startPos, pos)
+    hDist = math.sqrt(dir.x*dir.x + dir.y*dir.y)
+    local vDist = dir.z
+    
+    dir.z = 0
+    NormalizeVector(dir)
+
+    -- Особая проверка для игрока
+    if target.actor and target.actor:IsPlayer() then
+        target.actor:GetHeadDir(TrVector_v4)
+        if dotproduct2d(dir, TrVector_v4) > -0.5 then
+            -- Игрок не смотрит на пришельца, прыжок не стоит делать
+            return false
+        end
+    end
+
+    -- Расчет высоты прыжка
+    minHdist, maxHdist = 9, 14
+    hDist = math.max(minHdist, math.min(hDist, maxHdist))
+    local height = hDist/2.5
+    if height < 1.3 then
+        return false
+    end
+
+    -- Расчет стартовой позиции прыжка
+    CopyVector(dirN, dir)
+    ScaleVectorInPlace(dir, hDist)
+    startPos.x = startPos.x - dir.x
+    startPos.y = startPos.y - dir.y
+    startPos.z = startPos.z + height
+    startPos.z = math.min(startPos.z, targetZ + 4)
+
+    -- Проверка дистанции
+    FastDifferenceVectors(dir, startPos, pos)
+    local hMyDist = math.sqrt(dir.x*dir.x + dir.y*dir.y)
+    if hMyDist > 25 then
+        return false
+    end
+
+    -- Расчет угла прыжка
+    local angle
+    if hMyDist < 1 then
+        angle = 90
+    else
+        local tang = vDist/hMyDist
+        angle = math.atan(tang) * 57.29577
+        if angle > 60 then
+            angle = angle + 5
+        else
+            return false -- некорректный угол для первого прыжка
+        end
+    end
+
+    -- Подготовка к прыжку
+    local angle2 = 1
+    local fromGround = false
+    local t = AI.CanJumpToPoint(entity.id, startPos, angle, 20, AI_JUMP_CHECK_COLLISION, velocity)
+
+    -- Инициализация данных прыжка
+    local entityAI = entity.AI
+    if not entityAI.jumpVel then
+        entityAI.jumpVel = {x=0, y=0, z=0}
+        entityAI.jumpPos = {}
+    end
+    
+    local jumpPos = entityAI.jumpPos
+    CopyVector(jumpPos, target:GetPos())
+
+    -- Проверка возможности вертикального прыжка
+    if not (t and ((target.actor and target.actor:IsPlayer() and t>0.6) or t>0.2)) then
+        -- Пробуем прыжок с земли
+        CopyVector(startPos, entity:GetPos())
+        fromGround = true
+		local dist
+        angle2, dist = Trooper_GetJumpAngleDist(entity, jumpPos, 0, 60)
+        if not dist or dist < 6 or dist > 12 then
+            return false
+        end
+        t = 1
+    end
+
+    -- Расчет второго прыжка
+    target:GetVelocity(jumpPos)
+    ScaleVectorInPlace(jumpPos, t)
+    FastSumVectors(jumpPos, jumpPos, target:GetPos())
+
+    -- Особая обработка для транспорта
+    if target.vehicle then
+        CopyVector(jumpPos, AI.GetRefPointPosition(entity.id))
+    else
+        target:GetVelocity(jumpPos)
+        ScaleVectorInPlace(jumpPos, t)
+        FastSumVectors(jumpPos, jumpPos, target:GetPos())
+    end
+
+    -- Финальная проверка прыжка
+    local t1 = AI.CanJumpToPoint(entity.id, jumpPos, angle2, 20, 
+        AI_JUMP_ON_GROUND + AI_JUMP_CHECK_COLLISION, entityAI.jumpVel, target.id, startPos)
+
+    if t1 and t1 > 0.5 and t1 < 2.1 then
+        -- Сохраняем параметры прыжка
+        entityAI.firstJumpTime = t
+        entityAI.doubleJump = not fromGround
+        entityAI.meleeJumpFromGround = fromGround
+        entityAI.jumpTime = t1
+        entityAI.lastJumpTime = curTime
+
+        -- Настройка сигналов и параметров
+        CopyVector(g_SignalData.point, jumpPos)
+        CopyVector(entity.AI.jumpPos, jumpPos)
+        CopyVector(g_SignalData.point2, entity:GetPos())
+        g_SignalData.id = target.id
+        AI.FreeSignal(1, "STAY_AWAY_FROM", jumpPos, 7, entity.id, g_SignalData)
+
+        -- Выполнение прыжка
+        if fromGround then
+            g_SignalData.iValue = 1
+            AI.Signal(SIGNALFILTER_SENDER, 0, "GO_TO_MELEE", entity.id, g_SignalData)
+            entity:SelectPipe(AIGOALPIPE_DONT_RESET_AG, "tr_jump_melee_ground")
+        else
+            entity:SetTimer(TROOPER_JUMP_TIMER, t*1000)
+            entity.actor:SetParams({
+                jumpTo = startPos,
+                jumpVelocity = velocity,
+                jumpTime = t,
+                jumpStart = true,
+                useAnimEvent = true
+            })
+            Trooper_SetJumpTimeout(entity)
+            AI.Signal(SIGNALFILTER_SENDER, 0, "GO_TO_ATTACK_JUMP", entity.id, g_SignalData)
+        end
+
+        -- Финальные настройки
+        AIBlackBoard.lastJumpMeleeTime = curTime
+        entity.AI.JumpType = TROOPER_JUMP_MELEE
+        entity:InsertSubpipe(AIGOALPIPE_NOTDUPLICATE, "stop_fire")
+        entity:RequestCloakTurnOn()
+        
+        return true
+    end
+
+    return false
 end
 
 --------------------------------------
@@ -958,10 +957,12 @@ Trooper_JumpMelee = function ( entity)
 	if( curTime - AIBlackBoard.lastJumpMeleeTime > 4) then 
 		local target = AI.GetAttentionTargetEntity(entity.id,true);
 		if(target) then 
-			if(target ==g_localActor and target:GetSpeed() < 1) then 
+			--TheOtherSide
+			if(target.actor and target.actor:IsPlayer() and target:GetSpeed() < 1) then 
 				-- jump in front of the player and then try the melee after looks silly if player is not moving
 				return false;
 			end
+			--~TheOtherSide
 
 			local pos = TrVector_v1;
 			local targetPos = TrVector_v2;
@@ -1302,11 +1303,13 @@ function Trooper_ReevaluateShooterTarget(entity,shooter)
 				probability = 100;
 			else	
 				probability = 50-distance*2;
-				if(shooter == g_localActor) then 
+				--TheOtherSide
+				if(shooter.actor and shooter.actor:IsPlayer()) then 
 					probability = probability+70;
 				else
 					probability = probability+40;
 				end
+				--~TheOtherSide
 			end			
 			--AI.LogEvent(entity:GetName().." probability = "..probability);
 			if(random(1,100) <= probability ) then 
@@ -1333,7 +1336,8 @@ function Trooper_SetConversation(entity,reset,delay)
 			entity:SetTimer(TROOPER_CONVERSATION_REQUEST_TIMER,delay);
 			--entity:SetTimer(TROOPER_CONVERSATION_CHECK_TIMER,delay+1500);
 		else
-			local dist = entity:GetDistance(g_localActor.id);
+			local target = AI.GetAttentionTargetEntity(entity.id,true);
+			local dist = entity:GetDistance(target.id);
 			if(dist and (dist >5  and dist<25)) then 
 				if(not delay) then 
 					delay = random(2000,3500);
