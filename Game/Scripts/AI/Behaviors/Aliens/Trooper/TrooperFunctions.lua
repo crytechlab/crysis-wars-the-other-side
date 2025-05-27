@@ -1337,14 +1337,23 @@ function Trooper_SetConversation(entity,reset,delay)
 			--entity:SetTimer(TROOPER_CONVERSATION_CHECK_TIMER,delay+1500);
 		else
 			local target = AI.GetAttentionTargetEntity(entity.id,true);
-			local dist = entity:GetDistance(target.id);
-			if(dist and (dist >5  and dist<25)) then 
-				if(not delay) then 
-					delay = random(2000,3500);
+			if(target) then
+				local dist = entity:GetDistance(target.id);
+				if(dist and (dist >5  and dist<25)) then 
+					if(not delay) then 
+						delay = random(2000,3500);
+					end
+					AIBlackBoard.trooper_ConversationState = TROOPER_CONV_REQUESTING;
+					entity:SetTimer(TROOPER_CONVERSATION_REQUEST_TIMER,delay);
+					entity:SetTimer(TROOPER_CONVERSATION_CHECK_TIMER,delay+1500);
+				end
+			else
+				
+				if(not delay) then
+					delay = random(8000,12000);
 				end
 				AIBlackBoard.trooper_ConversationState = TROOPER_CONV_REQUESTING;
 				entity:SetTimer(TROOPER_CONVERSATION_REQUEST_TIMER,delay);
-				entity:SetTimer(TROOPER_CONVERSATION_CHECK_TIMER,delay+1500);
 			end
 		end
 	end
