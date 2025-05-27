@@ -522,7 +522,7 @@ void CTOSZeusModule::Local::UpdateOrderIcons()
 	}
 }
 
-void CTOSZeusModule::Local::CreateOrder(EntityId executorId, const SOrder& info)
+void CTOSZeusModule::Local::CreateOrderIcon(EntityId executorId, const SOrder& info)
 {
 	m_orders[executorId] = info;
 }
@@ -946,7 +946,7 @@ bool CTOSZeusModule::Local::ExecuteCommand(ECommand command)
 			SOrder order;
 			order.pos = m_orderPos;
 			order.targetId = m_orderTargetId;
-			CreateOrder(id, order);
+			CreateOrderIcon(id, order);
 
 			auto& method = CTOSZeusSynchronizer::SvRequestExecuteOrder();
 			auto netParams = CTOSZeusSynchronizer::NetExecuteOrderParams();

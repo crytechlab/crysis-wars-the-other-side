@@ -43,7 +43,7 @@ struct ITOSGameModule : public ITOSGameEventListener // NOLINT(cppcoreguidelines
 	};
 
 	virtual void GetMemoryStatistics(ICrySizer* s) = 0;
-	virtual const char* GetName() = 0;
+	virtual const char* GetName() const = 0;
 	virtual void Init() = 0;
 	virtual void Update(float frametime) = 0;
 	virtual void Serialize(TSerialize ser) = 0;

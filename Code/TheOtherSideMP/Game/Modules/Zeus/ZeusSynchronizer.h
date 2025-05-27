@@ -307,10 +307,10 @@ public:
 	DECLARE_SERVER_RMI_POSTATTACH_FAST(SvRequestTransformEntity, NetTransformParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_POSTATTACH_FAST(ClTransformEntity, NetTransformParams, eNRT_ReliableOrdered);
 
-	DECLARE_SERVER_RMI_PREATTACH(SvRequestCopyEntity, NetCopyParams, eNRT_ReliableOrdered);
-	DECLARE_SERVER_RMI_POSTATTACH(SvRequestSpawnEntity, NetSpawnParams, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_PREATTACH(ClCopyEntity, NetCopiedInfo, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_POSTATTACH(ClSpawnEntity, NetSpawnedInfo, eNRT_ReliableOrdered);
+	DECLARE_SERVER_RMI_NOATTACH(SvRequestCopyEntity, NetCopyParams, eNRT_ReliableOrdered);
+	DECLARE_SERVER_RMI_NOATTACH(SvRequestSpawnEntity, NetSpawnParams, eNRT_ReliableOrdered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClCopyEntity, NetCopiedInfo, eNRT_ReliableOrdered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClSpawnEntity, NetSpawnedInfo, eNRT_ReliableOrdered);
 
 	DECLARE_SERVER_RMI_PREATTACH(SvRequestMakeZeus, NetMakeParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_PREATTACH(ClMakeZeus, NetMakeParams, eNRT_ReliableOrdered);

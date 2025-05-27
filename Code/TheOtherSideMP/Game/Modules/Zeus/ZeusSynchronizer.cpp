@@ -94,8 +94,8 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClSpawnEntity)
 {
 	// Здесь пишем всё, что должно выполниться на клиенте
 
-	CryLog("<C++>[%s][%s][ClSpawnEntity]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+	CryLog("<C++>[%s][%s][ClSpawnEntity] %s",
+		tos::debug::GetEnv(), tos::debug::GetAct(3), TOS_GET_ENTITY(params.spawnedId)->GetName());
 	 
 	auto pZeusModule = g_pTOSGame->GetZeusModule();
 	assert(pZeusModule != nullptr);
@@ -117,8 +117,8 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClCopyEntity)
 {
 	// Здесь пишем всё, что должно выполниться на клиенте
 
-	CryLog("<C++>[%s][%s][ClCopyEntity]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+	CryLog("<C++>[%s][%s][ClCopyEntity] %s",
+		tos::debug::GetEnv(), tos::debug::GetAct(3), TOS_GET_ENTITY(params.copiedId)->GetName());
 	 
 	auto pZeusModule = g_pTOSGame->GetZeusModule();
 	assert(pZeusModule != nullptr);

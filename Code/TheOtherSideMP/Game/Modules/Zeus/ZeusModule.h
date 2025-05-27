@@ -278,7 +278,7 @@ public:
 		bool SelectionFilter(EntityId id) const;
 		void UpdateUnitIcons(IActor* pClientActor);
 		void UpdateOrderIcons();
-		void CreateOrder(EntityId executorId, const SOrder& info);
+		void CreateOrderIcon(EntityId executorId, const SOrder& info);
 		void StopOrder(EntityId executorId);
 		void RemoveOrder(EntityId executorId);
 
