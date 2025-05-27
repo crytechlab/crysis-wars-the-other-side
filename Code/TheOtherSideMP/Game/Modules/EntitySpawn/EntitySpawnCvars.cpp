@@ -75,7 +75,7 @@ void CTOSEntitySpawnModule::CmdSpawnEntity(IConsoleCmdArgs* pArgs)
 	}
 
 	STOSEntitySpawnParams params;
-	params.authorityPlayerName = plName;
+	params.authorityName = plName;
 	params.vanilla.bStaticEntityId = true;
 	params.vanilla.pClass = pClass;
 	params.savedName = newEntName.c_str();
@@ -119,7 +119,7 @@ void CTOSEntitySpawnModule::CmdDumpSpawned(IConsoleCmdArgs* pArgs)
 	for (; it != end; ++it)
 	{
 		const string& savedName = it->second->savedName;
-		const string& savedAuthPlayer = it->second->authorityPlayerName;
+		const string& savedAuthPlayer = it->second->authorityName;
 		const bool savedWillBeControlled = it->second->forceStartControl;
 
 		CryLogAlways("		--- name: %s, authName: %s, willBeControlled: %i",

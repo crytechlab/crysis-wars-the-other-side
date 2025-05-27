@@ -63,7 +63,7 @@ int CScriptBind_GameRules::SpawnAndAssignSlaveToPlayer(IFunctionHandler* pH, int
 	}
 
 	const string playerName = pPlayer->GetEntity()->GetName();
-	const IEntity* const pSlave = g_pTOSGame->GetEntitySpawnModule()->GetSavedSlaveByAuthName(playerName);
+	const IEntity* const pSlave = g_pTOSGame->GetEntitySpawnModule()->GetSpawnedSlave(playerName);
 
 	if (pSlave)
 	{
@@ -72,7 +72,7 @@ int CScriptBind_GameRules::SpawnAndAssignSlaveToPlayer(IFunctionHandler* pH, int
 	}
 
 	STOSEntityDelaySpawnParams params;
-	params.authorityPlayerName = playerName;
+	params.authorityName = playerName;
 	params.savedName = playerName + "_slave";
 	params.scheduledTimeStamp = gEnv->pTimer->GetFrameStartTime().GetSeconds();
 	params.spawnDelay = spawnDelaySec;

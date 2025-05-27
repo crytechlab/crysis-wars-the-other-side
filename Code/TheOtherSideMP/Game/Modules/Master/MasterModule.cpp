@@ -191,11 +191,11 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 						break;
 					}
 
-					auto pSavedSlave = g_pTOSGame->GetEntitySpawnModule()->GetSavedSlaveByAuthName(entName);
+					auto pSavedSlave = g_pTOSGame->GetEntitySpawnModule()->GetSpawnedSlave(entName);
 					if (!pSavedSlave)
 					{
 						STOSEntityDelaySpawnParams params;
-						params.authorityPlayerName = entName;
+						params.authorityName = entName;
 						params.savedName = slaveName;
 						params.scheduledTimeStamp = gEnv->pTimer->GetFrameStartTime().GetSeconds();
 						params.spawnDelay = tos_sv_SlaveSpawnDelay;
@@ -422,7 +422,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 						tos::entity::RemoveEntityForced(pSlave->GetId());
 					}
 
-					const auto pSavedEnt = g_pTOSGame->GetEntitySpawnModule()->GetSavedSlaveByAuthName(pPlayer->GetEntity()->GetName());
+					const auto pSavedEnt = g_pTOSGame->GetEntitySpawnModule()->GetSpawnedSlave(pPlayer->GetEntity()->GetName());
 					if (pSavedEnt)
 					{
 						tos::entity::RemoveEntityForced(pSavedEnt->GetId());

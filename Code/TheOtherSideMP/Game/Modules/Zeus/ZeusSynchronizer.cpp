@@ -48,7 +48,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 		spawnParams.saveParams = false;
 		spawnParams.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)
 		spawnParams.vanilla.bIgnoreLock = false; // spawn lock игнор
-		spawnParams.pCallback = [clientServer = &pZeusModule->GetClientServer()]
+		spawnParams.callback = [clientServer = &pZeusModule->GetClientServer()]
 		(EntityId id, const Vec3& pos, int clientChannelId)
 			{
 				clientServer->ServerOnEntitySpawned(id, pos, clientChannelId);
@@ -338,7 +338,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 		spawnParams.saveParams = false;
 		spawnParams.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)
 		spawnParams.vanilla.bIgnoreLock = false; // spawn lock игнор
-		spawnParams.pCallback = [clientServer = &pZeusModule->GetClientServer(),
+		spawnParams.callback = [clientServer = &pZeusModule->GetClientServer(),
 			copiedId = params.copiedId](EntityId id, const Vec3& pos, int clientChannelId)
 			{
 				clientServer->ServerOnEntityCopied(id, pos, clientChannelId, copiedId);
