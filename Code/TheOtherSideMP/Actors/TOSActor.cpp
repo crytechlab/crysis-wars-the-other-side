@@ -463,6 +463,11 @@ void CTOSActor::Revive(const bool fromInit)
 		m_pAnimatedCharacter->ForceRefreshPhysicalColliderMode();
 		m_pAnimatedCharacter->RequestPhysicalColliderMode(eColliderMode_Spectator, eColliderModeLayer_Game, "Actor::SetAspectProfile");
 	}
+	else
+	{
+		if (IsPlayer())
+			tos::ai::SendEvent(GetEntity()->GetAI(), AIEVENT_ENABLE);
+	}
 
 	SelectLastItem(true, true); 
 
@@ -472,6 +477,9 @@ void CTOSActor::Revive(const bool fromInit)
 void CTOSActor::Kill()
 {
 	CActor::Kill();
+
+	if (IsPlayer())
+		tos::ai::SendEvent(GetEntity()->GetAI(), AIEVENT_DISABLE);
 
 	// Вызывается только на сервере
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorDead, "", true));
