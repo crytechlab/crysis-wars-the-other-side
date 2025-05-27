@@ -50,25 +50,25 @@ void CTOSZeusModule::ClientServer::ServerOnEntitySpawned(EntityId id, const Vec3
 	assert(pSpawned != nullptr);
 	assert(clientChannelId > 0);
 
+	//CryLogAlways("[TOS][ServerOnEntitySpawned] %s", pSpawned->GetName());
+
 	if (pSpawned == nullptr)
 		return;
 
-	char buffer[64];
-	sprintf(buffer, "%d", id);
-	pSpawned->SetName(string(pSpawned->GetName()) + "_" + buffer);
+	//char buffer[64];
+	//sprintf(buffer, "%d", id);
+	//pSpawned->SetName(string(pSpawned->GetName()) + "_" + buffer);
 
 	// Извещаем клиента, о том, что он может перемещать заспавненную сущность
 	CTOSZeusSynchronizer::NetSpawnedInfo info;
-	CTOSZeusSynchronizer::NetHideParams params;
 	info.spawnedId = id;
 	info.spawnedPos = pos;
-	params.id = id;
-	params.bHide = false;
 
-	pParent->GetSynchronizer()->RMISend(
+	pParent->GetSynchronizer()->GetGameObject()->InvokeRMIWithDependentObject(
 		CTOSZeusSynchronizer::ClSpawnEntity(),
 		info,
 		eRMI_ToClientChannel,
+		info.spawnedId,
 		clientChannelId);
 }
 
@@ -76,14 +76,15 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3&
 {
 	auto pSpawned = TOS_GET_ENTITY(id);
 	assert(pSpawned != nullptr);
-	assert(clientChannelId > 0);
 
 	if (pSpawned == nullptr)
 		return;
 
-	char buffer[64];
-	sprintf(buffer, "%d", id);
-	pSpawned->SetName(string(pSpawned->GetName()) + "_" + buffer);
+	//CryLogAlways("[TOS][ServerOnEntityCopied] %s", pSpawned->GetName());
+
+	//char buffer[64];
+	//sprintf(buffer, "%d", id);
+	//pSpawned->SetName(string(pSpawned->GetName()) + "_" + buffer);
 
 	// Извещаем клиента, о том, что он может перемещать заспавненную сущность
 	CTOSZeusSynchronizer::NetCopiedInfo info;
@@ -91,10 +92,11 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3&
 	info.copiedId = id;
 	info.copiedPos = pos;
 
-	pParent->GetSynchronizer()->RMISend(
+	pParent->GetSynchronizer()->GetGameObject()->InvokeRMIWithDependentObject(
 		CTOSZeusSynchronizer::ClCopyEntity(),
 		info,
 		eRMI_ToClientChannel,
+		info.copiedId,
 		clientChannelId);
 }
 

@@ -175,6 +175,11 @@ std::set<EntityId>::iterator CTOSZeusModule::Local::DeselectEntity(EntityId id)
 
 void CTOSZeusModule::Local::SelectEntity(EntityId id)
 {
+	// FIX: Иногда в мультиплеере бокс пропадает когда спавнишь через меню
+	auto it = m_boxes.find(id);
+	if (it != m_boxes.end())
+		return;
+
 	auto pEntity = TOS_GET_ENTITY(id);
 	if (pEntity)
 	{
@@ -458,7 +463,7 @@ void CTOSZeusModule::Local::UpdateUnitIcons(IActor* pClientActor)
 				else if (movType == IVehicleMovement::eVMT_Sea || movType == IVehicleMovement::eVMT_Amphibious)
 					icon = EIcon::Boat;
 
-				// не пустые тс должны быть желтые
+				// непустые тс должны быть желтые
 				if (pVehicle->GetStatus().passengerCount > 0)
 					color = EIconColor::Yellow;
 
