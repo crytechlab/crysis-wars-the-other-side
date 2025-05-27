@@ -65,13 +65,6 @@
 			return true; \
 	}
 
-/**
- * \brief Актёр не является реальным игроков в сетевой игре
- * \param pOwner - указатель на проверяемого актёра
-	\return True, если актёр не игрок (т.е ИИ или управляемый раб)
- */
-#define NOT_PLAYER_IN_MP(pOwner) (pOwner) && !(pOwner)->IsPlayer() && gEnv->bMultiplayer
-
 //~TheOtherSide
 
 
@@ -177,36 +170,20 @@ void CWeapon::NetZoom(const float fov)
 void CWeapon::RequestShoot(IEntityClass* pAmmoType, const Vec3& pos, const Vec3& dir, const Vec3& vel, const Vec3& hit, const float extra, const int predictionHandle, const uint16 seq, const uint8 seqr, const bool forceExtended)
 {
 	const IActor* pClientActor = m_pGameFramework->GetClientActor();
-
-	//TheOtherSide
 	const IActor* pOwnerActor = GetOwnerActor();
 
 	if (NOT_PLAYER_IN_MP(pOwnerActor))
 	{
 		if (IsServer())
 		{
-			//TheOtherSide код из Crysis Co-op
-			if (IsServerSpawn(pAmmoType) || forceExtended)
-			{
-				GetGameObject()->InvokeRMI(ClShoot(), ClShootParams(pos + dir * 5.0f, predictionHandle), IsClient() ? eRMI_ToRemoteClients : eRMI_ToAllClients);
-				NetShootEx(pos, dir, vel, hit, extra, predictionHandle);
-			}
-			else
-			{
-				GetGameObject()->InvokeRMI(ClShoot(), ClShootParams(hit, predictionHandle), IsClient() ? eRMI_ToRemoteClients : eRMI_ToAllClients);
-				NetShoot(hit, predictionHandle);
-			}
-			//~
+			GetGameObject()->InvokeRMI(ClShoot(), ClShootParams(pos + dir * 5.0f, predictionHandle), eRMI_ToAllClients);
+			NetShootEx(pos, dir, vel, hit, extra, predictionHandle);
 		}
 		else
 		{
-			if (IsServerSpawn(pAmmoType) || forceExtended)
-				GetGameObject()->InvokeRMI(SvRequestShootEx(), SvRequestShootExParams(pos, dir, vel, hit, extra, predictionHandle, seq, seqr), eRMI_ToServer);
-			else
-				GetGameObject()->InvokeRMI(SvRequestShoot(), SvRequestShootParams(pos, dir, hit, predictionHandle, seq, seqr), eRMI_ToServer);
+			GetGameObject()->InvokeRMI(SvRequestShootEx(), SvRequestShootExParams(pos, dir, vel, hit, extra, predictionHandle, seq, seqr), eRMI_ToServer);
 		}
 	}
-	//~TheOtherSide
 	else if ((!pClientActor || pClientActor->IsClient()) && IsClient())
 	{
 		if (pClientActor)
