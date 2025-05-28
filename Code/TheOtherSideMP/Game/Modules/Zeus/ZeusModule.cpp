@@ -667,7 +667,7 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event)
 {
 	auto pHUD = g_pGame->GetHUD();
-	auto pPlayer = GetPlayer();
+	auto pLocalPlayer = GetPlayer();
 
 	const bool bNoModalOrNoHUD = !pHUD || (pHUD && !pHUD->IsHaveModalHUD());
 	const bool bZeusing = m_local.GetFlag(EFlag::Zeusing);
@@ -681,7 +681,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 		if (!bZeusing)
 			return;
 
-		if (pPlayer && pPlayer->GetEntityId() == pEntity->GetId())
+		if (pLocalPlayer && pLocalPlayer->GetEntityId() == pEntity->GetId())
 		{
 			m_local.Reset();
 			if (bNoModalOrNoHUD)
@@ -695,7 +695,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 		if (!bZeusing)
 			return;
 
-		if (pPlayer)
+		if (pLocalPlayer)
 		{
 			m_hud.ShowPlayerHUD(true);
 			if (bNoModalOrNoHUD)
@@ -710,9 +710,9 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 		if (!bZeusing)
 			return;
 
-		if (pPlayer)
+		if (pLocalPlayer)
 		{
-			m_clientserver.DispatchMakeZeus(pPlayer, true, nullptr);
+			m_clientserver.DispatchMakeZeus(pLocalPlayer, true, nullptr);
 			m_local.SetFlag(EFlag::Possessing, false);
 		}
 		break;
@@ -737,7 +737,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 		if (!bZeusing)
 			return;
 
-		if (pPlayer)
+		if (pLocalPlayer)
 		{
 			if (m_local.IsMouseDisplayed() == false)
 				m_local.ShowMouse(true);
@@ -758,7 +758,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 		if (!bZeusing)
 			return;
 
-		if (pPlayer && m_local.IsSelectedEntity(pEntity->GetId()))
+		if (pLocalPlayer && m_local.IsSelectedEntity(pEntity->GetId()))
 		{
 			const auto pVehEntity = TOS_GET_ENTITY(event.int_value);
 			if (pVehEntity)
@@ -797,7 +797,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 		}
 		break;
 	}
-	case eEGE_SynchronizerCreated:
+	case eEGE_OnSynchronizerCreated:
 	{
 		if (pGO)
 		{
@@ -805,16 +805,14 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 			assert(GetSynchronizer() != nullptr);
 		}
 
-		TOS_RECORD_EVENT(entId, STOSGameEvent(eEGE_SynchronizerRegistered, "For Zeus Module", true));
+		TOS_RECORD_EVENT(entId, STOSGameEvent(eEGE_OnSynchronizerRegistered, "For Zeus Module", true));
 
 		break;
 	}
-	case eGE_ChangedTeam:
+	case eEGE_OnPlayerChangeTeam:
+	case eEGE_OnEntitySetTeam:
 	{
-		if (!bZeusing)
-			return;
-
-		if (pPlayer && pPlayer->GetEntityId() == pEntity->GetId())
+		if (pLocalPlayer && pLocalPlayer->GetEntityId() == pEntity->GetId())
 		{
 			// Если игрок сменил команду и он не в команде zeus - выходим из режима
 			if (auto pGameRules = g_pGame->GetGameRules())
@@ -822,21 +820,21 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 				const char* teamName = pGameRules->GetTeamName(pGameRules->GetTeam(pEntity->GetId()));
 				if (teamName && strcmp(teamName, "zeus") != 0)
 				{
-					m_clientserver.DispatchMakeZeus(pPlayer, false, teamName);
+					m_clientserver.DispatchMakeZeus(pLocalPlayer, false, newTeamName);
 				}
 			}
 		}
 		break;
 	}
-	case eEGE_PlayerJoinedSpectator:
+	case eEGE_OnPlayerJoinedSpectator:
 	{
 		if (!bZeusing)
 			return;
 
-		if (pPlayer && pPlayer->GetEntityId() == pEntity->GetId())
+		if (pLocalPlayer && pLocalPlayer->GetEntityId() == pEntity->GetId())
 		{
 			// Если игрок перешел в режим зрителя - выходим из режима зевса
-			m_clientserver.DispatchMakeZeus(pPlayer, false, "spectator");
+			m_clientserver.DispatchMakeZeus(pLocalPlayer, false, "spectator");
 		}
 		break;
 	}

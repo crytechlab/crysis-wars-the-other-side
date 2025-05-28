@@ -102,7 +102,7 @@ void CTOSPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 	{
 		if (oldMode == eASM_None)
 		{
-			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_PlayerJoinedSpectator, "", true, false, nullptr, 0.0f, mode));
+			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnPlayerJoinedSpectator, "", true, false, nullptr, 0.0f, mode));
 		}
 		break;
 	}
@@ -110,7 +110,7 @@ void CTOSPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 	{
 		if (oldMode == eASM_None)
 		{
-			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_PlayerJoinedCutscene, "", true, false, nullptr, 0.0f, mode));
+			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnPlayerJoinedCutscene, "", true, false, nullptr, 0.0f, mode));
 		}
 		break;
 	}

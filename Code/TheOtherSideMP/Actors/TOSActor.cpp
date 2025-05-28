@@ -69,7 +69,8 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 	//CryLogAlways("<C++>[%s][%s][CTOSActor::PostInit] Actor: %s|%i",
 	//	tos::debug::GetEnv(), tos::debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
 
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorPostInit, "", true));
+	m_debugName = GetEntity()->GetName();
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorPostInit, m_debugName, true));
 
 	CActor::PostInit(pGameObject);
 
@@ -79,7 +80,6 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 
 	m_netBodyInfo.Reset();
 	m_slaveStats = STOSSlaveStats();
-	m_debugName = GetEntity()->GetName();
 
 	// Факт: если оружие выдаётся на сервере, оно выдаётся и на всех клиентах тоже.
 	//ResetActorWeapons(1000);

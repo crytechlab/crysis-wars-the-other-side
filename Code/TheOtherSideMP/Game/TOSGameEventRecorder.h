@@ -12,7 +12,7 @@ Copyright (C), AlienKeeper, 2024.
 #include "TOSGame.h"
 
 // Example
-//   TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_SynchronizerCreated, "MasterModule", true));
+//   TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_OnSynchronizerCreated, "MasterModule", true));
 #define TOS_RECORD_EVENT(entityId, tosGameEventExample) \
 if (g_pTOSGame)\
 	g_pTOSGame->GetEventRecorder()->RecordEvent((entityId), (tosGameEventExample)) \
@@ -59,13 +59,13 @@ enum EExtraGameplayEvent
 	eEGE_EditorGameEnter,
 	eEGE_EditorGameExit,
 
-	eEGE_SynchronizerCreated,
-	eEGE_SynchronizerDestroyed,
-	eEGE_SynchronizerRegistered,
+	eEGE_OnSynchronizerCreated,
+	eEGE_OnSynchronizerDestroyed,
+	eEGE_OnSynchronizerRegistered,
 
-	eEGE_PlayerJoinedGame, // Игрок нажал кнопку "Присоединится" и появился в игре. Не срабатывает автоматически когда игрок в игре, но после sv_restart 
-	eEGE_PlayerJoinedSpectator, // Игрок нажал кнопку "Зритель" и перешёл в режим зрителя
-	eEGE_PlayerJoinedCutscene,
+	eEGE_OnPlayerJoinedGame, // Игрок нажал кнопку "Присоединится" и появился в игре. Не срабатывает автоматически когда игрок в игре, но после sv_restart 
+	eEGE_OnPlayerJoinedSpectator, // Игрок нажал кнопку "Зритель" и перешёл в режим зрителя
+	eEGE_OnPlayerJoinedCutscene,
 
 	eEGE_GamerulesReset, // log off
 	eEGE_GamerulesStartGame, // log off
@@ -112,7 +112,7 @@ enum EExtraGameplayEvent
 	eEGE_UpdateChannelConnectionState,
 
 	eEGE_OnLevelLoadingStart,
-	eEGE_OnServerStartRestarting,
+	eEGE_SvGameRestarting,
 
 	eEGE_HUDInit,
 	eEGE_HUDHandleFSCommand,
@@ -123,6 +123,8 @@ enum EExtraGameplayEvent
 	eEGE_FactionReactionChanged,
 
 	eEGE_VehicleDestroyed,
+	eEGE_OnEntitySetTeam, //Смена команды у сущности
+	eEGE_OnPlayerChangeTeam, //Смена команды у игрока с учетом игровых правил
 
 	eEGE_Last,
 };
@@ -288,20 +290,22 @@ public:
 				return "EditorGameEnter";
 			case eEGE_EditorGameExit:
 				return "EditorGameExit";
-			case eEGE_PlayerJoinedGame:
+			case eEGE_OnPlayerJoinedGame:
 				return "PlayerJoinedGame";
-			case eEGE_PlayerJoinedSpectator:
+			case eEGE_OnPlayerJoinedSpectator:
 				return "PlayerJoinedSpectator";
+			case eEGE_OnPlayerJoinedCutscene:
+				return "PlayerJoinedCutscene";
 			case eEGE_MasterAdd:
 				return "MasterAdd";
 			case eEGE_MasterRemove:
 				return "MasterRemove";
-			case eEGE_SynchronizerCreated:
+			case eEGE_OnSynchronizerCreated:
 				return "SynchronizerCreated";
-			case eEGE_SynchronizerDestroyed:
+			case eEGE_OnSynchronizerDestroyed:
 				return "SynchronizerDestroyed";
-			case eEGE_GamerulesDestroyed:
-				return "GamerulesDestroyed";
+			case eEGE_OnSynchronizerRegistered:
+				return "SynchronizerRegistered";
 			case eEGE_GamerulesStartGame:
 				return "GamerulesStartGame";
 			case eEGE_GamerulesEventInit:
@@ -340,8 +344,6 @@ public:
 				return "MasterClientOnClearSlave";
 			case eEGE_SlaveEntityOnRemove:
 				return "SlaveEntityOnRemove";
-			case eEGE_PlayerJoinedCutscene:
-				return "PlayerJoinedCutscene";
 			case eEGE_GameChannelDestroyed:
 				return "GameChannelDestroyed";
 			case eEGE_ConfigureGameChannel:
@@ -358,8 +360,6 @@ public:
 				return "UpdateContextViewState";
 			case eEGE_UpdateChannelConnectionState:
 				return "UpdateChannelConnectionState";
-			case eEGE_SynchronizerRegistered:
-				return "SynchronizerRegistered";
 			case eEGE_EntityRemovedForced:
 				return "EntityRemovedForced";
 			case eEGE_VehicleDestroyed:
@@ -368,7 +368,7 @@ public:
 				return "ActorRevived";
 			case eEGE_OnLevelLoadingStart:
 				return "OnLevelLoadingStart";
-			case eEGE_OnServerStartRestarting:
+			case eEGE_SvGameRestarting:
 				return "OnServerStartRestarting";
 			case eEGE_ActorExitVehicle:
 				return "ActorExitVehicle";
@@ -388,6 +388,10 @@ public:
 				return "FactionReactionChanged";
 			case eEGE_ActorInit:
 				return "ActorInit";
+			case eEGE_OnEntitySetTeam:
+				return "EntitySetTeam";
+			case eEGE_OnPlayerChangeTeam:
+				return "PlayerChangeTeam";
 			case eEGE_Last:
 				return "Last";
 			default:

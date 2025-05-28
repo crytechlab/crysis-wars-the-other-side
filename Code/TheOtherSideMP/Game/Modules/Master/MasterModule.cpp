@@ -104,7 +104,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 			break;
 		}
 		//case eEGE_ActorPostInit: no ok on client
-		case eEGE_SynchronizerCreated:
+		case eEGE_OnSynchronizerCreated:
 		{
 			if (pGO)
 			{
@@ -112,7 +112,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 				assert(GetSynchronizer() != nullptr);
 			}
 
-			TOS_RECORD_EVENT(entId, STOSGameEvent(eEGE_SynchronizerRegistered, "For Master Module", true));
+			TOS_RECORD_EVENT(entId, STOSGameEvent(eEGE_OnSynchronizerRegistered, "For Master Module", true));
 
 			break;
 		}
@@ -136,7 +136,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 
 					if (masterNeedSlave)
 					{
-						TOS_RECORD_EVENT(entId, STOSGameEvent(eEGE_PlayerJoinedGame, "after sv_restart", true));
+						TOS_RECORD_EVENT(entId, STOSGameEvent(eEGE_OnPlayerJoinedGame, "after sv_restart", true));
 					}
 				}
 
@@ -160,7 +160,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 			break;
 		}
 		//case eEGE_PlayerJoinedGame:
-		case eEGE_PlayerJoinedGame:
+		case eEGE_OnPlayerJoinedGame:
 		{
 			if (gEnv->bServer)
 			{
@@ -313,7 +313,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 			}
 			break;
 		}
-		case eEGE_PlayerJoinedSpectator:
+		case eEGE_OnPlayerJoinedSpectator:
 		{
 			const auto pPlayer = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(entId);
 			assert(pPlayer);

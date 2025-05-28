@@ -96,7 +96,7 @@ void CTOSEntitySpawnModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGam
 
         break;
     }
-    case eEGE_OnServerStartRestarting:
+    case eEGE_SvGameRestarting:
     case eEGE_OnLevelLoadingStart:
     {
         Reset();

@@ -45,7 +45,7 @@ void CTOSGenericSynchronizer::PostInit(IGameObject* pGameObject)
 	//stl::push_back_unique(s_synchronizers, GetEntityId());
 	s_synchronizers[GetEntity()->GetName()] = GetEntityId();
 
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_SynchronizerCreated, "", true));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnSynchronizerCreated, "", true));
 
 }
 
@@ -61,7 +61,7 @@ void CTOSGenericSynchronizer::PostInitClient(int channelId)
 
 void CTOSGenericSynchronizer::Release()
 {
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_SynchronizerDestroyed, "", true));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnSynchronizerDestroyed, "", true));
 
 	delete this;
 }

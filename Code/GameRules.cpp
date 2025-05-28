@@ -196,7 +196,7 @@ bool CGameRules::Init(IGameObject* pGameObject)
 		CreateRestrictedItemList(g_pGameCVars->i_restrictItems->GetString());
 
 	//TheOtherSide
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesInit, "", false));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesInit, GetEntity()->GetClass()->GetName(), false));
 	//~TheOtherSide
 
 	return true;
@@ -214,7 +214,7 @@ void CGameRules::PostInit(IGameObject* pGameObject)
 	RegisterConsoleVars(pConsole);
 
 	//TheOtherSide
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesPostInit, "", false));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesPostInit, GetEntity()->GetClass()->GetName(), false));
 	//~TheOtherSide
 }
 
@@ -420,7 +420,7 @@ void CGameRules::ProcessEvent(SEntityEvent& event)
 		m_removals.clear();
 
 	//TheOtherSide
-		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesReset, "", true));
+		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesReset, GetEntity()->GetClass()->GetName(), true));
 	//~TheOtherSide
 
 		break;
@@ -438,15 +438,15 @@ void CGameRules::ProcessEvent(SEntityEvent& event)
 					gEnv->p3DEngine->GetTimeOfDay()->SetTime(pStart->GetFVal(), true);
 			}
 		}
-
+	
 	//TheOtherSide
-		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesStartGame, "", true));
+		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesStartGame, GetEntity()->GetClass()->GetName(), true));
 	//~TheOtherSide
 		break;
 
 	//TheOtherSide
 	case ENTITY_EVENT_INIT:
-		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesEventInit, "", true));
+		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesEventInit, GetEntity()->GetClass()->GetName(), true));
 		break;
 	//~TheOtherSide
 

@@ -7,7 +7,7 @@
   
  -------------------------------------------------------------------------
   History:
-  - 11:8:2004   10:50 : Created by Mбrcio Martins
+  - 11:8:2004   10:50 : Created by M�rcio Martins
 
 *************************************************************************/
 #include "StdAfx.h"
@@ -1198,7 +1198,7 @@ void CGame::CmdRestart(IConsoleCmdArgs *pArgs)
 		CryLogAlways(" ////////////////// SERVER RESTARTING //////////////////");
 		CryLogAlways(" ");
 
-		TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_OnServerStartRestarting, "", false));
+		TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_SvGameRestarting, "", false));
 	}
 	//~TheOtherSide
 
