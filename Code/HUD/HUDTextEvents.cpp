@@ -1188,6 +1188,7 @@ void CHUD::HandleWarningAnswer(const char* warning /* = NULL */)
 			CGameRules* pRules = g_pGame->GetGameRules();
 			if(pRules->GetTeamCount() > 1)
 			{
+				// TODO: убрать захардкоженные команды
 				const char* command = "team black";
 				if(pRules->GetTeamId("black") == pRules->GetTeam(pPlayer->GetEntityId()))
 					command = "team tan";

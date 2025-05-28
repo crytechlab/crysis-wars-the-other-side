@@ -599,7 +599,6 @@ function TeamInstantAction.Server:OnChangeTeam(playerId, teamId)
 		
 			if (player.actor:GetHealth()>0 and player.actor:GetSpectatorMode()==0) then
 				self:KillPlayer(player);
-				--TODO: Unmake ZEUS player
 			end
 
 			self.game:SetTeam(teamId, playerId);

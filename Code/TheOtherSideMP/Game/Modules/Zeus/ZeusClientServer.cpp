@@ -111,6 +111,7 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake,
 	CTOSZeusSynchronizer::NetMakeParams params;
 	params.bMake = bMake;
 	params.playerChannelId = pTOSPlayer->GetChannelId();
+	params.desiredTeam = desiredTeam;
 
 	if (gEnv->bClient)
 	{
@@ -255,7 +256,12 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make
 		if (auto pGameRules = g_pGame->GetGameRules())
 		{
 			const int teamCount = pGameRules->GetTeamCount();
-			if (teamCount > 0)
+
+			if (strcmp(desiredTeam, "spectator") == 0)
+			{
+				pGameRules->ChangeSpectatorMode(pTOSPlayer, CActor::eASM_Free, 0, true);
+			}
+			else if (teamCount > 0)
 			{
 				if (desiredTeam && strlen(desiredTeam) > 0)
 				{
@@ -266,10 +272,6 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make
 					// Если команда не указана, используем black по умолчанию
 					pGameRules->ChangeTeam(pTOSPlayer, "black");
 				}
-			}
-			else if (strcmp(desiredTeam, "spectator") == 0)
-			{
-				pGameRules->ChangeSpectatorMode(pTOSPlayer, 0, 0, true);
 			}
 		}
 	}

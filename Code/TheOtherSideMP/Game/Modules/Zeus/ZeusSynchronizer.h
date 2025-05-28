@@ -97,6 +97,7 @@ public:
 	{
 		int playerChannelId;
 		bool bMake;
+		string desiredTeam;
 
 		NetMakeParams() :
 			playerChannelId(0),
@@ -112,6 +113,7 @@ public:
 		{
 			ser.Value("playerChannelId", playerChannelId, 'i8');
 			ser.Value("bMake", bMake, 'bool');
+			ser.Value("desiredTeam", desiredTeam, 'stab');
 		}
 	};
 

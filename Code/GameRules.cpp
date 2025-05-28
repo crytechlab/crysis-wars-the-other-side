@@ -47,6 +47,7 @@
 #include "TheOtherSideMP/HUD/TOSCrosshair.h"
 #include "TheOtherSideMP/Helpers/TOS_AI.h"
 #include "TheOtherSideMP/Helpers/TOS_Entity.h"
+#include "TheOtherSideMP/Game/TOSGameEventRecorder.h"
 //TheOtherSide
 
 DbgPlotter g_dbgPlotter;
@@ -1213,10 +1214,6 @@ void CGameRules::ChangeSpectatorMode(CActor* pActor, const uint8 mode, const Ent
 	{
 		GetGameObject()->InvokeRMIWithDependentObject(SvRequestSpectatorMode(), params, eRMI_ToServer, params.entityId);
 	}
-
-	//TheOtherSide
-	TOS_RECORD_EVENT(pActor->GetEntityId(), STOSGameEvent(eGE_Spectator, "", true));
-	//~TheOtherSide
 }
 
 //------------------------------------------------------------------------
@@ -1243,12 +1240,13 @@ void CGameRules::ChangeTeam(IActor* pActor, const int teamId)
 	//TheOtherSide
 	//auto pClient = m_pGameFramework->GetClientActor();
 	const auto pClient = g_pTOSGame->GetActualClientActor();
+	//TheOtherSide
+	TOS_RECORD_EVENT(params.entityId, STOSGameEvent(eEGE_OnPlayerChangeTeam, GetTeamName(params.teamId), true, false, nullptr, 0.0f, params.teamId));
 	//~TheOtherSide
 
 	if (gEnv->bServer)
 	{
-		const auto pTosActor = static_cast<CTOSActor*>(pActor);
-		if (pTosActor && !pTosActor->IsSlave())
+		if (!static_cast<CTOSActor*>(pActor)->IsSlave())
 		{
 			const ScriptHandle handle(params.entityId);
 			CallScript(m_serverStateScript, "OnChangeTeam", handle, params.teamId);
@@ -1743,6 +1741,10 @@ void CGameRules::SetTeam(int teamId, EntityId entityId)
 			m_pRadio->SetTeam(GetTeamName(teamId));
 	}
 
+	//TheOtherSide
+	TOS_RECORD_EVENT(entityId, STOSGameEvent(eEGE_OnEntitySetTeam, GetTeamName(teamId), true, false, nullptr, 0.0f, teamId));
+	//~TheOtherSide
+
 	const ScriptHandle handle(entityId);
 	CallScript(m_serverStateScript, "OnSetTeam", handle, teamId);
 
@@ -1760,11 +1762,6 @@ void CGameRules::SetTeam(int teamId, EntityId entityId)
 	if (IEntity* pEntity = m_pEntitySystem->GetEntity(entityId))
 	{		
 		m_pGameplayRecorder->Event(pEntity, GameplayEvent(eGE_ChangedTeam, nullptr, static_cast<float>(teamId)));
-
-		//TheOtherSide
-		
-		TOS_RECORD_EVENT(entityId, STOSGameEvent(eGE_ChangedTeam, GetTeamName(teamId), true));
-		//~TheOtherSide
 	}
 }
 

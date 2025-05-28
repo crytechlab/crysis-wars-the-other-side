@@ -817,8 +817,8 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 			// Если игрок сменил команду и он не в команде zeus - выходим из режима
 			if (auto pGameRules = g_pGame->GetGameRules())
 			{
-				const char* teamName = pGameRules->GetTeamName(pGameRules->GetTeam(pEntity->GetId()));
-				if (teamName && strcmp(teamName, "zeus") != 0)
+				const char* newTeamName = pGameRules->GetTeamName(event.int_value);
+				if (newTeamName && strcmp(newTeamName, "zeus") != 0 && m_local.GetFlag(EFlag::Zeusing))
 				{
 					m_clientserver.DispatchMakeZeus(pLocalPlayer, false, newTeamName);
 				}

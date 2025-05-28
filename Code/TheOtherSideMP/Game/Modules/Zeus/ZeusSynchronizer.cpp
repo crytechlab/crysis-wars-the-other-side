@@ -18,7 +18,8 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 
 	return CTOSZeusModule::ClientServer::ServerMakeZeus(
 		params.playerChannelId, 
-		params.bMake);
+		params.bMake,
+		params.desiredTeam);
 }
 
 //------------------------------------------------------------------------

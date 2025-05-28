@@ -932,6 +932,10 @@ IMPLEMENT_RMI(CGameRules, ClSetTeam)
 			m_pRadio->SetTeam(GetTeamName(params.teamId));
 	}
 
+	//TheOtherSide
+	TOS_RECORD_EVENT(params.entityId, STOSGameEvent(eEGE_OnEntitySetTeam, GetTeamName(params.teamId), true));
+	//~TheOtherSide
+
 	ScriptHandle handle(params.entityId);
 	CallScript(m_clientStateScript, "OnSetTeam", handle, params.teamId);
 
