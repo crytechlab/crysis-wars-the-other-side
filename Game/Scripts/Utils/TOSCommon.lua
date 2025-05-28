@@ -3,6 +3,19 @@
  --Copyright (C), AlienKeeper, 2024.
 --*************************************************************************
 
+-- Global variables
+TextMessageCenter = 0
+TextMessageConsole = 1
+TextMessageError = 2
+TextMessageInfo = 3
+TextMessageServer = 4
+TextMessageBig = 5
+
+TextMessageToAll = 8
+TextMessageToAllRemote = 65544
+TextMessageToClient = 1
+TextMessageToOtherClients = 4
+
 local g_SpawnParams_point = {x=0,y=0,z=0}
 local g_SpawnParams_rot = {x=0,y=-1,z=0};
 local g_SpawnParams_scale = {x=1,y=1,z=1}
