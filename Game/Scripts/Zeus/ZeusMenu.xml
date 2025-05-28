@@ -1,7 +1,7 @@
 <Root>
 	<Tab name="Characters">
 		<Item category="@zeus_catUSA"    name="SMG Soldier" class="Grunt" price="1000"/>
-		<Item category="@zeus_catNK"     name="SMG Soldier" class="Grunt" price="1000"/>
+		<Item category="@zeus_catUSA"    name="Grenade Man" class="US.Grunt\Camper.US_GrenadeMan" price="1000"/>
 		
 		<Item category="@zeus_catNK"     name="Camper Camp Heavy Pistol" class="Asian_new.Camper\Camp.Heavy_Pistol" price="1000"/>
 		<Item category="@zeus_catNK"     name="Camper Camp Heavy Rifle" class="Asian_new.Camper\Camp.Heavy_Rifle" price="1000"/>
@@ -149,9 +149,9 @@
 		<Item category="@zeus_catAmmo"  	 name="@mp_eSCAR" class="SCAR" price="300" amount="40"/>
 		<Item category="@zeus_catAddons"  	 name="@mp_ePSilencer" class="SOCOMSilencer" price="40"/>
 	</Tab>
-	
+
 	<Tab name="Vehicles">
-		<Item category="@zeus_catNK"  	  name="Asian Heli" class="Vehicles.Air.Asian_Helicopter" price="300"/>
+		<!-- <Item category="@zeus_catNK"  	  name="Asian Heli" class="Vehicles.Air.Asian_Helicopter" price="300"/>
 		<Item category="@zeus_catNK"  	  name="Asian Heli Aggressive" class="Vehicles.Air.Asian_Helicopter_Aggressive" price="300"/>
 		<Item category="@zeus_catNK"  	  name="Asian Heli Reinforcement" class="Vehicles.Air.Asian_Helicopter_HighBudget_Reinforcement" price="300"/>
 		<Item category="@zeus_catNK"  	  name="Asian AAA" class="Vehicles.Land.Asian_AAA" price="300"/>
@@ -168,7 +168,8 @@
 		<Item category="@zeus_catNK"  	  name="Asian Small Boat" class="Vehicles.Sea.Asian_Smallboat" price="300"/>
 		<Item category="@zeus_catNK"  	  name="Asian Small Boat Close" class="Vehicles.Sea.Asian_Smallboat_Close" price="300"/>
 		<Item category="@zeus_catNK"  	  name="Asian Speed Boat" class="Vehicles.Sea.Asian_Speedboat" price="300"/>
-		<Item category="@zeus_catNK"  	  name="Asian Speed Boat Roof" class="Vehicles.Sea.Asian_Speedboat_wRoof" price="300"/>
+		<Item category="@zeus_catNK"  	  name="Asian Speed Boat Roof" class="Vehicles.Sea.Asian_Speedboat_wRoof" price="300"/> -->
+		<Item category="@zeus_catNK"  	  name="MP Asian Heavy Vehicle" class="Vehicles_MP.Land.NK_Heavy_Vehicle" price="300"/>
 
 		<Item category="@zeus_catNeutral" name="@mp_eSCAR" class="SCAR" price="300"/>
 	</Tab>	
