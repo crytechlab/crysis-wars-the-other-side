@@ -232,11 +232,6 @@ bool CItem::Init(IGameObject* pGameObject)
 	// bind to network
 	if (0 == (GetEntity()->GetFlags() & (ENTITY_FLAG_CLIENT_ONLY | ENTITY_FLAG_SERVER_ONLY)))
 	{
-		// Crysis Co-op
-		// RaZoR: CryAction & CryNetwork thought weapons given on AI initialization were static level objects.
-		//		  MUST be called before BindToNetwork for proper behavior.
-		GetEntity()->SetFlags(this->GetEntity()->GetFlags() | ENTITY_FLAG_NEVER_NETWORK_STATIC);
-		// ~Crysis Co-op
 		if (!GetGameObject()->BindToNetwork())
 		{
 			GetGameObject()->ReleaseProfileManager(this);
