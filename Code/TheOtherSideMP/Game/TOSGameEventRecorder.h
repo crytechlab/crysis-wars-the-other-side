@@ -124,9 +124,6 @@ enum EExtraGameplayEvent
 
 	eEGE_VehicleDestroyed,
 
-	//eEGE_TOSGame_Init,
-
-	//eEGE_VehicleStuck,
 	eEGE_Last,
 };
 

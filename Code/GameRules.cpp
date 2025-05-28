@@ -1207,6 +1207,11 @@ void CGameRules::ChangeSpectatorMode(CActor* pActor, const uint8 mode, const Ent
 		const ScriptHandle target(targetId);
 		CallScript(m_serverStateScript, "OnChangeSpectatorMode", handle, mode, target, resetAll);
 		m_pGameplayRecorder->Event(pActor->GetEntity(), GameplayEvent(eGE_Spectator, nullptr, mode));
+
+		//TheOtherSide
+		TOS_RECORD_EVENT(pActor->GetEntityId(), STOSGameEvent(eGE_Spectator, "", true));
+		//~TheOtherSide
+
 	}
 	else if (pActor->GetEntityId() == m_pGameFramework->GetClientActor()->GetEntityId())
 	{
@@ -1753,7 +1758,14 @@ void CGameRules::SetTeam(int teamId, EntityId entityId)
 	GetGameObject()->InvokeRMIWithDependentObject(ClSetTeam(), SetTeamParams(entityId, teamId), eRMI_ToRemoteClients, entityId);
 
 	if (IEntity* pEntity = m_pEntitySystem->GetEntity(entityId))
+	{		
 		m_pGameplayRecorder->Event(pEntity, GameplayEvent(eGE_ChangedTeam, nullptr, static_cast<float>(teamId)));
+
+		//TheOtherSide
+		
+		TOS_RECORD_EVENT(entityId, STOSGameEvent(eGE_ChangedTeam, GetTeamName(teamId), true));
+		//~TheOtherSide
+	}
 }
 
 //------------------------------------------------------------------------

@@ -17,7 +17,7 @@ Copyright (C), AlienKeeper, 2024.
 #include "Modules/Master/MasterModule.h"
 
 #include "TheOtherSideMP/Actors/TOSActor.h"
-#include "TheOtherSideMP/Extensions/EnergyСonsumer.h"
+#include "TheOtherSideMP/Extensions/EnergyManager.h"
 #include <TheOtherSideMP/Helpers/TOS_Entity.h>
 
 void STOSCvars::InitCVars(IConsole* pConsole)
@@ -64,7 +64,6 @@ void STOSCvars::InitCCommands(IConsole* pConsole)
 	// Отладочные команды потребителя энергии
 	pConsole->AddCommand("consumersetenergy", CmdConsumerSetEnergy);
 	pConsole->AddCommand("consumersetdrain", CmdConsumerSetDrain);
-	pConsole->AddCommand("consumersetdebugentname", CmdConsumerSetDebugEntityName);
 
 	//CLIENT COMMANDS
 	pConsole->AddCommand("getdudename", CmdGetDudeName);
@@ -357,7 +356,7 @@ void STOSCvars::CmdConsumerSetEnergy(IConsoleCmdArgs* pArgs)
 
 	const string energyStr = pArgs->GetArg(2);
 	const int energy = atoi(energyStr.empty() ? 0 : energyStr);
-	pActor->GetEnergyConsumer()->SetEnergy(energy);
+	pActor->GetEnergyManager()->SetEnergy(energy);
 }
 
 void STOSCvars::CmdConsumerSetDrain(IConsoleCmdArgs* pArgs)
@@ -375,16 +374,7 @@ void STOSCvars::CmdConsumerSetDrain(IConsoleCmdArgs* pArgs)
 		return;
 	}
 
-	pActor->GetEnergyConsumer()->SetDrainValue(energy);
-}
-
-void STOSCvars::CmdConsumerSetDebugEntityName(IConsoleCmdArgs* pArgs)
-{
-	ONLY_CLIENT_CMD;
-	GET_ENTITY_FROM_FIRST_ARG;
-
-
-	CTOSEnergyConsumer::SetDebugEntityName(pEntity->GetName());
+	pActor->GetEnergyManager()->SetDrainValue(energy);
 }
 
 void STOSCvars::CmdGetDudeName(IConsoleCmdArgs* pArgs)

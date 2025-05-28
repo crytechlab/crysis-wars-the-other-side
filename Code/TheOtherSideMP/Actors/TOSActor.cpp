@@ -16,7 +16,7 @@ Copyright (C), AlienKeeper, 2024.
 #include "GameRules.h"
 #include "NetInputChainDebug.h"
 
-#include "TheOtherSideMP/Extensions/EnergyСonsumer.h"
+#include "TheOtherSideMP/Extensions/EnergyManager.h"
 #include "TheOtherSideMP/Game/TOSGameEventRecorder.h"
 #include "TheOtherSideMP/Game/Modules/Master/MasterClient.h"
 #include "TheOtherSideMP/Game/Modules/Master/MasterModule.h"
@@ -42,7 +42,7 @@ CTOSActor::CTOSActor()
 	m_isZeus(false),
 	m_chargingJump(false),
 	m_lastShooterId(0),
-	m_pEnergyConsumer(nullptr)
+	m_pEnergyManager(nullptr)
 {
 	
 }
@@ -58,9 +58,8 @@ bool CTOSActor::Init(IGameObject* pGameObject)
 
 	m_debugName = GetEntity()->GetName();
 
-	auto pExtension = GetGameObject()->AcquireExtension("TOSEnergyConsumer");
-	m_pEnergyConsumer = static_cast<CTOSEnergyConsumer*>(pExtension);
-	m_pEnergyConsumer->Reset();
+	m_pEnergyManager = static_cast<CTOSEnergyManager*>(GetGameObject()->AcquireExtension("TOSEnergyManager"));
+	m_pEnergyManager->Reset();
 
 	return true;
 }
@@ -382,30 +381,30 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 	CActor::Update(ctx, updateSlot);
 
 	//Отладка потребителя энергии в виде вывода инф. на экран
-	if (gEnv->bClient && IsClient())
-	{
-		const char* debugName = CTOSEnergyConsumer::s_debugEntityName;
-		const auto pDebugEntity = gEnv->pEntitySystem->FindEntityByName(debugName);
-		if (pDebugEntity)
-		{
-			const auto pDebugActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pDebugEntity->GetId()));
-			if (pDebugActor)
-			{
-				const auto pEnergyConsumer = pDebugActor->GetEnergyConsumer();
-				const float energy    = pEnergyConsumer->GetEnergy();
-				const float maxEnergy = pEnergyConsumer->GetMaxEnergy();
-				const float drain	  = pEnergyConsumer->GetDrainValue();
-				const bool  updating  = pEnergyConsumer->IsUpdating();
+	//if (gEnv->bClient && IsClient())
+	//{
+	//	const char* debugName = CTOSEnergyManager::s_debugEntityName;
+	//	const auto pDebugEntity = gEnv->pEntitySystem->FindEntityByName(debugName);
+	//	if (pDebugEntity)
+	//	{
+	//		const auto pDebugActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pDebugEntity->GetId()));
+	//		if (pDebugActor)
+	//		{
+	//			const auto pEnergyConsumer = pDebugActor->GetEnergyManager();
+	//			const float energy    = pEnergyConsumer->GetEnergy();
+	//			const float maxEnergy = pEnergyConsumer->GetMaxEnergy();
+	//			const float drain	  = pEnergyConsumer->GetDrainValue();
+	//			const bool  updating  = pEnergyConsumer->IsUpdating();
 
-				DRAW_2D_TEXT(40, 200, 1.3f, "--- Energy Consumer (%s) ---", 
-					pDebugEntity->GetName());
-				DRAW_2D_TEXT(40, 215, 1.3f, "Updating:   %i", updating);
-				DRAW_2D_TEXT(40, 230, 1.3f, "Energy:     %1.f", energy);
-				DRAW_2D_TEXT(40, 245, 1.3f, "MaxEnergy:  %1.f", maxEnergy);
-				DRAW_2D_TEXT(40, 260, 1.3f, "DrainValue: %1.f", drain);
-			}
-		}
-	}
+	//			DRAW_2D_TEXT(40, 200, 1.3f, "--- Energy Consumer (%s) ---", 
+	//				pDebugEntity->GetName());
+	//			DRAW_2D_TEXT(40, 215, 1.3f, "Updating:   %i", updating);
+	//			DRAW_2D_TEXT(40, 230, 1.3f, "Energy:     %1.f", energy);
+	//			DRAW_2D_TEXT(40, 245, 1.3f, "MaxEnergy:  %1.f", maxEnergy);
+	//			DRAW_2D_TEXT(40, 260, 1.3f, "DrainValue: %1.f", drain);
+	//		}
+	//	}
+	//}
 
 	NETINPUT_TRACE(GetEntityId(), m_isMaster);
 	NETINPUT_TRACE(GetEntityId(), m_isSlave);
@@ -821,10 +820,10 @@ bool CTOSActor::IsLocalSlave() const
 	return pMC->GetSlaveEntity() == GetEntity();
 }
 
-CTOSEnergyConsumer* CTOSActor::GetEnergyConsumer() const
+CTOSEnergyManager* CTOSActor::GetEnergyManager() const
 {
-	assert(m_pEnergyConsumer);
-	return m_pEnergyConsumer;
+	assert(m_pEnergyManager);
+	return m_pEnergyManager;
 }
 
 bool CTOSActor::UpdateLastMPSpawnPointRotation(const Quat& rotation)

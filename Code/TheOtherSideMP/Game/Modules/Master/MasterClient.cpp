@@ -682,7 +682,7 @@ void CTOSMasterClient::StartControl(IEntity* pEntity, uint dudeFlags, bool fromF
 	const auto pHUD = g_pGame->GetHUD();
 	if (pHUD)
 	{
-		const auto pSlaveConsumer = pSlaveActor->GetEnergyConsumer();
+		const auto pSlaveConsumer = pSlaveActor->GetEnergyManager();
 
 		if (pSlaveConsumer)
 			pHUD->TOSSetEnergyConsumer(pSlaveConsumer);
@@ -722,7 +722,7 @@ void CTOSMasterClient::StopControl(bool callFromFG /*= false*/)
 	const auto pHUD = g_pGame->GetHUD();
 	if (pHUD)
 	{
-		const auto pDudeConsumer = m_pLocalDude->GetEnergyConsumer();
+		const auto pDudeConsumer = m_pLocalDude->GetEnergyManager();
 		if (pDudeConsumer)
 			pHUD->TOSSetEnergyConsumer(pDudeConsumer);
 	}
@@ -1023,7 +1023,7 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
             if (dudeHP > 0 || inSpectatorMode)
             {
 				pSuit->Reset(m_pLocalDude);
-				pSuit->SetSuitEnergy(m_pLocalDude->GetEnergyConsumer()->GetMaxEnergy());
+				pSuit->SetSuitEnergy(m_pLocalDude->GetEnergyManager()->GetMaxEnergy());
             }
 
             if (dudeFlags & TOS_DUDE_FLAG_DISABLE_SUIT)

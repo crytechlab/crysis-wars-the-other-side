@@ -9,7 +9,7 @@ Copyright (C), AlienKeeper, 2024.
 #include "GameUtils.h"
 #include "NetInputChainDebug.h"
 
-#include "TheOtherSideMP/Extensions/EnergyСonsumer.h"
+#include "TheOtherSideMP/Extensions/EnergyManager.h"
 #include "TheOtherSideMP/Helpers/TOS_Console.h"
 #include <TheOtherSideMP/Helpers/TOS_NET.h>
 #include <CompatibilityAlienMovementController.h>
@@ -25,13 +25,13 @@ void CTOSTrooper::PostInit(IGameObject* pGameObject)
 	CTrooper::PostInit(pGameObject);
 	m_chargingJump = true;
 
-	if (m_pEnergyConsumer)
+	if (m_pEnergyManager)
 	{
-		m_pEnergyConsumer->SetRegenStartDelayMP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_mp"));
-		m_pEnergyConsumer->SetRegenStartDelaySP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_sp"));
-		m_pEnergyConsumer->SetRegenStartDelay20Boundary(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_20boundary"));
-		m_pEnergyConsumer->SetRechargeTimeSP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_sp"));
-		m_pEnergyConsumer->SetRechargeTimeMP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_mp"));
+		m_pEnergyManager->SetRegenStartDelayMP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_mp"));
+		m_pEnergyManager->SetRegenStartDelaySP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_sp"));
+		m_pEnergyManager->SetRegenStartDelay20Boundary(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_20boundary"));
+		m_pEnergyManager->SetRechargeTimeSP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_sp"));
+		m_pEnergyManager->SetRechargeTimeMP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_mp"));
 	}
 
 }
@@ -53,7 +53,7 @@ void CTOSTrooper::PostPhysicalize()
 
 void CTOSTrooper::Update(SEntityUpdateContext& ctx, const int updateSlot)
 {
-	const float regenStartDelay = m_pEnergyConsumer->GetRegenStartDelay();
+	const float regenStartDelay = m_pEnergyManager->GetRegenStartDelay();
 
 	NETINPUT_TRACE(GetEntityId(), regenStartDelay);
 	NETINPUT_TRACE(GetEntityId(), m_input.deltaMovement);

@@ -858,9 +858,6 @@
     <ClCompile Include="TheOtherSideMP\HUD\TOSCrosshair.cpp">
       <Filter>TheOtherSideMP\HUD</Filter>
     </ClCompile>
-    <ClCompile Include="TheOtherSideMP\Extensions\EnergyConsumer.cpp">
-      <Filter>TheOtherSideMP\Extensions</Filter>
-    </ClCompile>
     <ClCompile Include="TheOtherSideMP\Nodes\FlowMasterClientNodes.cpp">
       <Filter>TheOtherSideMP\Nodes</Filter>
     </ClCompile>
@@ -1007,6 +1004,9 @@
     </ClCompile>
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusLocal.cpp">
       <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
+    </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Extensions\EnergyManager.cpp">
+      <Filter>TheOtherSideMP\Extensions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1631,9 +1631,6 @@
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_NET.h">
       <Filter>TheOtherSideMP\Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="TheOtherSideMP\Extensions\EnergyConsumer.h">
-      <Filter>TheOtherSideMP\Extensions</Filter>
-    </ClInclude>
     <ClInclude Include="TheOtherSideMP\Helpers\TOS_Console.h">
       <Filter>TheOtherSideMP\Helpers</Filter>
     </ClInclude>
@@ -1765,6 +1762,9 @@
     </ClInclude>
     <ClInclude Include="TheOtherSideMP\Utilities\WinApiAdditions\VTables.h">
       <Filter>TheOtherSideMP\Utilities\WinApiAdditions</Filter>
+    </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Extensions\EnergyManager.h">
+      <Filter>TheOtherSideMP\Extensions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

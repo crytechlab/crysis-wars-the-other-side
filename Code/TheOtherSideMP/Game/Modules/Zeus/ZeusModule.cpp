@@ -809,6 +809,40 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 
 		break;
 	}
+	case eGE_ChangedTeam:
+	{
+		if (!bZeusing)
+			return;
+
+		if (pPlayer && pPlayer->GetEntityId() == pEntity->GetId())
+		{
+			// Если игрок сменил команду и он не в команде zeus - выходим из режима
+			if (auto pGameRules = g_pGame->GetGameRules())
+			{
+				const char* teamName = pGameRules->GetTeamName(pGameRules->GetTeam(pEntity->GetId()));
+				if (teamName && strcmp(teamName, "zeus") != 0)
+				{
+					m_clientserver.DispatchMakeZeus(pPlayer, false);
+				}
+			}
+		}
+		break;
+	}
+	case eGE_Spectator:
+	{
+		if (!bZeusing)
+			return;
+
+		if (pPlayer && pPlayer->GetEntityId() == pEntity->GetId())
+		{
+			// Если игрок перешел в режим зрителя - выходим из режима зевса
+			if (pPlayer->GetSpectatorMode() != 0)
+			{
+				m_clientserver.DispatchMakeZeus(pPlayer, false);
+			}
+		}
+		break;
+	}
 	default:
 		break;
 	}

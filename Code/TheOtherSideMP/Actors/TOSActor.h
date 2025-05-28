@@ -11,7 +11,7 @@ Copyright (C), AlienKeeper, 2024.
 #include <TheOtherSideMP/Actors/Animation/AnimationGraphState.h>
 // ~Crysis Co-op
 
-class CTOSEnergyConsumer;
+class CTOSEnergyManager;
 
 struct STOSSlaveStats
 {
@@ -275,7 +275,7 @@ public:
 	bool IsZeus() const {return m_isZeus;}
 	bool IsLocalSlave() const; ///< проверка на локальной машине является ли актёр рабом
 
-	virtual CTOSEnergyConsumer* GetEnergyConsumer() const;
+	virtual CTOSEnergyManager* GetEnergyManager() const;
 	bool IsHaveChargingJump() const {return m_chargingJump;}
 
 	bool UpdateLastMPSpawnPointRotation(const Quat& rotation);
@@ -316,5 +316,5 @@ protected:
 	//Vec3 m_filteredDeltaMovement;
 	STOSNetBodyInfo m_netBodyInfo;///< Информация о состоянии тела актёра, передаваемая по сети
 
-	CTOSEnergyConsumer* m_pEnergyConsumer;
+	CTOSEnergyManager* m_pEnergyManager;
 };

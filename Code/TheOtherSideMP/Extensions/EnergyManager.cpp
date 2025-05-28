@@ -4,15 +4,13 @@ Copyright (C), AlienKeeper, 2024.
 **************************************************************************/
 
 #include "StdAfx.h"
-#include "EnergyСonsumer.h"
+#include "EnergyManager.h"
 #include "Game.h"
 #include "GameCVars.h"
 
 #include "TheOtherSideMP/Helpers/TOS_NET.h"
 
-string CTOSEnergyConsumer::s_debugEntityName = "";
-
-CTOSEnergyConsumer::CTOSEnergyConsumer()
+CTOSEnergyManager::CTOSEnergyManager()
 	: m_energy(0),
 	m_maxEnergy(0),
 	m_regenStartDelay(0),
@@ -24,9 +22,9 @@ CTOSEnergyConsumer::CTOSEnergyConsumer()
 	m_drainValue(0),
 	m_enableUpdate(true) { }
 
-CTOSEnergyConsumer::~CTOSEnergyConsumer() { }
+CTOSEnergyManager::~CTOSEnergyManager() { }
 
-bool CTOSEnergyConsumer::Init(IGameObject* pGameObject)
+bool CTOSEnergyManager::Init(IGameObject* pGameObject)
 {
 	SetGameObject(pGameObject);
 
@@ -38,7 +36,7 @@ bool CTOSEnergyConsumer::Init(IGameObject* pGameObject)
 	return true;
 }
 
-void CTOSEnergyConsumer::PostInit(IGameObject* pGameObject)
+void CTOSEnergyManager::PostInit(IGameObject* pGameObject)
 {
 	Reset();
 
@@ -49,16 +47,16 @@ void CTOSEnergyConsumer::PostInit(IGameObject* pGameObject)
 	CryLog("[%s] Post init energy consumer with max energy %1.f",pGameObject->GetEntity()->GetName(), m_maxEnergy);
 }
 
-void CTOSEnergyConsumer::InitClient(int channelId) { }
+void CTOSEnergyManager::InitClient(int channelId) { }
 
-void CTOSEnergyConsumer::PostInitClient(int channelId) { }
+void CTOSEnergyManager::PostInitClient(int channelId) { }
 
-void CTOSEnergyConsumer::Release()
+void CTOSEnergyManager::Release()
 {
 	delete this;
 }
 
-void CTOSEnergyConsumer::FullSerialize(TSerialize ser)
+void CTOSEnergyManager::FullSerialize(TSerialize ser)
 {
 	ser.BeginGroup("TOSEnergyConsumer");
 	ser.Value("energy", m_energy);
@@ -71,7 +69,7 @@ void CTOSEnergyConsumer::FullSerialize(TSerialize ser)
 	ser.EndGroup();
 }
 
-bool CTOSEnergyConsumer::NetSerialize(TSerialize ser, const EEntityAspects aspect, uint8 profile, int flags)
+bool CTOSEnergyManager::NetSerialize(TSerialize ser, const EEntityAspects aspect, uint8 profile, int flags)
 {
 	if (aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
@@ -84,7 +82,7 @@ bool CTOSEnergyConsumer::NetSerialize(TSerialize ser, const EEntityAspects aspec
 	return true;
 }
 
-void CTOSEnergyConsumer::Update(SEntityUpdateContext& ctx, int updateSlot)
+void CTOSEnergyManager::Update(SEntityUpdateContext& ctx, int updateSlot)
 {
 	if (!m_enableUpdate)
 		return;
@@ -106,16 +104,16 @@ void CTOSEnergyConsumer::Update(SEntityUpdateContext& ctx, int updateSlot)
 		m_regenStartDelay = max(0.0f, m_regenStartDelay - frameTime);
 }
 
-void CTOSEnergyConsumer::HandleEvent(const SGameObjectEvent&) { }
+void CTOSEnergyManager::HandleEvent(const SGameObjectEvent&) { }
 
-void CTOSEnergyConsumer::ProcessEvent(SEntityEvent&) { }
+void CTOSEnergyManager::ProcessEvent(SEntityEvent&) { }
 
-void CTOSEnergyConsumer::GetMemoryStatistics(ICrySizer* s)
+void CTOSEnergyManager::GetMemoryStatistics(ICrySizer* s)
 {
 	s->Add(*this);
 }
 
-bool CTOSEnergyConsumer::AddEnergy(const float value)
+bool CTOSEnergyManager::AddEnergy(const float value)
 {
 	if (gEnv->bServer)
 	{
@@ -134,7 +132,7 @@ bool CTOSEnergyConsumer::AddEnergy(const float value)
 	return true;
 }
 
-bool CTOSEnergyConsumer::SetEnergy(float value, const bool initiated)
+bool CTOSEnergyManager::SetEnergy(float value, const bool initiated)
 {
 	value = clamp(value, 0.0f, m_maxEnergy);
 
@@ -169,7 +167,7 @@ bool CTOSEnergyConsumer::SetEnergy(float value, const bool initiated)
 	return true;
 }
 
-bool CTOSEnergyConsumer::SetEnergyForced(const float value)
+bool CTOSEnergyManager::SetEnergyForced(const float value)
 {
 	if (gEnv->bServer)
 	{
@@ -190,44 +188,44 @@ bool CTOSEnergyConsumer::SetEnergyForced(const float value)
 	return true;
 }
 
-float CTOSEnergyConsumer::GetEnergy() const
+float CTOSEnergyManager::GetEnergy() const
 {
 	return m_energy;
 }
 
-bool CTOSEnergyConsumer::SetMaxEnergy(const float value)
+bool CTOSEnergyManager::SetMaxEnergy(const float value)
 {
 	m_maxEnergy = value;
 	return true;
 }
 
-float CTOSEnergyConsumer::GetMaxEnergy() const
+float CTOSEnergyManager::GetMaxEnergy() const
 {
 	return m_maxEnergy;
 }
 
-bool CTOSEnergyConsumer::SetDrainValue(const float value)
+bool CTOSEnergyManager::SetDrainValue(const float value)
 {
 	m_drainValue = value;
 	return true;
 }
 
-float CTOSEnergyConsumer::GetDrainValue() const
+float CTOSEnergyManager::GetDrainValue() const
 {
 	return m_drainValue;
 }
 
-void CTOSEnergyConsumer::EnableUpdate(const bool enable)
+void CTOSEnergyManager::EnableUpdate(const bool enable)
 {
 	m_enableUpdate = enable;
 }
 
-bool CTOSEnergyConsumer::IsUpdating() const
+bool CTOSEnergyManager::IsUpdating() const
 {
 	return m_enableUpdate;
 }
 
-void CTOSEnergyConsumer::Reset()
+void CTOSEnergyManager::Reset()
 {
 	SetEnergy(DEFAULT_ENERGY);
 	SetMaxEnergy(DEFAULT_ENERGY);
@@ -236,47 +234,40 @@ void CTOSEnergyConsumer::Reset()
 	m_regenStartDelaySP = 1.0f;
 }
 
-bool CTOSEnergyConsumer::SetRegenStartDelaySP(const float val)
+bool CTOSEnergyManager::SetRegenStartDelaySP(const float val)
 {
 	m_regenStartDelaySP = val;
 	return true;
 }
 
-bool CTOSEnergyConsumer::SetRegenStartDelayMP(const float val)
+bool CTOSEnergyManager::SetRegenStartDelayMP(const float val)
 {
 	m_regenStartDelayMP = val;
 	return true;
 }
 
-bool CTOSEnergyConsumer::SetRegenStartDelay20Boundary(const float val)
+bool CTOSEnergyManager::SetRegenStartDelay20Boundary(const float val)
 {
 	m_regenStartDelay20Boundary = val;
 	return true;
 }
 
-float CTOSEnergyConsumer::GetRegenStartDelay() const
+float CTOSEnergyManager::GetRegenStartDelay() const
 {
 	return m_regenStartDelay;
 }
 
-void CTOSEnergyConsumer::SetRechargeTimeSP(const float time)
+void CTOSEnergyManager::SetRechargeTimeSP(const float time)
 {
 	m_rechargeTimeSP = time;
 }
 
-void CTOSEnergyConsumer::SetRechargeTimeMP(const float time)
+void CTOSEnergyManager::SetRechargeTimeMP(const float time)
 {
 	m_rechargeTimeMP = time;
 }
 
-bool CTOSEnergyConsumer::SetDebugEntityName(const char* name)
-{
-	s_debugEntityName = name;
-
-	return true;
-}
-
-IMPLEMENT_RMI(CTOSEnergyConsumer, SvRequestSetEnergy)
+IMPLEMENT_RMI(CTOSEnergyManager, SvRequestSetEnergy)
 {
 	if (gEnv->bServer)
 	{

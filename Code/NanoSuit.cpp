@@ -212,7 +212,7 @@ CNanoSuit::CNanoSuit()
 	m_invulnerabilityTimeout(0.0f),
 	m_invulnerable(false),
 	//TheOtherSide
-	m_pConsumer(nullptr)
+	m_pEnergyManager(nullptr)
 	//~TheOtherSide
 {
 	for (int i = 0; i < ESound_Suit_Last; ++i)
@@ -251,14 +251,14 @@ void CNanoSuit::Reset(CPlayer* owner)
 	//TheOtherSide
 	//ResetEnergy();
 
-	//if (!RegisterEnergyConsumer(m_pOwner->GetEnergyConsumer()))
+	//if (!RegisterEnergyConsumer(m_pOwner->GetEnergyManager()))
 	//{
 		//ResetEnergy(m_maxEnergy);
 	//}
 
 	if (m_pOwner)
 	{
-		const bool registered = RegisterEnergyConsumer(m_pOwner->GetEnergyConsumer());
+		const bool registered = RegisterEnergyConsumer(m_pOwner->GetEnergyManager());
 		CRY_ASSERT_MESSAGE(registered, "Nanosuit not register the owner's energy consumer");
 	}
 
@@ -379,13 +379,13 @@ void CNanoSuit::Update(const float frameTime)
 	//~Crysis Co-op
 
 	//TheOtherSide
-	assert(m_pConsumer);
-	if (!m_pConsumer)
+	assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return;
 	//~TheOtherSide
 
-	const float maxEnergy = m_pConsumer->GetMaxEnergy();
-	const float curEnergy = m_pConsumer->GetEnergy();
+	const float maxEnergy = m_pEnergyManager->GetMaxEnergy();
+	const float curEnergy = m_pEnergyManager->GetEnergy();
 
 	// invulnerability effect works even with a powered down suit
 	// it's a spawn protection mechanism, so we need to make sure
@@ -558,7 +558,7 @@ void CNanoSuit::Update(const float frameTime)
 
 	//TheOtherSide
 	//NETINPUT_TRACE(m_pOwner->GetEntityId(), m_energy);
-	NETINPUT_TRACE(m_pOwner->GetEntityId(), m_pConsumer->GetEnergy());
+	NETINPUT_TRACE(m_pOwner->GetEntityId(), m_pEnergyManager->GetEnergy());
 	NETINPUT_TRACE(m_pOwner->GetEntityId(), recharge);
 	//~TheOtherSide
 
@@ -691,12 +691,12 @@ void CNanoSuit::Balance(const float energy)
 void CNanoSuit::SetSuitEnergy(float value, const bool playerInitiated /* = false */)
 {
 	//TheOtherSide
-	assert(m_pConsumer);
-	if (!m_pConsumer)
+	assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return;
 
-	const float curEnergy = m_pConsumer->GetEnergy();
-	const float maxEnergy = m_pConsumer->GetMaxEnergy();
+	const float curEnergy = m_pEnergyManager->GetEnergy();
+	const float maxEnergy = m_pEnergyManager->GetMaxEnergy();
 	//~TheOtherSide
 
 	//Crysis Co-op
@@ -763,7 +763,7 @@ void CNanoSuit::SetSuitEnergy(float value, const bool playerInitiated /* = false
 	}
 
 	//m_energy = value;
-	m_pConsumer->SetEnergyForced(value);
+	m_pEnergyManager->SetEnergyForced(value);
 }
 
 void CNanoSuit::Hit(int damage)
@@ -802,11 +802,11 @@ void CNanoSuit::Hit(int damage)
 bool CNanoSuit::SetAllSlots(const float armor, const float strength, const float speed)
 {
 	//TheOtherSide
-	assert(m_pConsumer);
-	if (!m_pConsumer)
+	assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return false;
 
-	const float maxEnergy = m_pConsumer->GetMaxEnergy();
+	const float maxEnergy = m_pEnergyManager->GetMaxEnergy();
 	//~TheOtherSide
 
 
@@ -1139,12 +1139,12 @@ bool CNanoSuit::GetSoundIsPlaying(const ENanoSound sound) const
 bool CNanoSuit::OnComboSpot() const
 {
 	//TheOtherSide
-	assert(m_pConsumer);
-	if (!m_pConsumer)
+	assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return false;
 
-	const float curEnergy = m_pConsumer->GetEnergy();
-	const float maxEnergy = m_pConsumer->GetMaxEnergy();
+	const float curEnergy = m_pEnergyManager->GetEnergy();
+	const float maxEnergy = m_pEnergyManager->GetMaxEnergy();
 	//~TheOtherSide
 
 	return (curEnergy > 0.1f * maxEnergy && curEnergy < 0.3f * maxEnergy) ? true : false;
@@ -1159,11 +1159,11 @@ void CNanoSuit::DeactivateSuit(float time)
 float CNanoSuit::GetSuitEnergy() const
 {
 	//TheOtherSide
-	assert(m_pConsumer);
-	if (!m_pConsumer)
+	assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return 0.0f;
 
-	const float curEnergy = m_pConsumer->GetEnergy();
+	const float curEnergy = m_pEnergyManager->GetEnergy();
 	//~TheOtherSide
 
 	return curEnergy;
@@ -1428,7 +1428,7 @@ void CNanoSuit::PlaySound(const ENanoSound sound, const float param, const bool 
 			playLoopModeSound = true;
 			loopMode = NANOMODE_CLOAK;
 			break;
-		case ESound_SuitCloakFeedback: //TODO 24/11/2023 убрать фидбек для нанокостюма 2.0
+		case ESound_SuitCloakFeedback: //TODO 24/11/2023 РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р… РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р… РїС—Р…РїС—Р…РїС—Р… РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р… 2.0
 			soundName = "sounds/interface:hud:cloak_feedback";
 			eSemantic = eSoundSemantic_NanoSuit;
 			force3DSound = true;
@@ -1640,8 +1640,8 @@ void CNanoSuit::Serialize(TSerialize ser, const unsigned aspects)
 			//ser.Value("energy", m_energy, 'nNRG');
 
 			//TheOtherSide
-			assert(m_pConsumer);
-			const float curEnergy = m_pConsumer->GetEnergy();
+			assert(m_pEnergyManager);
+			const float curEnergy = m_pEnergyManager->GetEnergy();
 			//~TheOtherSide
 
 			if (ser.IsReading())
@@ -1862,12 +1862,12 @@ void CNanoSuit::SetModeDefect(const ENanoMode mode, const bool defect)
 float CNanoSuit::GetSprintMultiplier(const bool strafing) const
 {
 	//TheOtherSide
-	assert(m_pConsumer);
-	if (!m_pConsumer)
+	assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return 1.0f;
 
-	const float curEnergy = m_pConsumer->GetEnergy();
-	const float maxEnergy = m_pConsumer->GetMaxEnergy();
+	const float curEnergy = m_pEnergyManager->GetEnergy();
+	const float maxEnergy = m_pEnergyManager->GetMaxEnergy();
 	//~TheOtherSide
 
 	//Crysis Co-op
@@ -1911,12 +1911,12 @@ float CNanoSuit::GetSprintMultiplier(const bool strafing) const
 void CNanoSuit::UpdateSprinting(float& recharge, const SPlayerStats& stats, float frametime)
 {
 	//TheOtherSide
-	assert(m_pConsumer);
-	if (!m_pConsumer)
+	assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return;
 
-	const float curEnergy = m_pConsumer->GetEnergy();
-	const float maxEnergy = m_pConsumer->GetMaxEnergy();
+	const float curEnergy = m_pEnergyManager->GetEnergy();
+	const float maxEnergy = m_pEnergyManager->GetMaxEnergy();
 	//~TheOtherSide
 
 	//Crysis Co-op
@@ -2009,16 +2009,16 @@ void CNanoSuit::UpdateSprinting(float& recharge, const SPlayerStats& stats, floa
 }
 
 //TheOtherSide
-bool CNanoSuit::RegisterEnergyConsumer(CTOSEnergyConsumer* pConsumer)
+bool CNanoSuit::RegisterEnergyConsumer(CTOSEnergyManager* pConsumer)
 {
 	assert(pConsumer);
 	if (!pConsumer)
 		return false;
 
-	m_pConsumer = pConsumer;
+	m_pEnergyManager = pConsumer;
 
 	//Обновлять энергию будет нанокостюм
-	m_pConsumer->EnableUpdate(false);
+	m_pEnergyManager->EnableUpdate(false);
 	ResetEnergy();
 
 	return true;
@@ -2026,7 +2026,7 @@ bool CNanoSuit::RegisterEnergyConsumer(CTOSEnergyConsumer* pConsumer)
 
 void CNanoSuit::UnregisterEnergyConsumer()
 {
-	m_pConsumer = nullptr;
+	m_pEnergyManager = nullptr;
 	ResetEnergy();
 }
 
@@ -2116,11 +2116,11 @@ bool CNanoSuit::StopLoopSound()
 void CNanoSuit::ResetEnergy()
 {
 	//TheOtherSide
-	assert(m_pConsumer);
-	if (!m_pConsumer)
+	assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return;
 
-	const float maxEnergy = m_pConsumer->GetMaxEnergy();
+	const float maxEnergy = m_pEnergyManager->GetMaxEnergy();
 	//~TheOtherSide
 
 	SetSuitEnergy(maxEnergy);

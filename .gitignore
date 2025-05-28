@@ -360,8 +360,7 @@ healthchecksdb
 #Game/Libs
 /Game/*
 /Code/TheOtherSideMP/Control/*
-/Code_SP
-/Code_CRYMP
+*Code_*
 /IncrementBuild
 /Examples
 /Log Screenshots
@@ -369,7 +368,7 @@ healthchecksdb
 .vscode/
 *.code-workspace
 /assets*
-/РїСЂРѕРјРѕ
+/промо
 *TOSDebug.lua*
 *factions.xml*
 

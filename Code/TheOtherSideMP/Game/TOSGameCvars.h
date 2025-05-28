@@ -63,7 +63,6 @@ struct STOSCvars  // NOLINT(cppcoreguidelines-special-member-functions)
 
 	static void CmdConsumerSetEnergy(IConsoleCmdArgs* pArgs);
 	static void CmdConsumerSetDrain(IConsoleCmdArgs* pArgs);
-	static void CmdConsumerSetDebugEntityName(IConsoleCmdArgs* pArgs);
 
 
 	// CLIENT CONSOLE COMMANDS

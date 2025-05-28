@@ -299,7 +299,7 @@ int CScriptBind_Actor::GetConsumerEnergy(IFunctionHandler* pH)
     if (!pActor)
         return pH->EndFunction();
 
-    const auto pConsumer = pActor->GetEnergyConsumer();
+    const auto pConsumer = pActor->GetEnergyManager();
     if (pConsumer)
         return pH->EndFunction(pConsumer->GetEnergy());
 
@@ -312,8 +312,8 @@ int CScriptBind_Actor::SetConsumerEnergy(IFunctionHandler* pH, int energy)
     if (!pActor)
         return pH->EndFunction();
 
-    if (pActor->GetEnergyConsumer())
-        pActor->GetEnergyConsumer()->SetEnergy(energy);
+    if (pActor->GetEnergyManager())
+        pActor->GetEnergyManager()->SetEnergy(energy);
 
     return pH->EndFunction();
 }

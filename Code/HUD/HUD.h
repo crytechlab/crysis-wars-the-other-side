@@ -1102,10 +1102,10 @@ public:
 	void TOSSetInventoryHUD(IActor* pActor, const char* filePath) const;
 	void TOSShowInventoryOverview(IActor* pActor, const char* curCategory, const char* curItem, bool grenades);
 
-	bool TOSSetEnergyConsumer(CTOSEnergyConsumer* pConsumer);
+	bool TOSSetEnergyConsumer(CTOSEnergyManager* pConsumer);
 
 private:
-	CTOSEnergyConsumer* m_pEnergyConsumer;
+	CTOSEnergyManager* m_pEnergyManager;
 	CTOSHUDCrosshair* m_pHUDCrosshair;
 	//~TheOtherSide
 

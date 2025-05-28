@@ -12,7 +12,7 @@ Copyright (C), AlienKeeper, 2024.
 
 #include "HUD/HUD.h"
 
-#include "TheOtherSideMP/Extensions/EnergyСonsumer.h"
+#include "TheOtherSideMP/Extensions/EnergyManager.h"
 #include "TheOtherSideMP/Game/TOSGameEventRecorder.h"
 #include <Claymore.h>
 
@@ -34,10 +34,10 @@ CTOSPlayer::CTOSPlayer()
 
 CTOSPlayer::~CTOSPlayer()
 {
-	if (m_pEnergyConsumer)
+	if (m_pEnergyManager)
 	{
-		GetGameObject()->ReleaseExtension("CTOSEnergyConsumer");
-		m_pEnergyConsumer = nullptr;
+		GetGameObject()->ReleaseExtension("CTOSEnergyManager");
+		m_pEnergyManager = nullptr;
 	}
 	m_pSystemUpdateRate = 0;
 }

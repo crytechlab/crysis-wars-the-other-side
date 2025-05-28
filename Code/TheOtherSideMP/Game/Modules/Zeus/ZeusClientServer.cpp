@@ -324,6 +324,7 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 
 		//Выключаем режим зевса
 		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, false);
+		pZeusModule->GetLocal().Reset(); // Сбрасываем все флаги и состояния
 		// pZeusModule->SetPlayer(pTOSPlayer);
 
 		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Alive);
@@ -331,6 +332,17 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 		// Режим полета со столкновениями
 		pTOSPlayer->SetFlyMode(0);
 		pTOSPlayer->SetMeZeus(false);
+
+		// Возвращаем игрока в его предыдущую команду
+		if (auto pGameRules = g_pGame->GetGameRules())
+		{
+			const int teamCount = pGameRules->GetTeamCount();
+			if (teamCount > 0)
+			{
+				// Возвращаем в команду по умолчанию
+				pGameRules->ChangeTeam(pTOSPlayer, "black");
+			}
+		}
 
 		// убираем нанокостюм
 		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
@@ -352,6 +364,13 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 		}
 
 		pTOSPlayer->HideMe(false);
+
+		// Восстанавливаем инвентарь по умолчанию
+		if (auto pGameRules = g_pGame->GetGameRules())
+		{
+			pGameRules->OnRevive(pTOSPlayer, pTOSPlayer->GetEntity()->GetWorldPos(), 
+				Quat(0, 0, 0, 1), 0);
+		}
 	}
 
 	return true;

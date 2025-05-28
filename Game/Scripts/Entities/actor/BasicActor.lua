@@ -9,6 +9,7 @@
 ----------------------------------------------------------------------------------------------------
 
 HOSTAGE_UNTIE = 5;
+LAS_DEFAULT = 0
 
 --shared table for actors
 ActorShared =
@@ -2137,7 +2138,7 @@ function BasicActor.Client:OnHit(hit)
 		
 	if (self == g_localActor) then
 		if (shooter and (self.Properties.species ~= shooter.Properties.species)) then
-			g_SignalData.id = shooterId;
+			g_SignalData.id = shooter.id;
 			g_SignalData.fValue = 0;
 			g_SignalData.iValue = LAS_DEFAULT;
 			shooter:GetWorldPos(g_SignalData.point);

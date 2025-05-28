@@ -180,11 +180,11 @@ void CHUD::TOSUpdateHealth()
 
 void CHUD::TOSUpdateEnergy()
 {
-	//assert(m_pEnergyConsumer);
-	if (!m_pEnergyConsumer)
+	//assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return;
 
-	const int energy = m_pEnergyConsumer->GetEnergy() / m_pEnergyConsumer->GetMaxEnergy() * 100 + 1;
+	const int energy = m_pEnergyManager->GetEnergy() / m_pEnergyManager->GetMaxEnergy() * 100 + 1;
 
 	if (m_fSuitEnergy < energy || m_fSuitEnergy > energy || m_bFirstFrame)
 	{
@@ -214,7 +214,7 @@ void CHUD::TOSSetAmmoHealthHUD(IActor* pActor, const char* filePath)
 		if (pNewActor->IsZeus())
 			m_animPlayerStats.SetVisible(false);
 
-		energy = pNewActor->GetEnergyConsumer()->GetEnergy() / pNewActor->GetEnergyConsumer()->GetMaxEnergy() * 100 + 1;
+		energy = pNewActor->GetEnergyManager()->GetEnergy() / pNewActor->GetEnergyManager()->GetMaxEnergy() * 100 + 1;
 	}
 
 	m_animPlayerStats.Invoke("setHealth", health);
@@ -300,14 +300,14 @@ void CHUD::TOSShowInventoryOverview(IActor* pActor, const char* curCategory, con
 	}
 }
 
-bool CHUD::TOSSetEnergyConsumer(CTOSEnergyConsumer* pConsumer)
+bool CHUD::TOSSetEnergyConsumer(CTOSEnergyManager* pConsumer)
 {
 	assert(pConsumer);
 	if (!pConsumer)
 		return false;
 
-	m_pEnergyConsumer = pConsumer;
-	m_fSuitEnergy = m_pEnergyConsumer->GetEnergy();
+	m_pEnergyManager = pConsumer;
+	m_fSuitEnergy = m_pEnergyManager->GetEnergy();
 
 	return true;
 }
@@ -491,7 +491,7 @@ CHUD::CHUD()
 	gEnv->pGame->GetIGameFramework()->RegisterListener(this, "hud", FRAMEWORKLISTENERPRIORITY_HUD);
 
 	//TheOtherSide
-	m_pEnergyConsumer = nullptr;
+	m_pEnergyManager = nullptr;
 	//~TheOtherSide
 }
 
@@ -998,9 +998,9 @@ void CHUD::PlayerIdSet(EntityId playerId)
 
 		if (m_pNanoSuit)
 		{
-			//m_fSuitEnergy = m_pEnergyConsumer->GetEnergy();
+			//m_fSuitEnergy = m_pEnergyManager->GetEnergy();
 
-			TOSSetEnergyConsumer(pPlayer->GetEnergyConsumer());
+			TOSSetEnergyConsumer(pPlayer->GetEnergyManager());
 
 			//~TheOtherSide
 
@@ -4148,13 +4148,13 @@ void CHUD::OnPostUpdate(float frameTime)
 	{
 		//TheOtherSide
 		//EnergyChanged(m_pNanoSuit->GetSuitEnergy());
-		//EnergyChanged(m_pEnergyConsumer->GetEnergy());
+		//EnergyChanged(m_pEnergyManager->GetEnergy());
 		TOSUpdateEnergy();
 
 
 		m_bFirstFrame = false;
 	}
-	//m_fSuitEnergy = m_pEnergyConsumer->GetEnergy();
+	//m_fSuitEnergy = m_pEnergyManager->GetEnergy();
 	//~TheOtherSide
 
 	m_iVoiceMode = g_pGameCVars->hud_voicemode;
@@ -4530,8 +4530,8 @@ bool CHUD::UpdateTimers(float frameTime)
 	//TheOtherSide
 	// FIXME: this should be moved to ::EnergyChanged
 	//if(m_fSuitEnergy > (NANOSUIT_ENERGY*0.25f) && m_pNanoSuit->GetSuitEnergy() < (NANOSUIT_ENERGY*0.25f))
-	const float energy = m_pEnergyConsumer->GetEnergy();
-	const float maxEnergy = m_pEnergyConsumer->GetMaxEnergy();
+	const float energy = m_pEnergyManager->GetEnergy();
+	const float maxEnergy = m_pEnergyManager->GetMaxEnergy();
 
 	if (m_fSuitEnergy > (maxEnergy * 0.25f) && energy < (maxEnergy * 0.25f))
 	{
@@ -4923,7 +4923,7 @@ void CHUD::TextMessage(const char* message)
 		m_pNanoSuit->ResetEnergy();
 
 		//TheOtherSide
-		m_pEnergyConsumer->Reset();
+		m_pEnergyManager->Reset();
 		//~TheOtherSide
 
 		return;
