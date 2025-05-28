@@ -245,8 +245,8 @@ public:
 		void ServerOnEntitySpawned(EntityId id, const Vec3& pos, int clientChannelId);
 		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId, EntityId originalId);
 
-		static bool DispatchMakeZeus(IActor* pPlayer, bool bMake);
-		static bool ServerMakeZeus(int playerChannelId, bool make);
+		static bool DispatchMakeZeus(IActor* pPlayer, bool bMake, const char* desiredTeam = nullptr);
+		static bool ServerMakeZeus(int playerChannelId, bool make, const char* desiredTeam = nullptr);
 		static bool ClientMakeZeus(bool make);
 
 		static bool DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);

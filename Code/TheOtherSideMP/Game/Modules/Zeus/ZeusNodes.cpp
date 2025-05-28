@@ -78,7 +78,7 @@ public:
 				if (!pPlayer)
 					return;
 
-				g_pTOSGame->GetZeusModule()->GetClientServer().DispatchMakeZeus(pPlayer, true);
+				g_pTOSGame->GetZeusModule()->GetClientServer().DispatchMakeZeus(pPlayer, true, nullptr);
 
 				ActivateOutput(pActInfo, EOP_Done, 1);
 			}

@@ -159,6 +159,7 @@ void CTOSZeusModule::CmdBecomeZeus(IConsoleCmdArgs* pArgs)
 	ONLY_CLIENT_CMD;
 	const string make = pArgs->GetArg(1);
 	const bool bMake = bool(atoi(make) > 0);
+	const char* desiredTeam = pArgs->GetArgCount() > 2 ? pArgs->GetArg(2) : nullptr;
 
-	g_pTOSGame->GetZeusModule()->GetClientServer().DispatchMakeZeus(g_pGame->GetIGameFramework()->GetClientActor(), bMake);
+	g_pTOSGame->GetZeusModule()->GetClientServer().DispatchMakeZeus(g_pGame->GetIGameFramework()->GetClientActor(), bMake, desiredTeam);
 }

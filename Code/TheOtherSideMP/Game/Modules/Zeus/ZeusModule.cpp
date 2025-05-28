@@ -712,7 +712,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 
 		if (pPlayer)
 		{
-			m_clientserver.DispatchMakeZeus(pPlayer, true);
+			m_clientserver.DispatchMakeZeus(pPlayer, true, nullptr);
 			m_local.SetFlag(EFlag::Possessing, false);
 		}
 		break;
@@ -822,13 +822,13 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 				const char* teamName = pGameRules->GetTeamName(pGameRules->GetTeam(pEntity->GetId()));
 				if (teamName && strcmp(teamName, "zeus") != 0)
 				{
-					m_clientserver.DispatchMakeZeus(pPlayer, false);
+					m_clientserver.DispatchMakeZeus(pPlayer, false, teamName);
 				}
 			}
 		}
 		break;
 	}
-	case eGE_Spectator:
+	case eEGE_PlayerJoinedSpectator:
 	{
 		if (!bZeusing)
 			return;
@@ -836,10 +836,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 		if (pPlayer && pPlayer->GetEntityId() == pEntity->GetId())
 		{
 			// Если игрок перешел в режим зрителя - выходим из режима зевса
-			if (pPlayer->GetSpectatorMode() != 0)
-			{
-				m_clientserver.DispatchMakeZeus(pPlayer, false);
-			}
+			m_clientserver.DispatchMakeZeus(pPlayer, false, "spectator");
 		}
 		break;
 	}

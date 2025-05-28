@@ -621,18 +621,18 @@ void CTOSZeusModule::Local::UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec)
 		gEnv->pRenderer->Draw2dLabel(100, startY + deltaY * 13, 1.3f, color, false, "m_debugZModifier = %i", int(m_debugZModifier));
 		gEnv->pRenderer->Draw2dLabel(100, startY + deltaY * 14, 1.3f, color, false, "m_menuSpawnHandling = %i", int(pParent->GetHUD().m_menuSpawnHandling));
 		gEnv->pRenderer->Draw2dLabel(100, startY + deltaY * 15, 1.3f, color, false, "m_spaceFreeCam = %i", int(m_spaceFreeCam));
-
 		gEnv->pRenderer->Draw2dLabel(100, startY + deltaY * 16, 1.3f, color, false, "zeusDynVec = (%1.f,%1.f,%1.f)", zeusDynVec.x, zeusDynVec.y, zeusDynVec.z);
 		gEnv->pRenderer->Draw2dLabel(100, startY + deltaY * 17, 1.3f, color, false, "zeusMoving = %i", zeusMoving);
+		gEnv->pRenderer->Draw2dLabel(100, startY + deltaY * 18, 1.3f, color, false, "m_zeusFlags = %i", m_zeusFlags);
 
 		if (!m_selectedEntities.empty())
 		{
-			tos::debug::DrawEntitiesName2DLabel(m_selectedEntities, "Selected Entities: ", 100, startY + deltaY * 18, deltaY);
+			tos::debug::DrawEntitiesName2DLabel(m_selectedEntities, "Selected Entities: ", 100, startY + deltaY * 19, deltaY);
 		}
 
 		if (!m_doubleClickLastSelectedEntities.empty())
 		{
-			tos::debug::DrawEntitiesName2DLabel(m_doubleClickLastSelectedEntities, "DC Selected Entities: ", 300, startY + deltaY * 19, deltaY);
+			tos::debug::DrawEntitiesName2DLabel(m_doubleClickLastSelectedEntities, "DC Selected Entities: ", 300, startY + deltaY * 20, deltaY);
 		}
 
 		//if (!m_orders.empty())

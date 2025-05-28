@@ -552,13 +552,13 @@ CHUD::~CHUD()
 	}
 
 	// call OnHUDDestroyed on hud objects. we own them, so delete afterwards
-	std::for_each(m_hudObjectsList.begin(), m_hudObjectsList.end(), std::mem_fun(&CHUDObject::OnHUDToBeDestroyed));
+	std::for_each(m_hudObjectsList.begin(), m_hudObjectsList.end(), std::mem_fn(&CHUDObject::OnHUDToBeDestroyed));
 	// now delete them
 	std::for_each(m_hudObjectsList.begin(), m_hudObjectsList.end(), stl::container_object_deleter());
 	m_hudObjectsList.clear();
 
 	// call OnHUDDestroyed on external hud objects. we don't own them, so don't delete
-	std::for_each(m_externalHUDObjectList.begin(), m_externalHUDObjectList.end(), std::mem_fun(&CHUDObject::OnHUDToBeDestroyed));
+	std::for_each(m_externalHUDObjectList.begin(), m_externalHUDObjectList.end(), std::mem_fn(&CHUDObject::OnHUDToBeDestroyed));
 
 	PlayerIdSet(0);	//unregister from game / player
 
@@ -2079,7 +2079,7 @@ void CHUD::HandleFSCommand(const char* szCommand, const char* szArgs)
 		auto pPlayer = static_cast<CTOSPlayer*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
 		if (!pPlayer->IsZeus())
 		{
-			CTOSZeusModule::ClientServer::DispatchMakeZeus(pPlayer, true);
+			CTOSZeusModule::ClientServer::DispatchMakeZeus(pPlayer, true, nullptr);
 		}
 		else
 			tos::hud::DisplayOverlayMessage("You have already become ZEUS", ColorF(1, 0, 0, 1));
@@ -4667,7 +4667,6 @@ void CHUD::WeaponAccessoriesInterface(bool visible, bool force)
 			CPlayer* pPlayer = static_cast<CPlayer*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
 			if (pPlayer && pPlayer->GetPlayerInput())
 				pPlayer->GetPlayerInput()->DisableXI(false);
-
 			m_animWeaponAccessories.Invoke("hideWeaponAccessories");
 			m_animWeaponAccessories.SetVisible(false);
 		}
@@ -6092,3 +6091,4 @@ void CHUD::GameOver(int localWinner, int winnerTeam, EntityId id)
 }
 
 //-----------------------------------------------------------------------------------------------------
+

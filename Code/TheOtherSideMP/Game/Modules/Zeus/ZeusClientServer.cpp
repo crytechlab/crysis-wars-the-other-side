@@ -100,7 +100,7 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3&
 		clientChannelId);
 }
 
-bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake)
+bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake, const char* desiredTeam)
 {
 	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
 	if (!pSync)
@@ -142,11 +142,12 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake)
 	{
 		return CTOSZeusModule::ClientServer::ServerMakeZeus(
 			params.playerChannelId,
-			params.bMake);
+			params.bMake,
+			desiredTeam);
 	}
 }
 
-bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make)
+bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make, const char* desiredTeam)
 {
 	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
 	if (!pSync)
@@ -249,6 +250,28 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make
 			CTOSZeusSynchronizer::NetMakeParams(playerChannelId, make),
 			eRMI_ToClientChannel,
 			playerChannelId);
+
+		// Меняем команду на желаемую
+		if (auto pGameRules = g_pGame->GetGameRules())
+		{
+			const int teamCount = pGameRules->GetTeamCount();
+			if (teamCount > 0)
+			{
+				if (desiredTeam && strlen(desiredTeam) > 0)
+				{
+					pGameRules->ChangeTeam(pTOSPlayer, desiredTeam);
+				}
+				else
+				{
+					// Если команда не указана, используем black по умолчанию
+					pGameRules->ChangeTeam(pTOSPlayer, "black");
+				}
+			}
+			else if (strcmp(desiredTeam, "spectator") == 0)
+			{
+				pGameRules->ChangeSpectatorMode(pTOSPlayer, 0, 0, true);
+			}
+		}
 	}
 
     return true;
@@ -279,7 +302,6 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 
 		//Включаем режим зевса
 		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, true);
-		// pZeusModule->SetPlayer(pTOSPlayer);
 
 		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
 
@@ -325,24 +347,12 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 		//Выключаем режим зевса
 		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, false);
 		pZeusModule->GetLocal().Reset(); // Сбрасываем все флаги и состояния
-		// pZeusModule->SetPlayer(pTOSPlayer);
 
 		pTOSPlayer->GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Alive);
 
 		// Режим полета со столкновениями
 		pTOSPlayer->SetFlyMode(0);
 		pTOSPlayer->SetMeZeus(false);
-
-		// Возвращаем игрока в его предыдущую команду
-		if (auto pGameRules = g_pGame->GetGameRules())
-		{
-			const int teamCount = pGameRules->GetTeamCount();
-			if (teamCount > 0)
-			{
-				// Возвращаем в команду по умолчанию
-				pGameRules->ChangeTeam(pTOSPlayer, "black");
-			}
-		}
 
 		// убираем нанокостюм
 		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
@@ -364,13 +374,6 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 		}
 
 		pTOSPlayer->HideMe(false);
-
-		// Восстанавливаем инвентарь по умолчанию
-		if (auto pGameRules = g_pGame->GetGameRules())
-		{
-			pGameRules->OnRevive(pTOSPlayer, pTOSPlayer->GetEntity()->GetWorldPos(), 
-				Quat(0, 0, 0, 1), 0);
-		}
 	}
 
 	return true;

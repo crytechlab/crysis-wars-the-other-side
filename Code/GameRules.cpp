@@ -1208,15 +1208,15 @@ void CGameRules::ChangeSpectatorMode(CActor* pActor, const uint8 mode, const Ent
 		CallScript(m_serverStateScript, "OnChangeSpectatorMode", handle, mode, target, resetAll);
 		m_pGameplayRecorder->Event(pActor->GetEntity(), GameplayEvent(eGE_Spectator, nullptr, mode));
 
-		//TheOtherSide
-		TOS_RECORD_EVENT(pActor->GetEntityId(), STOSGameEvent(eGE_Spectator, "", true));
-		//~TheOtherSide
-
 	}
 	else if (pActor->GetEntityId() == m_pGameFramework->GetClientActor()->GetEntityId())
 	{
 		GetGameObject()->InvokeRMIWithDependentObject(SvRequestSpectatorMode(), params, eRMI_ToServer, params.entityId);
 	}
+
+	//TheOtherSide
+	TOS_RECORD_EVENT(pActor->GetEntityId(), STOSGameEvent(eGE_Spectator, "", true));
+	//~TheOtherSide
 }
 
 //------------------------------------------------------------------------
