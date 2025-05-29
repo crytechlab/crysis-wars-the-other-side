@@ -5246,7 +5246,7 @@ void CPlayer::ActivateNanosuit(bool active)
 		m_pNanoSuit->Activate(false);
 	}
 
-	//TheOtherSide	
+	//TheOtherSide: исправление бага с неактивным нано-костюмом у ИИ на сервере
 	if (gEnv->bServer)
 	{
 		GetGameObject()->InvokeRMI(ClActivateNanoSuit(), ActivateNanoSuitParams(active), eRMI_ToAllClients | eRMI_NoLocalCalls);
@@ -5256,16 +5256,26 @@ void CPlayer::ActivateNanosuit(bool active)
 
 void CPlayer::SetFlyMode(uint8 flyMode)
 {
-	if (m_stats.spectatorMode)
-		return;
+    // Не меняем режим полета в режиме наблюдателя
+    if (m_stats.spectatorMode)
+        return;
 
-	m_stats.flyMode = flyMode;
+    // Устанавливаем новый режим полета
+    m_stats.flyMode = flyMode;
 
-	if (m_stats.flyMode>2)
-		m_stats.flyMode = 0;
+    // Проверяем корректность значения (0-2)
+    if (m_stats.flyMode > 2)
+        m_stats.flyMode = 0;
 
-	if(m_pAnimatedCharacter)
-		m_pAnimatedCharacter->RequestPhysicalColliderMode((m_stats.flyMode==2)?eColliderMode_Disabled:eColliderMode_Undefined, eColliderModeLayer_Game, "Player::SetFlyMode");
+    // Обновляем физический коллайдер персонажа
+    if (m_pAnimatedCharacter)
+    {
+        m_pAnimatedCharacter->RequestPhysicalColliderMode(
+            (m_stats.flyMode == 2) ? eColliderMode_Disabled : eColliderMode_Undefined,
+            eColliderModeLayer_Game,
+            "Player::SetFlyMode"
+        );
+    }
 }
 
 void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
