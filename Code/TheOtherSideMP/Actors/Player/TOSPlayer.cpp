@@ -62,6 +62,38 @@ void CTOSPlayer::PostInit(IGameObject* pGameObject)
 void CTOSPlayer::InitClient(const int channelId)
 {
 	CPlayer::InitClient(channelId);
+
+	// Синхронизируем физические параметры если это Зевс
+	if (IsZeus())
+	{
+		if (GetGameObject()->GetAspectProfile(eEA_Physics) != eAP_Spectator)
+			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
+
+		SetFlyMode(1);
+
+		auto pAnimatedCharacter = GetAnimatedCharacter();
+		if(pAnimatedCharacter)
+		{
+			const auto physicalColliderMode = pAnimatedCharacter->GetPhysicalColliderMode();
+			if(physicalColliderMode != eColliderMode_Spectator)
+			{
+				pAnimatedCharacter->ForceRefreshPhysicalColliderMode();
+				pAnimatedCharacter->RequestPhysicalColliderMode(
+					eColliderMode_Spectator,
+					eColliderModeLayer_Game,
+					"CTOSPlayer::InitClient");
+			}
+		}
+
+		// Убираем физику модели
+		if (auto pChar = GetEntity()->GetCharacter(0))
+			pChar->GetISkeletonPose()->DestroyCharacterPhysics(0);
+
+		HideMe(true);
+
+		// Обновляем сетевое состояние для синхронизации
+		GetGameObject()->ChangedNetworkState(eEA_Physics | eEA_GameClientDynamic | eEA_GameServerDynamic | eEA_GameClientStatic | eEA_GameServerStatic);
+	}
 }
 
 void CTOSPlayer::InitLocalPlayer()
@@ -120,6 +152,16 @@ void CTOSPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 
 	CPlayer::SetSpectatorMode(mode, targetId);
 
+	// Устанавливаем профиль физики для режима зрителя
+	if (mode != eASM_None)
+	{
+		if (GetGameObject()->GetAspectProfile(eEA_Physics) != eAP_Spectator)
+		{
+			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
+			GetGameObject()->ChangedNetworkState(eEA_Physics);
+		}
+	}
+
 	//FIX: ИИ видит игрока в режиме зрителя
 	if (mode != eASM_None)
 	{
@@ -148,6 +190,15 @@ void CTOSPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 	NETINPUT_TRACE(GetEntityId(), m_stats.speed);
 	NETINPUT_TRACE(GetEntityId(), GetEntity()->GetWorldPos());
 	NETINPUT_TRACE(GetEntityId(), GetSpectatorMode());
+	NETINPUT_TRACE(GetEntityId(), GetGameObject()->GetAspectProfile(eEA_Physics));
+
+	auto pAnimatedCharacter = GetAnimatedCharacter();
+
+	NETINPUT_TRACE(GetEntityId(), pAnimatedCharacter->GetPhysicalColliderMode());
+
+	auto haveCharPhysics = GetEntity()->GetCharacter(0)->GetISkeletonPose()->GetCharacterPhysics() ? 1 : 0;
+	NETINPUT_TRACE(GetEntityId(), haveCharPhysics);
+
 
 	bool ghostMode = IsZeus() || IsMaster();
 	if (ghostMode)
@@ -158,6 +209,19 @@ void CTOSPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 
 		if (GetFlyMode() != 1)
 			SetFlyMode(1);
+
+		// Отключаем физические взаимодействия
+		if(pAnimatedCharacter)
+		{
+			const auto physicalColliderMode = pAnimatedCharacter->GetPhysicalColliderMode();
+			if(physicalColliderMode != eColliderMode_Spectator)
+				pAnimatedCharacter->ForceRefreshPhysicalColliderMode();
+				pAnimatedCharacter->RequestPhysicalColliderMode(
+					eColliderMode_Spectator,
+					eColliderModeLayer_Game,
+					"CTOSPlayer::Update");
+
+		}
 	}
 
 	//Crysis co-op

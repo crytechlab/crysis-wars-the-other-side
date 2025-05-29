@@ -5298,11 +5298,12 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 
 		Revive(false);
 
+		// TheOtherSide: нужно поддержания физического состояния в режиме наблюдателя для зевса
+		GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
+		//~TheOtherSide
+		
 		if (server)
-		{
-			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
 			GetGameObject()->InvokeRMI(CActor::ClSetSpectatorMode(), CActor::SetSpectatorModeParams(mode, targetId), eRMI_ToAllClients | eRMI_NoLocalCalls);
-		}
 
 		Draw(false);
 
@@ -5320,9 +5321,10 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 	}
 	else if (!mode && m_stats.spectatorMode)
 	{
+		GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Alive);
+
 		if (server)
 		{
-			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Alive);
 			GetGameObject()->InvokeRMI(CActor::ClSetSpectatorMode(), CActor::SetSpectatorModeParams(mode, targetId), eRMI_ToAllClients|eRMI_NoLocalCalls);
 		}
 

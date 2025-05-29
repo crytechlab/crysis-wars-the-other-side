@@ -7,6 +7,7 @@
 #include <TheOtherSideMP/Helpers/TOS_Inventory.h>
 #include <TheOtherSideMP/Helpers/TOS_Vehicle.h>
 #include <TheOtherSideMP/Actors/Player/TOSPlayer.h>
+#include <IPhysics.h>
 
 // ПОКА НЕ ИСПОЛЬЗУЕТСЯ
 void CTOSZeusModule::ClientServer::SetPP(int amount)
@@ -173,8 +174,21 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make
 		if (pAI)
 			tos::ai::SendEvent(pAI, AIEVENT_DISABLE);
 
-		// Режим полета со столкновениями
+		// Режим полета
 		pTOSPlayer->SetFlyMode(1);
+
+		// Полностью отключаем физические взаимодействия
+		if(pTOSPlayer->GetAnimatedCharacter())
+		{
+			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
+			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
+				eColliderMode_Spectator, 
+				eColliderModeLayer_Game, 
+				"CTOSZeusModule::ServerMakeZeus");
+		}
+
+		// Убираем физику модели
+		pTOSPlayer->GetEntity()->GetCharacter(0)->GetISkeletonPose()->DestroyCharacterPhysics(0);
 
 		// убираем нанокостюм
 		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
@@ -184,15 +198,6 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make
 			pSuit->SetModeDefect(NANOMODE_CLOAK, true);
 			pSuit->SetModeDefect(NANOMODE_SPEED, true);
 			pSuit->SetModeDefect(NANOMODE_STRENGTH, true);
-		}
-
-		if (pTOSPlayer->GetAnimatedCharacter())
-		{
-			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
-			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
-				eColliderMode_Spectator,
-				eColliderModeLayer_Game,
-				"CTOSZeusModule::DispatchMakeZeus");
 		}
 
 		pTOSPlayer->GetGameObject()->InvokeRMI(
@@ -222,6 +227,16 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make
 		// Отключаем режим полета
 		pTOSPlayer->SetFlyMode(0);
 
+		// Включаем столкновения с игроками
+		if(pTOSPlayer->GetAnimatedCharacter())
+		{
+			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
+			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
+				eColliderMode_Undefined, 
+				eColliderModeLayer_Game, 
+				"CTOSZeusModule::ServerMakeZeus");
+		}
+
 		// убираем нанокостюм
 		CNanoSuit* pSuit = pTOSPlayer->GetNanoSuit();
 		if (pSuit)
@@ -230,15 +245,6 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make
 			pSuit->SetModeDefect(NANOMODE_CLOAK, false);
 			pSuit->SetModeDefect(NANOMODE_SPEED, false);
 			pSuit->SetModeDefect(NANOMODE_STRENGTH, false);
-		}
-
-		if (pTOSPlayer->GetAnimatedCharacter())
-		{
-			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
-			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
-				eColliderMode_Undefined,
-				eColliderModeLayer_Game,
-				"CTOSZeusModule::DispatchMakeZeus");
 		}
 
 		pTOSPlayer->GetGameObject()->InvokeRMI(
@@ -309,6 +315,20 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 
 		// Режим полета со столкновениями
 		pTOSPlayer->SetFlyMode(1);
+
+		// Убираем столкновения с игроками
+		if (pTOSPlayer->GetAnimatedCharacter())
+		{
+			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
+			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
+				eColliderMode_Spectator,
+				eColliderModeLayer_Game,
+				"CTOSZeusModule::DispatchMakeZeus");
+		}
+
+		// Убираем физику модели
+		pTOSPlayer->GetEntity()->GetCharacter(0)->GetISkeletonPose()->DestroyCharacterPhysics(0);
+
 		pTOSPlayer->SetMeZeus(true);
 
 		// убираем нанокостюм
@@ -319,15 +339,6 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 			pSuit->SetModeDefect(NANOMODE_CLOAK, true);
 			pSuit->SetModeDefect(NANOMODE_SPEED, true);
 			pSuit->SetModeDefect(NANOMODE_STRENGTH, true);
-		}
-
-		if (pTOSPlayer->GetAnimatedCharacter())
-		{
-			pTOSPlayer->GetAnimatedCharacter()->ForceRefreshPhysicalColliderMode();
-			pTOSPlayer->GetAnimatedCharacter()->RequestPhysicalColliderMode(
-				eColliderMode_Spectator,
-				eColliderModeLayer_Game,
-				"CTOSZeusModule::DispatchMakeZeus");
 		}
 
 		pTOSPlayer->HideMe(true);
