@@ -648,7 +648,7 @@ function TeamInstantAction.Server:RequestRevive(playerId)
 
 	if (player and player.actor) then
 		-- allow respawn if spectating player and on a team
-		if (((player.actor:GetSpectatorMode() == 3 and self.game:GetTeam(playerId)~=0) or (player:IsDead() and player.death_time and _time-player.death_time>2.5))) then
+		if (((player.actor:GetSpectatorMode() == ASM_FOLLOW and self.game:GetTeam(playerId)~=0) or (player:IsDead() and player.death_time and _time-player.death_time>2.5))) then
 			self:RevivePlayer(player.actor:GetChannel(), player);
 		end
 	end

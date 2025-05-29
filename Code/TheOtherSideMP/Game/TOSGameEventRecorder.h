@@ -66,6 +66,7 @@ enum EExtraGameplayEvent
 	eEGE_OnPlayerJoinedGame, // Игрок нажал кнопку "Присоединится" и появился в игре. Не срабатывает автоматически когда игрок в игре, но после sv_restart 
 	eEGE_OnPlayerJoinedSpectator, // Игрок нажал кнопку "Зритель" и перешёл в режим зрителя
 	eEGE_OnPlayerJoinedCutscene,
+	eEGE_OnPlayerJoinedZeus,
 
 	eEGE_GamerulesReset, // log off
 	eEGE_GamerulesStartGame, // log off
@@ -296,6 +297,8 @@ public:
 				return "PlayerJoinedSpectator";
 			case eEGE_OnPlayerJoinedCutscene:
 				return "PlayerJoinedCutscene";
+			case eEGE_OnPlayerJoinedZeus:
+				return "PlayerJoinedZeus";
 			case eEGE_MasterAdd:
 				return "MasterAdd";
 			case eEGE_MasterRemove:

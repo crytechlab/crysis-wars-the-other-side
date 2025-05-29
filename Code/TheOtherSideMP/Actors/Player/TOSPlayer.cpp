@@ -62,38 +62,6 @@ void CTOSPlayer::PostInit(IGameObject* pGameObject)
 void CTOSPlayer::InitClient(const int channelId)
 {
 	CPlayer::InitClient(channelId);
-
-	// Синхронизируем физические параметры если это Зевс
-	if (IsZeus())
-	{
-		if (GetGameObject()->GetAspectProfile(eEA_Physics) != eAP_Spectator)
-			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
-
-		SetFlyMode(1);
-
-		auto pAnimatedCharacter = GetAnimatedCharacter();
-		if(pAnimatedCharacter)
-		{
-			const auto physicalColliderMode = pAnimatedCharacter->GetPhysicalColliderMode();
-			if(physicalColliderMode != eColliderMode_Spectator)
-			{
-				pAnimatedCharacter->ForceRefreshPhysicalColliderMode();
-				pAnimatedCharacter->RequestPhysicalColliderMode(
-					eColliderMode_Spectator,
-					eColliderModeLayer_Game,
-					"CTOSPlayer::InitClient");
-			}
-		}
-
-		// Убираем физику модели
-		if (auto pChar = GetEntity()->GetCharacter(0))
-			pChar->GetISkeletonPose()->DestroyCharacterPhysics(0);
-
-		HideMe(true);
-
-		// Обновляем сетевое состояние для синхронизации
-		GetGameObject()->ChangedNetworkState(eEA_Physics | eEA_GameClientDynamic | eEA_GameServerDynamic | eEA_GameClientStatic | eEA_GameServerStatic);
-	}
 }
 
 void CTOSPlayer::InitLocalPlayer()
@@ -143,6 +111,14 @@ void CTOSPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 		if (oldMode == eASM_None)
 		{
 			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnPlayerJoinedCutscene, "", true, false, nullptr, 0.0f, mode));
+		}
+		break;
+	}
+	case eASM_Zeus:
+	{
+		if (oldMode == eASM_None)
+		{
+			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnPlayerJoinedZeus, "", true, false, nullptr, 0.0f, mode));
 		}
 		break;
 	}

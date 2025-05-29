@@ -784,15 +784,14 @@ public:
 		// normal, non-spectating
 
 		eASM_FirstMPMode,
-		eASM_Fixed = eASM_FirstMPMode,
-		// fixed position camera
-		eASM_Free,
-		// free roaming, no collisions
-		eASM_Follow,
-		// follows an entity in 3rd person
-		eASM_LastMPMode = eASM_Follow,
-		eASM_Cutscene,
-		// HUDInterfaceEffects.cpp sets this
+		eASM_Fixed = eASM_FirstMPMode, // fixed position camera
+		eASM_Free, // free roaming, no collisions
+		eASM_Follow, // follows an entity in 3rd person
+		eASM_Zeus, // Zeus mode
+		eASM_LastMPMode = eASM_Zeus,
+		eASM_Cutscene, // HUDInterfaceEffects.cpp sets this
+
+		eASM_Last
 	};
 
 	// Crysis Co-op

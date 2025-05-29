@@ -7,7 +7,7 @@ $DateTime$
 
 -------------------------------------------------------------------------
 History:
-- 27:10:2004   11:29 : Created by Mбrcio Martins
+- 27:10:2004   11:29 : Created by M�rcio Martins
 
 *************************************************************************/
 #include "StdAfx.h"
@@ -1204,12 +1204,20 @@ int CScriptBind_GameRules::ChangeSpectatorMode(IFunctionHandler* pH, ScriptHandl
 //------------------------------------------------------------------------
 int CScriptBind_GameRules::CanChangeSpectatorMode(IFunctionHandler* pH, ScriptHandle playerId)
 {
-	IActor* pActor = g_pGame->GetIGameFramework()->GetClientActor();
+	CActor* pActor = static_cast<CActor*>(g_pGame->GetIGameFramework()->GetClientActor());
 	CHUD* pHUD = g_pGame->GetHUD();
 	if(gEnv->bMultiplayer && pHUD && pActor && pActor->GetEntityId() == playerId.n)
 	{
-		if(pHUD->IsBuyMenuActive() || pHUD->IsScoreboardActive() || pHUD->IsPDAActive())
+		//TheOtherSide
+		//if(pHUD->IsBuyMenuActive() || pHUD->IsScoreboardActive() || pHUD->IsPDAActive())
+		if(pActor->GetSpectatorMode() == CActor::eASM_Zeus || 
+			pHUD->IsBuyMenuActive() || 
+			pHUD->IsScoreboardActive() || 
+			pHUD->IsPDAActive())
+		//~TheOtherSide
+		{
 			return pH->EndFunction(false);
+		}
 	}
 
 	return pH->EndFunction(true);

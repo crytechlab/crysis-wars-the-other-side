@@ -103,11 +103,21 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3&
 
 bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake, const char* desiredTeam)
 {
+	if (!pPlayer)
+		return false;
+
 	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
 	if (!pSync)
 		return false;
 
+	CGameRules* pGameRules = g_pGame->GetGameRules();
+	if (!pGameRules)
+		return false;
+
 	auto pTOSPlayer = static_cast<CTOSActor*>(pPlayer);
+
+	pGameRules->ChangeSpectatorMode(pTOSPlayer, CActor::eASM_Zeus, 0, true);
+
 
 	CTOSZeusSynchronizer::NetMakeParams params;
 	params.bMake = bMake;
@@ -287,6 +297,10 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make
 
 bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 {
+	//TODO: Меня не устраивает что поддерживать режим зевса так сложно
+	//TODO: Нужно сделать режим зевса через SetSpectatorMode
+	//TODO: Добавить ещё один режим зрителя для режима зевса, отключив HUD зрителя
+	
 	const auto pZeusModule = g_pTOSGame->GetZeusModule();
 	if (!pZeusModule)
 		return false;

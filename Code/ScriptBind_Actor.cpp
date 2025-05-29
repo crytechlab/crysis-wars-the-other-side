@@ -190,6 +190,12 @@ CScriptBind_Actor::CScriptBind_Actor(ISystem* pSystem)
     m_pSS->SetGlobalValue("SERVER_SIDE", SERVER_SIDE);
 
     //TheOtherSide
+    m_pSS->SetGlobalValue("ASM_ZEUS", static_cast<int>(CActor::eASM_Zeus));
+    m_pSS->SetGlobalValue("ASM_FOLLOW", static_cast<int>(CActor::eASM_Follow));
+    m_pSS->SetGlobalValue("ASM_CUTSCENE", static_cast<int>(CActor::eASM_Cutscene));
+    m_pSS->SetGlobalValue("ASM_FREE", static_cast<int>(CActor::eASM_Free));
+    m_pSS->SetGlobalValue("ASM_FIXED", static_cast<int>(CActor::eASM_Fixed));
+
     SCRIPT_REG_FUNC(GetConsumerEnergy);
     SCRIPT_REG_TEMPLFUNC(SetConsumerEnergy, "energy");
     SCRIPT_REG_FUNC(GetMasterId);

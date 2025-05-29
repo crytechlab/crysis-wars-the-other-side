@@ -274,16 +274,8 @@ void CGameRules::ProcessServerHit(HitInfo& hitInfo)
 	if (hitInfo.targetId)
 	{
 		CTOSActor* pTarget = GetActorByEntityId(hitInfo.targetId);
-		//TheOtherSide
-		//if (pTarget && pTarget->GetSpectatorMode())
-		if (pTarget)
-		{
-			if (pTarget->GetSpectatorMode())
-				ok = false;
-			else if (pTarget->IsZeus())
-				ok = false;
-		}
-		//~TheOtherSide
+		if (pTarget && pTarget->GetSpectatorMode())
+			ok = false;
 	}
 
 	if (ok)

@@ -633,8 +633,23 @@ const Vec3 &CPlayerInput::FilterMovement(const Vec3 &desired)
 
 bool CPlayerInput::CanMove() const
 {
-	bool canMove = !m_pPlayer->m_stats.spectatorMode || m_pPlayer->m_stats.spectatorMode==CActor::eASM_Fixed;
-	canMove &=!m_pPlayer->m_stats.isStandingUp;
+	bool canMove = false;
+
+	// Проверяем режим наблюдателя
+	const auto spectatorMode = m_pPlayer->m_stats.spectatorMode;
+	if (spectatorMode == CActor::eASM_None || 
+		spectatorMode == CActor::eASM_Fixed ||
+		spectatorMode == CActor::eASM_Zeus)
+	{
+		canMove = true;
+	}
+
+	// Нельзя двигаться во время вставания
+	if (m_pPlayer->m_stats.isStandingUp)
+	{
+		canMove = false;
+	}
+
 	return canMove;
 }
 

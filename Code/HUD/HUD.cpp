@@ -3866,114 +3866,141 @@ void CHUD::OnPostUpdate(float frameTime)
 		}
 
 		CGameRules* pGameRules = g_pGame->GetGameRules();
-		if (gEnv->bMultiplayer && pPlayer->GetSpectatorMode() /*|| (pGameRules && pGameRules->GetTeamCount() > 1 && pGameRules->GetTeam(pPlayer->GetEntityId()) == 0))*/) //SPECTATOR Mode
-		{
-			if (!m_animSpectate.IsLoaded())
-			{
-				m_animSpectate.Load("Libs/UI/HUD_Spectate.gfx", eFD_Center, eFAF_Visible | eFAF_ManualRender);
-				FadeCinematicBars(3);
+		uint8 specMode = pPlayer->GetSpectatorMode();
 
-				// SNH: moved text setting to further down (with player name display)
-				//	as text changes based on current spectator mode.
+		// Проверяем что игрок в мультиплеере и в режиме наблюдателя
+
+		if (gEnv->bMultiplayer && specMode != CActor::eASM_None)
+		{
+			//TheOtherSide: скрываем интерфейс наблюдателя при включении режима Зевс
+			if (specMode == CActor::eASM_Zeus)
+			{
+				if (m_animSpectate.IsLoaded())
+				{
+					m_animSpectate.Unload();
+					FadeCinematicBars(0);
+				}
+
+				if (GetModalHUD() == &m_animTeamSelection)
+				{
+					m_animTeamSelection.SetVisible(false);
+					SwitchToModalHUD(NULL, false);
+				}
+			}
+			//~TheOtherSide
+			else
+			{
+				// Загружаем интерфейс наблюдателя если еще не загружен
+				if (!m_animSpectate.IsLoaded())
+				{
+					m_animSpectate.Load("Libs/UI/HUD_Spectate.gfx", eFD_Center, eFAF_Visible | eFAF_ManualRender);
+					FadeCinematicBars(3);
+				}
 			}
 
-			if (pPlayer)
+			// Проверяем что режим наблюдателя валидный для мультиплеера
+			if (specMode >= CActor::eASM_FirstMPMode && specMode <= CActor::eASM_LastMPMode)
 			{
-				uint8 specMode = pPlayer->GetSpectatorMode();
-				if (specMode >= CActor::eASM_FirstMPMode && specMode <= CActor::eASM_LastMPMode)
+				// Обновляем и рендерим основные элементы интерфейса
+				m_animSpectate.GetFlashPlayer()->Advance(frameTime);
+				m_animSpectate.GetFlashPlayer()->Render();
+
+				m_animNetworkConnection.GetFlashPlayer()->Advance(frameTime);
+				m_animNetworkConnection.GetFlashPlayer()->Render();
+
+				m_animKillLog.GetFlashPlayer()->Advance(frameTime);
+				m_animKillLog.GetFlashPlayer()->Render();
+
+				// Обновляем информацию если что-то изменилось
+				bool needUpdate = m_prevSpectatorMode != specMode || 
+					m_prevSpectatorTarget != pPlayer->GetSpectatorTarget() ||
+					m_prevSpectatorHealth != pPlayer->GetSpectatorHealth() ||
+					m_prevSpectatorTeam != pGameRules->GetTeam(pPlayer->GetEntityId());
+
+				if (needUpdate)
 				{
-					m_animSpectate.GetFlashPlayer()->Advance(frameTime);
-					m_animSpectate.GetFlashPlayer()->Render();
+					// Сохраняем текущее состояние
+					m_prevSpectatorMode = specMode;
+					m_prevSpectatorTarget = pPlayer->GetSpectatorTarget();
+					m_prevSpectatorHealth = pPlayer->GetSpectatorHealth(); 
+					m_prevSpectatorTeam = pGameRules->GetTeam(pPlayer->GetEntityId());
 
-					m_animNetworkConnection.GetFlashPlayer()->Advance(frameTime);
-					m_animNetworkConnection.GetFlashPlayer()->Render();
+					bool blink = false;
+					wstring mapText, functionalityText;
 
-					m_animKillLog.GetFlashPlayer()->Advance(frameTime);
-					m_animKillLog.GetFlashPlayer()->Render();
-
-					if (m_prevSpectatorMode != specMode || m_prevSpectatorTarget != pPlayer->GetSpectatorTarget() || m_prevSpectatorHealth != pPlayer->GetSpectatorHealth() || m_prevSpectatorTeam != pGameRules->GetTeam(pPlayer->GetEntityId()))
+					// Настраиваем текст подсказок в зависимости от состояния игрока
+					if (!pGameRules->IsPlayerActivelyPlaying(pPlayer->GetEntityId()))
 					{
-						m_prevSpectatorMode = specMode;
-						m_prevSpectatorTarget = pPlayer->GetSpectatorTarget();
-						m_prevSpectatorHealth = pPlayer->GetSpectatorHealth();
-						m_prevSpectatorTeam = pGameRules->GetTeam(pPlayer->GetEntityId());
-						bool blink = false;
-						wstring mapText, functionalityText;
-						// don't want the 'press m to...' text if waiting to respawn
-						if (!pGameRules->IsPlayerActivelyPlaying(pPlayer->GetEntityId()))
-						{
-							blink = true;
-							if (m_currentGameRules != EHUD_INSTANTACTION)
-							{
-								mapText = LocalizeWithParams("@ui_open_map");
-							}
-							else
-							{
-								mapText = LocalizeWithParams("@ui_open_map_dm");
-							}
+						blink = true;
+						mapText = (m_currentGameRules != EHUD_INSTANTACTION) ? 
+							LocalizeWithParams("@ui_open_map") :
+							LocalizeWithParams("@ui_open_map_dm");
 
-							// second line of text depends on current spectator mode
-							if (pPlayer->GetSpectatorMode() == CActor::eASM_Follow)
-							{
-								functionalityText = LocalizeWithParams("@ui_spectate_functionality_tp");
-							}
-							else
-							{
-								functionalityText = LocalizeWithParams("@ui_spectate_functionality");
-							}
-						}
-						else
+						functionalityText = (pPlayer->GetSpectatorMode() == CActor::eASM_Follow) ?
+							LocalizeWithParams("@ui_spectate_functionality_tp") :
+							LocalizeWithParams("@ui_spectate_functionality");
+					}
+					else
+					{
+						// Скрываем меню выбора команды если открыто
+						if (GetModalHUD() == &m_animTeamSelection)
 						{
-							if (GetModalHUD() == &m_animTeamSelection)
-							{
-								m_animTeamSelection.SetVisible(false);
-								SwitchToModalHUD(NULL, false);
-							}
-							// waiting to respawn - must be in 3rd person mode. Just show 'press left/right to switch player'
-							mapText = L"";
-							functionalityText = LocalizeWithParams("@ui_spectate_functionality_dead");
+							m_animTeamSelection.SetVisible(false);
+							SwitchToModalHUD(NULL, false);
 						}
-						SFlashVarValue textArgs[3] = {mapText.c_str(), functionalityText.c_str(), blink};
-						m_animSpectate.Invoke("setText", textArgs, 3);
+						
+						mapText = L"";
+						functionalityText = LocalizeWithParams("@ui_spectate_functionality_dead");
+					}
 
-						if (specMode == CActor::eASM_Follow && pPlayer->GetSpectatorTarget() != 0)
+					// Обновляем текст в интерфейсе
+					SFlashVarValue textArgs[3] = {mapText.c_str(), functionalityText.c_str(), blink};
+					m_animSpectate.Invoke("setText", textArgs, 3);
+
+					// Обновляем информацию о наблюдаемом игроке
+					if (specMode == CActor::eASM_Follow && pPlayer->GetSpectatorTarget() != 0)
+					{
+						IActor* pTarget = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pPlayer->GetSpectatorTarget());
+						if (pTarget)
 						{
-							IActor* pTarget = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pPlayer->GetSpectatorTarget());
-							if (pTarget)
-							{
-								CryFixedStringT<128> text = pTarget->GetEntity()->GetName();
-								text += " (%d)";
-								int health = max(0, pPlayer->GetSpectatorHealth());
-								text.Format(text.c_str(), health);
-								SFlashVarValue args[2] = {text.c_str(),pGameRules ? pGameRules->GetTeam(pTarget->GetEntityId()) : 0};
-								m_animSpectate.Invoke("setPlayer", args, 2);
-							}
-						}
-						else
-						{
-							// reset player name / flag when going back to free camera / fixed camera
-							SFlashVarValue args[2] = {"", 0};
+							CryFixedStringT<128> text;
+							text.Format("%s (%d)", pTarget->GetEntity()->GetName(), max(0, pPlayer->GetSpectatorHealth()));
+							
+							SFlashVarValue args[2] = {
+								text.c_str(),
+								pGameRules ? pGameRules->GetTeam(pTarget->GetEntityId()) : 0
+							};
 							m_animSpectate.Invoke("setPlayer", args, 2);
 						}
+					}
+					else
+					{
+						// Сбрасываем имя игрока при переходе в свободную камеру
+						SFlashVarValue args[2] = {"", 0};
+						m_animSpectate.Invoke("setPlayer", args, 2);
 					}
 				}
 			}
 
+			// Обновляем дополнительные элементы интерфейса если они видимы
 			if (m_animPDA.GetVisible())
 			{
 				m_animPDA.GetFlashPlayer()->Advance(frameTime);
 				m_animPDA.GetFlashPlayer()->Render();
 			}
+			
 			if (m_animChat.GetVisible())
 			{
 				m_animChat.GetFlashPlayer()->Advance(frameTime);
 				m_animChat.GetFlashPlayer()->Render();
 			}
+			
 			if (m_animScoreBoard.GetVisible())
 			{
 				m_animScoreBoard.GetFlashPlayer()->Advance(frameTime);
 				m_animScoreBoard.GetFlashPlayer()->Render();
 			}
+			
 			if (m_animBuyMenu.GetVisible())
 			{
 				m_animBuyMenu.GetFlashPlayer()->Advance(frameTime);
