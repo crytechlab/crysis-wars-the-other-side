@@ -4285,6 +4285,16 @@ void CHUD::SetTeamDisplay(const char* team)
 {
 	if (m_animHexIcons.IsLoaded())
 	{
+		//TheOtherSide
+		CPlayer* pPlayer = static_cast<CPlayer*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
+		if (pPlayer && pPlayer->IsZeus())
+		{
+			m_animHexIcons.Invoke("setBackground", "");
+			m_animHexIcons.Invoke("setFlagIcon", "");
+			return;
+		}
+		//~TheOtherSide
+
 		if (m_currentGameRules == EHUD_POWERSTRUGGLE)
 		{
 			m_animHexIcons.Invoke("setBackground", team);
