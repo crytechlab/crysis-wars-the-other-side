@@ -703,6 +703,18 @@ ISerializableInfoPtr CTOSActor::GetSpawnInfo()
 	return p;
 }
 
+bool CTOSActor::CanPickUpObject(IEntity *obj, float &heavyness, float &volume)
+{
+	// Зевс не может поднимать объекты
+	if (IsZeus())
+	{
+		CryLogWarning("[CTOSActor::CanPickUpObject] Zeus cannot pick up objects");
+		return false;
+	}
+
+	return CActor::CanPickUpObject(obj, heavyness, volume);
+}
+
 //bool CTOSActor::ResetActorWeapons(int delayMilliseconds)
 //{
 //	if (gEnv->bServer && gEnv->bMultiplayer && !IsPlayer())

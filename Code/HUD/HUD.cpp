@@ -74,6 +74,7 @@ History:
 
 //TheOtherSide
 #include "TheOtherSideMP/Actors/Player/TOSPlayer.h"
+#include "TheOtherSideMP/Actors/TOSActor.h"
 #include "TheOtherSideMP/Helpers/TOS_HUD.h"
 #include "TheOtherSideMP/HUD/TOSCrosshair.h"
 #include <TheOtherSideMP/Game/TOSGameEventRecorder.h>
@@ -249,6 +250,11 @@ void CHUD::TOSShowInventoryOverview(IActor* pActor, const char* curCategory, con
 		return;
 
 	HideInventoryOverview();
+
+	// Зевс не должен видеть свой инвентарь
+	if (CTOSActor* pTOSActor = static_cast<CTOSActor*>(pActor))
+		if (pTOSActor->IsZeus())
+			return;
 
 	std::vector<IEntityClass*> classes;
 

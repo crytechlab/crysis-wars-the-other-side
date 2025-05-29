@@ -102,6 +102,7 @@ int CScriptBind_Custom::HasAI(IFunctionHandler* pH, ScriptHandle entityId)
 	return pH->EndFunction(hasAI);
 }
 
+//------------------------------------------------------------------------
 int CScriptBind_Custom::TOSSpawnEntity(IFunctionHandler* pH, SmartScriptTable params)
 {
 	const char* entityClass = 0;

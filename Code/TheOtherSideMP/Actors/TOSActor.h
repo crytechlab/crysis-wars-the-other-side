@@ -251,6 +251,7 @@ public:
 	void NetSimpleKill() ;
 	void SerializeSpawnInfo(TSerialize ser);
 	ISerializableInfoPtr GetSpawnInfo();
+	bool CanPickUpObject(IEntity* obj, float& heavyness, float& volume) override;
 	// ~CActor
 
 	//ITOSMasterControllable

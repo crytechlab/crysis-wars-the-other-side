@@ -23,7 +23,7 @@ Copyright (C), AlienKeeper, 2024.
 
 std::map<string, string> CTOSZeusModule::s_classToConsoleVar;
 
-static bool EntityIsSimilarToEntity(IEntity* pFirstEntity, IEntity* pSecondEntity)
+static bool EntityIsSimilarToEntity(IEntity *pFirstEntity, IEntity *pSecondEntity)
 {
 	if (!pFirstEntity || !pSecondEntity)
 		return false;
@@ -60,8 +60,8 @@ static bool EntityIsSimilarToEntity(IEntity* pFirstEntity, IEntity* pSecondEntit
 	if (firstSpecies != secondSpecies)
 		return false;
 
-	auto pFirstActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pFirstEntity->GetId()));
-	auto pSecondActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pSecondEntity->GetId()));
+	auto pFirstActor = static_cast<CTOSActor *>(TOS_GET_ACTOR(pFirstEntity->GetId()));
+	auto pSecondActor = static_cast<CTOSActor *>(TOS_GET_ACTOR(pSecondEntity->GetId()));
 	if (pFirstActor && pSecondActor)
 	{
 		auto pFirstVehicle = pFirstActor->GetLinkedVehicle();
@@ -90,14 +90,14 @@ static void InitSelectionFilterClasses()
 }
 
 CTOSZeusModule::CTOSZeusModule()
-	:
-	m_pPersistantDebug(nullptr),
-	m_pZeusScriptBind(nullptr),
+	: m_pPersistantDebug(nullptr),
+	  m_pZeusScriptBind(nullptr),
 
-	m_clientserver(this),
-	m_local(this),
-	m_hud(this)
-{}
+	  m_clientserver(this),
+	  m_local(this),
+	  m_hud(this)
+{
+}
 
 CTOSZeusModule::~CTOSZeusModule()
 {
@@ -136,7 +136,7 @@ void CTOSZeusModule::ReleaseScriptBinds()
 	SAFE_DELETE(m_pZeusScriptBind);
 }
 
-bool CTOSZeusModule::OnInputEvent(const SInputEvent& event)
+bool CTOSZeusModule::OnInputEvent(const SInputEvent &event)
 {
 	if (!gEnv->bClient)
 		return false;
@@ -175,9 +175,9 @@ bool CTOSZeusModule::OnInputEvent(const SInputEvent& event)
 			{
 				if (m_local.m_altModifier)
 				{
-					for (auto it = m_local.m_selectedEntities.cbegin(); 
-						it != m_local.m_selectedEntities.cend(); 
-						it++)
+					for (auto it = m_local.m_selectedEntities.cbegin();
+						 it != m_local.m_selectedEntities.cend();
+						 it++)
 					{
 						const bool movedOnHeight = m_local.m_draggingDelta.len() > 1;
 
@@ -190,7 +190,6 @@ bool CTOSZeusModule::OnInputEvent(const SInputEvent& event)
 							tos::vehicle::BroadcastMovementEvent(pVehicle, IVehicleMovement::eVME_WarmUpEngine, params);
 						}
 					}
-
 				}
 
 				m_local.m_altModifier = false;
@@ -206,9 +205,9 @@ bool CTOSZeusModule::OnInputEvent(const SInputEvent& event)
 				{
 					m_local.m_debugZModifier = false;
 
-					for (auto it = m_local.m_selectedEntities.cbegin(); 
-						it != m_local.m_selectedEntities.cend(); 
-						it++)
+					for (auto it = m_local.m_selectedEntities.cbegin();
+						 it != m_local.m_selectedEntities.cend();
+						 it++)
 					{
 						if (!m_local.SelectionFilter(*it))
 							it = m_local.DeselectEntity(*it);
@@ -280,7 +279,7 @@ bool CTOSZeusModule::OnInputEvent(const SInputEvent& event)
 	return true;
 }
 
-bool CTOSZeusModule::OnInputEventUI(const SInputEvent& event)
+bool CTOSZeusModule::OnInputEventUI(const SInputEvent &event)
 {
 	return false;
 }
@@ -292,11 +291,11 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 
 	int mod_iY = gEnv->pRenderer->GetHeight() - iY;
 	gEnv->pRenderer->UnProjectFromScreen(
-		iX, 
-		mod_iY, 
-		0.0f, 
-		&m_local.m_worldMousePos.x, 
-		&m_local.m_worldMousePos.y, 
+		iX,
+		mod_iY,
+		0.0f,
+		&m_local.m_worldMousePos.x,
+		&m_local.m_worldMousePos.y,
 		&m_local.m_worldMousePos.z);
 
 	auto pHUD = g_pGame->GetHUD();
@@ -357,13 +356,13 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 					// Множественное выделение c зажатым модификатором
 					if (m_local.m_ctrlModifier)
 					{
-						if (!m_local.m_dragging && 
-							!m_local.m_doubleClick && 
+						if (!m_local.m_dragging &&
+							!m_local.m_doubleClick &&
 							m_local.m_curClickedEntityId != 0)
 						{
 							if (m_local.m_selectedEntities.count(m_local.m_curClickedEntityId) > 0)
 							{
-								//if (delta <= 0.15f)
+								// if (delta <= 0.15f)
 								m_local.DeselectEntity(m_local.m_curClickedEntityId);
 							}
 							else
@@ -389,25 +388,25 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							props->GetValue("species", clickedSpecies);
 						}
 
-						const IActor* pClientActor = g_pGame->GetIGameFramework()->GetClientActor();
+						const IActor *pClientActor = g_pGame->GetIGameFramework()->GetClientActor();
 						if (!pClientActor)
 							return;
 
 						const auto clickedIter = stl::binary_find(
-							m_local.m_doubleClickLastSelectedEntities.cbegin(), 
-							m_local.m_doubleClickLastSelectedEntities.cend(), 
+							m_local.m_doubleClickLastSelectedEntities.cbegin(),
+							m_local.m_doubleClickLastSelectedEntities.cend(),
 							m_local.m_curClickedEntityId);
 
 						const bool clickedSelected = clickedIter != m_local.m_doubleClickLastSelectedEntities.cend();
 						if (clickedSelected)
 						{
 							// Снимаем выделение последних выделенных подобных сущностей
-							for (auto it = m_local.m_doubleClickLastSelectedEntities.begin(); 
-								it != m_local.m_doubleClickLastSelectedEntities.end();)
+							for (auto it = m_local.m_doubleClickLastSelectedEntities.begin();
+								 it != m_local.m_doubleClickLastSelectedEntities.end();)
 							{
 								auto pEntity = TOS_GET_ENTITY(*it);
 
-								if (EntityIsSimilarToEntity(pEntity, pClickedEntity) || 
+								if (EntityIsSimilarToEntity(pEntity, pClickedEntity) ||
 									pEntity == pClickedEntity)
 								{
 									m_local.DeselectEntity(*it);
@@ -426,7 +425,7 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							IEntityItPtr pIt = gEnv->pEntitySystem->GetEntityIterator();
 							while (!pIt->IsEnd())
 							{
-								if (IEntity* pEntity = pIt->Next())
+								if (IEntity *pEntity = pIt->Next())
 								{
 									const auto id = pEntity->GetId();
 
@@ -446,7 +445,7 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 									AABB worldBounds;
 									pEntity->GetWorldBounds(worldBounds);
 
-									//skip further calculations if the entity is not visible at all...
+									// skip further calculations if the entity is not visible at all...
 									if (gEnv->pSystem->GetViewCamera().IsAABBVisible_F(worldBounds) == CULL_EXCLUSION)
 										continue;
 
@@ -460,8 +459,6 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 						}
 					}
 
-
-
 					m_local.m_doubleClick = false;
 				}
 
@@ -470,8 +467,8 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 				if (m_local.m_copying)
 				{
 					for (auto it = m_local.m_selectedEntities.cbegin();
-						it != m_local.m_selectedEntities.cend(); 
-						it++)
+						 it != m_local.m_selectedEntities.cend();
+						 it++)
 					{
 						auto pEntity = TOS_GET_ENTITY(*it);
 						if (pEntity)
@@ -486,12 +483,12 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							makeHostileParams.id = pEntity->GetId();
 
 							GetSynchronizer()->RMISend(
-								CTOSZeusSynchronizer::SvRequestHideEntity(), 
-								hideParams, 
+								CTOSZeusSynchronizer::SvRequestHideEntity(),
+								hideParams,
 								eRMI_ToServer);
 							GetSynchronizer()->RMISend(
 								CTOSZeusSynchronizer::SvRequestAIMakeHostile(),
-								makeHostileParams, 
+								makeHostileParams,
 								eRMI_ToServer);
 						}
 					}
@@ -500,8 +497,8 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 
 				if (m_local.m_dragging)
 				{
-					for (auto it = m_local.m_selectedEntities.begin(); 
-						it != m_local.m_selectedEntities.end();)
+					for (auto it = m_local.m_selectedEntities.begin();
+						 it != m_local.m_selectedEntities.end();)
 					{
 						const EntityId selectedEntId = *it;
 						// Сущность, которую перенаскивают
@@ -515,25 +512,25 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 						bool moveSelectedEnt = true;
 						bool needDeselect = false;
 
-						// сущность, на которую перетаскивают 
+						// сущность, на которую перетаскивают
 						const auto pDragTarget = TOS_GET_ENTITY(m_local.m_dragTargetId);
 						if (pDragTarget)
 						{
-							auto pSelectedActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(selectedEntId));
-							auto pSelectedItem = static_cast<CItem*>(TOS_GET_ITEM(selectedEntId));
+							auto pSelectedActor = static_cast<CTOSActor *>(TOS_GET_ACTOR(selectedEntId));
+							auto pSelectedItem = static_cast<CItem *>(TOS_GET_ITEM(selectedEntId));
 
 							const EntityId dragTargetId = pDragTarget->GetId();
 
 							if (pSelectedActor)
 							{
 								// Actor перетаскивают на Vehicle
-								IVehicle* pDragVehicle = TOS_GET_VEHICLE(dragTargetId);
+								IVehicle *pDragVehicle = TOS_GET_VEHICLE(dragTargetId);
 								if (pDragVehicle)
 								{
-									//tos::vehicle::Enter(pSelectedActor, pDragVehicle, true);
+									// tos::vehicle::Enter(pSelectedActor, pDragVehicle, true);
 									bool enter = ClientServer::DispatchEnterVehicle(
-										pSelectedActor, 
-										pDragVehicle, 
+										pSelectedActor,
+										pDragVehicle,
 										true);
 
 									if (enter)
@@ -546,25 +543,24 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							else if (pSelectedItem)
 							{
 								// Item перетаскивают на Actor
-								auto pDragActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(dragTargetId));
+								auto pDragActor = static_cast<CTOSActor *>(TOS_GET_ACTOR(dragTargetId));
 								if (pDragActor && pDragActor->GetHealth() > 0)
 								{
 									if (pDragActor->PickUpItem(pSelectedItem->GetEntityId(), true))
 									{
 										tos::inventory::SelectItemByClass(pDragActor,
-											pSelectedItem->GetEntity()->GetClass()->GetName());
+																		  pSelectedItem->GetEntity()->GetClass()->GetName());
 
 										moveSelectedEnt = false;
 										needDeselect = true;
 									}
 								}
-
 							}
 						}
 
 						// Пинаем физику выделенных сущностей после того как закончили их перетаскивать
-						//auto pPhys = pSelectedEntity->GetPhysics();
-						//if (pPhys)
+						// auto pPhys = pSelectedEntity->GetPhysics();
+						// if (pPhys)
 						//{
 						//	pe_action_awake awake;
 						//	awake.bAwake = 1;
@@ -574,9 +570,9 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 						if (moveSelectedEnt)
 						{
 							// Применяем сдвинутые позиции боксов на сущности
-							const auto& pBox = m_local.m_boxes[pSelectedEntity->GetId()];
-							//pSelectedEntity->SetWorldTM(Matrix34::CreateTranslationMat(pBox->wPos));
-							//pSelectedEntity->SetRotation(Quat(pBox->obb.m33));
+							const auto &pBox = m_local.m_boxes[pSelectedEntity->GetId()];
+							// pSelectedEntity->SetWorldTM(Matrix34::CreateTranslationMat(pBox->wPos));
+							// pSelectedEntity->SetRotation(Quat(pBox->obb.m33));
 
 							CTOSZeusSynchronizer::NetTransformParams params;
 							params.pos = pBox->wPos;
@@ -584,15 +580,15 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							params.id = pSelectedEntity->GetId();
 
 							GetSynchronizer()->RMISend(
-								CTOSZeusSynchronizer::SvRequestTransformEntity(), 
-								params, 
+								CTOSZeusSynchronizer::SvRequestTransformEntity(),
+								params,
 								eRMI_ToServer);
 						}
 
 						if (needDeselect)
 						{
 							it = m_local.DeselectEntity(pSelectedEntity->GetId());
-							//deselectionSet.insert(pSelectedEntity->GetId());
+							// deselectionSet.insert(pSelectedEntity->GetId());
 						}
 						else
 						{
@@ -616,8 +612,8 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 							params.id = pEntity->GetId();
 
 							GetSynchronizer()->RMISend(
-								CTOSZeusSynchronizer::SvRequestHideEntity(), 
-								params, 
+								CTOSZeusSynchronizer::SvRequestHideEntity(),
+								params,
 								eRMI_ToServer);
 						}
 						else
@@ -632,8 +628,8 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 			{
 				// При перетаскивании кликнутая сущность должна быть выделена
 				const auto clickedIter = stl::binary_find(
-					m_local.m_selectedEntities.begin(), 
-					m_local.m_selectedEntities.end(), 
+					m_local.m_selectedEntities.begin(),
+					m_local.m_selectedEntities.end(),
 					m_local.m_curClickedEntityId);
 
 				const bool clickedSelected = clickedIter != m_local.m_selectedEntities.end();
@@ -641,9 +637,9 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 				// Мышь находится в диапазоне иконки кликнутой сущности. True - да
 				const bool clickedOveredByMouse = m_local.m_mouseOveredEntityId == m_local.m_curClickedEntityId;
 
-				if ((m_local.m_select) && 
-					m_local.m_curClickedEntityId != 0 && 
-					clickedSelected && 
+				if ((m_local.m_select) &&
+					m_local.m_curClickedEntityId != 0 &&
+					clickedSelected &&
 					clickedOveredByMouse)
 				{
 					// Перед тем как начать перемещение сущностей...
@@ -652,19 +648,18 @@ void CTOSZeusModule::OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eH
 						// Сохраняем начальное положение каждой выделенной сущности
 						m_local.SaveEntitiesStartPositions();
 
-						// Запуск таймера 
+						// Запуск таймера
 						m_local.m_draggingMoveStartTimer = tos::console::GetSafeFloatVar("tos_sv_zeus_dragging_move_start_delay", 0.05f);
 					}
 
 					m_local.m_dragging = true;
 				}
 			}
-
 		}
 	}
 }
 
-void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event)
+void CTOSZeusModule::OnExtraGameplayEvent(IEntity *pEntity, const STOSGameEvent &event)
 {
 	auto pHUD = g_pGame->GetHUD();
 	auto pLocalPlayer = GetPlayer();
@@ -801,7 +796,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 	{
 		if (pGO)
 		{
-			RegisterSynchronizer(static_cast<CTOSZeusSynchronizer*>(pGO->AcquireExtension("TOSZeusSynchronizer")));
+			RegisterSynchronizer(static_cast<CTOSZeusSynchronizer *>(pGO->AcquireExtension("TOSZeusSynchronizer")));
 			assert(GetSynchronizer() != nullptr);
 		}
 
@@ -817,7 +812,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 			// Если игрок сменил команду и он не в команде zeus - выходим из режима
 			if (auto pGameRules = g_pGame->GetGameRules())
 			{
-				const char* newTeamName = pGameRules->GetTeamName(event.int_value);
+				const char *newTeamName = pGameRules->GetTeamName(event.int_value);
 				if (newTeamName && strcmp(newTeamName, "zeus") != 0 && m_local.GetFlag(EFlag::Zeusing))
 				{
 					m_clientserver.DispatchMakeZeus(pLocalPlayer, false, newTeamName);
@@ -843,17 +838,17 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent&
 	}
 }
 
-void CTOSZeusModule::GetMemoryStatistics(ICrySizer* s)
+void CTOSZeusModule::GetMemoryStatistics(ICrySizer *s)
 {
 	s->Add(*this);
-	//s->AddContainer(m_selectedEntities);
-	//s->AddContainer(m_doubleClickLastSelectedEntities);
-	//s->AddContainer(m_selectStartEntitiesPositions);
-	//s->AddContainer(m_storedEntitiesPositions);
-	//s->AddContainer(m_boxes);
+	// s->AddContainer(m_selectedEntities);
+	// s->AddContainer(m_doubleClickLastSelectedEntities);
+	// s->AddContainer(m_selectStartEntitiesPositions);
+	// s->AddContainer(m_storedEntitiesPositions);
+	// s->AddContainer(m_boxes);
 }
 
-const char* CTOSZeusModule::GetName()
+const char *CTOSZeusModule::GetName()
 {
 	return "ModuleZeus";
 }
@@ -863,8 +858,16 @@ void CTOSZeusModule::Update(float frametime)
 	if (tos_sv_zeus_update == 0)
 		return;
 
-	if (!GetPlayer() || !m_local.GetFlag(EFlag::Zeusing))
+	CTOSActor *pLocalZeus = static_cast<CTOSActor *>(GetPlayer());
+	if (!pLocalZeus || !m_local.GetFlag(EFlag::Zeusing))
 		return;
+
+	// У Зевса не должно быть оружия
+	if (pLocalZeus->GetInventory() && pLocalZeus->GetInventory()->GetCount() > 0)
+	{
+		pLocalZeus->RemoveAllItems();
+		pLocalZeus->GetInventory()->Destroy();
+	}
 
 	auto pMouse = gEnv->pHardwareMouse;
 	if (pMouse)
@@ -913,7 +916,7 @@ void CTOSZeusModule::Update(float frametime)
 
 	const bool zeusMoving = zeus_dyn.v.len() > 0.1f;
 
-	//Перемещение боксов выделенных сущностей
+	// Перемещение боксов выделенных сущностей
 	///////////////////////////////////////////////////////////////////////
 	if (m_local.m_dragging && !zeusMoving && m_local.m_draggingMoveStartTimer == 0.0f)
 	{
@@ -941,7 +944,7 @@ void CTOSZeusModule::Update(float frametime)
 		for (auto it = m_local.m_selectedEntities.cbegin(); it != m_local.m_selectedEntities.cend(); it++)
 		{
 			const EntityId id = *it;
-			const IEntity* pEntity = TOS_GET_ENTITY(id);
+			const IEntity *pEntity = TOS_GET_ENTITY(id);
 			if (pEntity)
 			{
 				m_local.m_boxes[id]->wPos = pEntity->GetWorldPos();
@@ -958,9 +961,9 @@ void CTOSZeusModule::Update(float frametime)
 	///////////////////////////////////////////////////////////////////////
 	if (m_local.m_select && m_local.CanSelectMultiplyWithBox() && !m_local.m_dragging)
 	{
-		if (IRenderAuxGeom* pGeom = gEnv->pRenderer->GetIRenderAuxGeom())
+		if (IRenderAuxGeom *pGeom = gEnv->pRenderer->GetIRenderAuxGeom())
 		{
-			//calculate the four selection boundary points
+			// calculate the four selection boundary points
 			Vec3 vTopLeft(m_local.m_selectStartPos.x, m_local.m_selectStartPos.y, 0.0f);
 			Vec3 vTopRight(m_local.m_mouseIPos.x, m_local.m_selectStartPos.y, 0.0f);
 			Vec3 vBottomLeft(m_local.m_selectStartPos.x, m_local.m_mouseIPos.y, 0.0f);
@@ -968,7 +971,7 @@ void CTOSZeusModule::Update(float frametime)
 
 			gEnv->pRenderer->Set2DMode(true, gEnv->pRenderer->GetWidth(), gEnv->pRenderer->GetHeight());
 
-			//set boundary color: white
+			// set boundary color: white
 			ColorB col(255, 255, 255, 255);
 
 			pGeom->DrawLine(vTopLeft, col, vTopRight, col);
@@ -982,7 +985,7 @@ void CTOSZeusModule::Update(float frametime)
 
 	// Отрисовка флэш иконок под сущностями
 	///////////////////////////////////////////////////////////////////////
-	IActor* pClientActor = g_pGame->GetIGameFramework()->GetClientActor();
+	IActor *pClientActor = g_pGame->GetIGameFramework()->GetClientActor();
 	if (!pClientActor)
 		return;
 
@@ -991,7 +994,7 @@ void CTOSZeusModule::Update(float frametime)
 
 	// Отрисовка квадрата выделенных сущностей
 	///////////////////////////////////////////////////////////////////////
-	const auto& color = ColorB(255, 255, 255, 255);
+	const auto &color = ColorB(255, 255, 255, 255);
 	const auto mode = eBBD_Faceted;
 	const auto solid = false;
 
@@ -1007,7 +1010,6 @@ void CTOSZeusModule::Update(float frametime)
 
 void CTOSZeusModule::Serialize(TSerialize ser)
 {
-
 }
 
 int CTOSZeusModule::GetDebugLog()
@@ -1015,12 +1017,12 @@ int CTOSZeusModule::GetDebugLog()
 	return m_debugLogMode;
 }
 
-bool CTOSZeusModule::IsPhysicsAllowed(const IEntity* pEntity)
+bool CTOSZeusModule::IsPhysicsAllowed(const IEntity *pEntity)
 {
 	if (!pEntity)
 		return false;
 
-	IPhysicalEntity* physEnt = pEntity->GetPhysics();
+	IPhysicalEntity *physEnt = pEntity->GetPhysics();
 	if (!physEnt)
 		return false;
 
@@ -1030,22 +1032,22 @@ bool CTOSZeusModule::IsPhysicsAllowed(const IEntity* pEntity)
 		return false;
 }
 
-CTOSPlayer* CTOSZeusModule::GetPlayer() const
+CTOSPlayer *CTOSZeusModule::GetPlayer() const
 {
-	return static_cast<CTOSPlayer*>(TOS_GET_CLIENT_ACTOR);
+	return static_cast<CTOSPlayer *>(TOS_GET_CLIENT_ACTOR);
 }
 
-CTOSZeusModule::ClientServer& CTOSZeusModule::GetClientServer()
+CTOSZeusModule::ClientServer &CTOSZeusModule::GetClientServer()
 {
 	return m_clientserver;
 }
 
-CTOSZeusModule::Local& CTOSZeusModule::GetLocal()
+CTOSZeusModule::Local &CTOSZeusModule::GetLocal()
 {
 	return m_local;
 }
 
-CTOSZeusModule::HUD& CTOSZeusModule::GetHUD()
+CTOSZeusModule::HUD &CTOSZeusModule::GetHUD()
 {
 	return m_hud;
 }

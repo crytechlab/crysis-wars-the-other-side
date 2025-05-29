@@ -1008,6 +1008,9 @@
     <ClCompile Include="TheOtherSideMP\Extensions\EnergyManager.cpp">
       <Filter>TheOtherSideMP\Extensions</Filter>
     </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_ItemSystem.cpp">
+      <Filter>TheOtherSideMP\Game\ScriptBinds</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -1765,6 +1768,9 @@
     </ClInclude>
     <ClInclude Include="TheOtherSideMP\Extensions\EnergyManager.h">
       <Filter>TheOtherSideMP\Extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_ItemSystem.h">
+      <Filter>TheOtherSideMP\Game\ScriptBinds</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

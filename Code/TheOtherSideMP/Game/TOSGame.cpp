@@ -159,6 +159,7 @@ void CTOSGame::InitScriptBinds()
 	}
 
 	m_pCustomScriptBind = new CScriptBind_Custom(gEnv->pSystem, g_pGame->GetIGameFramework());
+	m_pItemSystemScriptBind = new CScriptBind_ItemSystem(gEnv->pSystem, g_pGame->GetIGameFramework());
 }
 
 void CTOSGame::ReleaseScriptBinds()
@@ -173,6 +174,7 @@ void CTOSGame::ReleaseScriptBinds()
 	}
 
 	SAFE_DELETE(m_pCustomScriptBind);
+	SAFE_DELETE(m_pItemSystemScriptBind);
 }
 
 void CTOSGame::OnLevelNotFound(const char* levelName)

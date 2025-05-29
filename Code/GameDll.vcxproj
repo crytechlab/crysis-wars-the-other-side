@@ -512,6 +512,7 @@
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusNodes.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusSynchronizer.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_Custom.cpp" />
+    <ClCompile Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_ItemSystem.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_Zeus.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\TOSGame.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\TOSGameCvars.cpp" />
@@ -785,6 +786,7 @@
     <ClInclude Include="TheOtherSideMP\Game\Modules\Zeus\ZeusModule.h" />
     <ClInclude Include="TheOtherSideMP\Game\Modules\Zeus\ZeusSynchronizer.h" />
     <ClInclude Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_Custom.h" />
+    <ClInclude Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_ItemSystem.h" />
     <ClInclude Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_Zeus.h" />
     <ClInclude Include="TheOtherSideMP\Game\TOSGame.h" />
     <ClInclude Include="TheOtherSideMP\Game\TOSGameCvars.h" />

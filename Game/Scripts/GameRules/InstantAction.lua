@@ -935,8 +935,14 @@ function InstantAction:RevivePlayer(channelId, player, keepEquip)
 		local isControllingSlave = player.actor:GetSlaveId() ~= nil
 		local willControlSlave = (teamId == 3) and not isControllingSlave
 
+		-- Когда игрок не контролирует ни одного раба и не будет контролировать раба
 		if not (isControllingSlave or willControlSlave) then
 			
+			-- Если зевс, то не выдаем оружие
+			if (teamName == ZEUS_TEAM_NAME) then
+				return;
+			end
+
 			if (not keepEquip) then
 				local additionalEquip;
 				if (groupId) then

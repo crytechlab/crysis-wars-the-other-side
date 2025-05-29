@@ -12,6 +12,7 @@ Copyright (C), AlienKeeper, 2024.
 #include <ILevelSystem.h>
 #include <IInput.h>
 #include "ScriptBinds\ScriptBind_Custom.h"
+#include "ScriptBinds\ScriptBind_ItemSystem.h"
 #include "FGPS\FGPluginLoader.h"
 #include "ScriptBinds/ScriptBind_Zeus.h"
 //Crysis co-op
@@ -173,6 +174,7 @@ private:
 	CTOSGameEventRecorder* m_pEventRecorder;
 
 	CScriptBind_Custom* m_pCustomScriptBind;
+	CScriptBind_ItemSystem* m_pItemSystemScriptBind;
 
 	std::vector<ITOSGameEventListener*> m_gameEventListeners;
 	std::vector<ITOSGameModule*> m_modules;

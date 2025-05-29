@@ -1425,6 +1425,12 @@ void CHUD::DisplayAmmoPickup(const char* ammoName, int ammoAmount)
 	if(!m_bShow || m_quietMode)
 		return;
 
+	//TheOtherSide: Зевс не должен видеть свой инвентарь
+	CTOSActor* pTOSActor = static_cast<CTOSActor*>(g_pGame->GetIGameFramework()->GetClientActor());
+	if (pTOSActor && pTOSActor->IsZeus())
+		return;
+	//~TheOtherSide
+
 	int type = stl::find_in_map(m_hudAmmunition, ammoName, 0);
 	if(!type)
 		type = 1;
