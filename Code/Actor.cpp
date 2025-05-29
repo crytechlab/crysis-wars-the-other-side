@@ -4353,7 +4353,21 @@ void CActor::DumpActorInfo()
 
   if (IItem* pItem = GetCurrentItem())
   {
-    CryLog("Item: %s", pItem->GetEntity()->GetName());
+    CryLog("Item in hand: %s", pItem->GetEntity()->GetName());
+  }
+
+  IInventory* pInventory = GetInventory();
+  if (pInventory)
+  {
+    int count = pInventory->GetCount();
+    CryLog("Items in inventory (%d):", count);
+    for (int i = 0; i < count; i++)
+    {
+      if (IItem* pItem = GetItem(pInventory->GetItem(i)))
+      {
+        CryLog("  %s", pItem->GetEntity()->GetName());
+      }
+    }
   }
 
 
