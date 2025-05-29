@@ -861,13 +861,6 @@ void CTOSZeusModule::Update(float frametime)
 	if (!pLocalZeus || !m_local.GetFlag(EFlag::Zeusing))
 		return;
 
-	// У Зевса не должно быть оружия
-	if (pLocalZeus->GetInventory() && pLocalZeus->GetInventory()->GetCount() > 0)
-	{
-		pLocalZeus->RemoveAllItems();
-		pLocalZeus->GetInventory()->Destroy();
-	}
-
 	auto pMouse = gEnv->pHardwareMouse;
 	if (pMouse)
 	{
@@ -984,11 +977,7 @@ void CTOSZeusModule::Update(float frametime)
 
 	// Отрисовка флэш иконок под сущностями
 	///////////////////////////////////////////////////////////////////////
-	IActor *pClientActor = g_pGame->GetIGameFramework()->GetClientActor();
-	if (!pClientActor)
-		return;
-
-	m_local.UpdateUnitIcons(pClientActor);
+	m_local.UpdateUnitIcons(pLocalZeus);
 	m_local.UpdateOrderIcons();
 
 	// Отрисовка квадрата выделенных сущностей

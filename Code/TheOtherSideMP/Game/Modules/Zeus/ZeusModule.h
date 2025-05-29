@@ -246,10 +246,12 @@ public:
 		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId, EntityId originalId);
 
 		static bool DispatchMakeZeus(IActor* pPlayer, bool bMake, const char* desiredTeam = nullptr);
+		static bool DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
+
+	private:
 		static bool ServerMakeZeus(int playerChannelId, bool make, const char* desiredTeam = nullptr);
 		static bool ClientMakeZeus(bool make);
 
-		static bool DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
 		static bool ServerEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
 		static bool ClientEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
 

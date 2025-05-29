@@ -95,18 +95,15 @@ public:
 
 	struct NetMakeParams
 	{
-		int playerChannelId;
-		bool bMake;
+		int playerChannelId{0};
+		bool bMake{false};
 		string desiredTeam;
 
-		NetMakeParams() :
-			playerChannelId(0),
-			bMake(false)
-		{};			
-		
-		NetMakeParams(int _playerChannelId, bool _bmake) :
+		NetMakeParams() = default;	
+		NetMakeParams(int _playerChannelId, bool _bmake, const char* _desiredTeam) :
 			playerChannelId(_playerChannelId),
-			bMake(_bmake)
+			bMake(_bmake),
+			desiredTeam(_desiredTeam)
 		{};
 
 		void SerializeWith(TSerialize ser)

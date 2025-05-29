@@ -577,12 +577,12 @@ void CPlayerRotation::ProcessNormal()
 {
 	//TheOtherSide
 
+	bool isZeus = g_pTOSGame->GetZeusModule()->GetLocal().GetFlag(CTOSZeusModule::EFlag::Zeusing);
 	bool canRotate = g_pTOSGame->GetZeusModule()->GetLocal().GetFlag(CTOSZeusModule::EFlag::CanRotateCamera);
-	bool zeus = m_player.IsZeus();
 	bool isMaster = m_player.IsMaster();
 	bool inVehicle = m_player.GetLinkedVehicle() != nullptr;
 
-	if (zeus && !canRotate && !isMaster && !inVehicle)
+	if (isZeus && m_player.IsClient() && !canRotate && !isMaster && !inVehicle)
 	{
 		return;
 	}

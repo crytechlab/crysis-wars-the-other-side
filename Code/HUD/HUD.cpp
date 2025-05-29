@@ -3881,32 +3881,15 @@ void CHUD::OnPostUpdate(float frameTime)
 
 		// Проверяем что игрок в мультиплеере и в режиме наблюдателя
 
-		if (gEnv->bMultiplayer && specMode != CActor::eASM_None)
+		//TheOtherSide
+		if (gEnv->bMultiplayer && specMode != CActor::eASM_None && specMode != CActor::eASM_Zeus)
+		//~TheOtherSide
 		{
-			//TheOtherSide: скрываем интерфейс наблюдателя при включении режима Зевс
-			if (specMode == CActor::eASM_Zeus)
+			// Загружаем интерфейс наблюдателя если еще не загружен
+			if (!m_animSpectate.IsLoaded())
 			{
-				if (m_animSpectate.IsLoaded())
-				{
-					m_animSpectate.Unload();
-					FadeCinematicBars(0);
-				}
-
-				if (GetModalHUD() == &m_animTeamSelection)
-				{
-					m_animTeamSelection.SetVisible(false);
-					SwitchToModalHUD(NULL, false);
-				}
-			}
-			//~TheOtherSide
-			else
-			{
-				// Загружаем интерфейс наблюдателя если еще не загружен
-				if (!m_animSpectate.IsLoaded())
-				{
-					m_animSpectate.Load("Libs/UI/HUD_Spectate.gfx", eFD_Center, eFAF_Visible | eFAF_ManualRender);
-					FadeCinematicBars(3);
-				}
+				m_animSpectate.Load("Libs/UI/HUD_Spectate.gfx", eFD_Center, eFAF_Visible | eFAF_ManualRender);
+				FadeCinematicBars(3);
 			}
 
 			// Проверяем что режим наблюдателя валидный для мультиплеера
