@@ -570,7 +570,7 @@ function Player.Client:OnTimer(timerId,mSec)
 end
 
 function Player.Client:OnHit(hit, remote)
-	BasicActor.Client.OnHit(self,hit,remote);
+	BasicActor.Client.OnHit(hit,remote);
 end
 
 function Player:UseEntity(entityId, slot, press)

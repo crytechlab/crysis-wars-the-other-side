@@ -1361,13 +1361,13 @@ void CActor::Update(SEntityUpdateContext& ctx, int slot)
 
 	if (GetHealth() > 0.0f || (gEnv->bMultiplayer && GetSpectatorMode() != eASM_None))
 	{
-		// Only update stance for alive characters. Dead characters never request any stance changes
-		// but if a different stance is requested for whatever reason (currently it happens after QL)
-		// and the animation graph has different death animations for different stances (like for the
-		// Hunter currently) then some other death animation may play again to better match the state.
+		// Обновляем стойку только для живых персонажей. Мертвые персонажи никогда не запрашивают изменение стойки,
+		// но если по какой-то причине запрашивается другая стойка (в настоящее время это происходит после Quick Load)
+		// и граф анимации имеет разные анимации смерти для разных стоек (как сейчас для
+		// Охотника), то может снова проиграться другая анимация смерти, чтобы лучше соответствовать состоянию.
 		
-		// NOTE: MP spectators seem to need their stance updated (they are dead) otherwise the spectator cam
-		//	intersects with the environment.
+		// ПРИМЕЧАНИЕ: MP наблюдателям нужно обновлять стойку (хотя они мертвы), иначе камера наблюдателя
+		// пересекается с окружением.
 		
 		UpdateStance();
 	}

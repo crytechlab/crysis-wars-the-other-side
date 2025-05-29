@@ -401,12 +401,17 @@ void CPlayer::ProcessEvent(SEntityEvent& event)
 	{
 		if(gEnv->bMultiplayer)
 		{
-			// if our local player is spectating this one, move it to this position
-			CPlayer* pPlayer = (CPlayer*)gEnv->pGame->GetIGameFramework()->GetClientActor();
-			if(pPlayer && pPlayer->GetSpectatorMode() == CPlayer::eASM_Follow && pPlayer->GetSpectatorTarget() == GetEntityId())
+			// Проверяем, наблюдает ли локальный игрок за этим игроком
+			CPlayer* pLocalPlayer = (CPlayer*)gEnv->pGame->GetIGameFramework()->GetClientActor();
+			
+			bool isSpectatingThisPlayer = pLocalPlayer && 
+										pLocalPlayer->GetSpectatorMode() == CPlayer::eASM_Follow &&
+										pLocalPlayer->GetSpectatorTarget() == GetEntityId();
+			
+			if (isSpectatingThisPlayer)
 			{
-				// local player is spectating us. Move them to our position
-				pPlayer->MoveToSpectatorTargetPosition();
+				// Перемещаем наблюдателя на позицию наблюдаемого игрока
+				pLocalPlayer->MoveToSpectatorTargetPosition();
 			}
 		}
 
@@ -1021,22 +1026,32 @@ void CPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 			}
 		}
 
-		// also, after the player we are spectating dies (or goes into spectator mode), wait 3s then switch to new target
+		// Переключаем наблюдение на другого игрока через 3 секунды после смерти текущей цели
 		CActor* pCActor = static_cast<CActor*>(pActor);
+		
+		// Проверяем что цель - игрок
 		if(pCActor && pCActor->GetActorClass() == CPlayer::GetActorClassType())
 		{
 			CPlayer* pTargetPlayer = static_cast<CPlayer*>(pCActor);
+			
+			// Проверяем условия для переключения цели:
+			// - Игрок мертв более 3 секунд
+			// - Или игрок перешел в режим наблюдателя
 			float timeSinceDeath = gEnv->pTimer->GetFrameStartTime().GetSeconds() - pTargetPlayer->GetDeathTime();
-			if(pTargetPlayer && (pTargetPlayer->GetHealth() <= 0 && timeSinceDeath > 3.0f) || pTargetPlayer->GetSpectatorMode() != eASM_None)
+			bool needSwitchTarget = (pTargetPlayer->GetHealth() <= 0 && timeSinceDeath > 3.0f) || 
+								  (pTargetPlayer->GetSpectatorMode() != eASM_None);
+			
+			if(pTargetPlayer && needSwitchTarget)
 			{
-				m_stats.spectatorTarget = 0; // else if no other players found, HUD will continue to display previous name...
+				// Сбрасываем текущую цель и запрашиваем следующую
+				m_stats.spectatorTarget = 0;
 				g_pGame->GetGameRules()->RequestNextSpectatorTarget(this, 1);
 			}
 		}
 		else if(!pActor)
 		{
-			// they might have disconnected. At any rate, they don't exist, so pick another...
-			m_stats.spectatorTarget = 0;	// else if no other players found, HUD will continue to display previous name...
+			// Если игрок отключился - переключаемся на следующую цель
+			m_stats.spectatorTarget = 0;
 			g_pGame->GetGameRules()->RequestNextSpectatorTarget(this, 1);
 		}
 	}

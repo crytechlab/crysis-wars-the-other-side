@@ -783,13 +783,19 @@ IMPLEMENT_RMI(CGameRules, ClRenameEntity)
 
 		CryLogAlways("$8%s$o renamed to $8%s", old.c_str(), params.name.c_str());
 
-		// if this was a remote player, check we're not spectating them.
-		//	If we are, we need to trigger a spectator hud update for the new name
-		EntityId clientId = g_pGame->GetIGameFramework()->GetClientActorId();
-		if (gEnv->bMultiplayer && params.entityId != clientId)
+		// Проверяем, не наблюдаем ли мы за переименованным игроком
+		// Если да - обновляем имя в интерфейсе наблюдателя
+		const EntityId clientId = g_pGame->GetIGameFramework()->GetClientActorId();
+		const bool isRemotePlayer = (gEnv->bMultiplayer && params.entityId != clientId);
+
+		if (isRemotePlayer)
 		{
 			CActor* pClientActor = static_cast<CActor*>(g_pGame->GetIGameFramework()->GetClientActor());
-			if (pClientActor && pClientActor->GetSpectatorMode() == CActor::eASM_Follow && pClientActor->GetSpectatorTarget() == params.entityId && g_pGame->GetHUD())
+			const bool isSpectatingPlayer = (pClientActor && 
+										   pClientActor->GetSpectatorMode() == CActor::eASM_Follow &&
+										   pClientActor->GetSpectatorTarget() == params.entityId);
+
+			if (isSpectatingPlayer && g_pGame->GetHUD())
 			{
 				g_pGame->GetHUD()->RefreshSpectatorHUDText();
 			}

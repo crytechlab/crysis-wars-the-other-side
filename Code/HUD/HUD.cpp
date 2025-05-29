@@ -2567,31 +2567,42 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 		}
 		else if (IsModalHUDAvailable())
 		{
+			// Получаем указатель на актора-клиента
 			CActor* pActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
-			if (pActor && (pActor->GetHealth() > 0) && !pActor->GetSpectatorMode())
+			
+			// Проверяем что актор жив и не в режиме наблюдателя
+			if (pActor && pActor->GetHealth() > 0 && !pActor->GetSpectatorMode())
 			{
 				CPlayer* pPlayer = static_cast<CPlayer*>(pActor);
+				
+				// Проверяем что у игрока есть активный нанокостюм
 				if (pPlayer && pPlayer->GetNanoSuit() && !pPlayer->GetNanoSuit()->IsActive())
 					return false;
-				/*				if(!m_animQuickMenu.IsLoaded())
-									m_animQuickMenu.Reload();*/
+
+				// Показываем быстрое меню
 				m_animQuickMenu.Invoke("showQuickMenu");
 				m_animQuickMenu.SetVariable("_alpha", 100);
 
 				if (pPlayer)
 				{
+					// Привязываем меню к текущему режиму костюма
 					QuickMenuSnapToMode(pPlayer->GetNanoSuit()->GetMode());
 					pPlayer->GetPlayerInput()->DisableXI(true);
 				}
+
+				// Настраиваем интерфейс
 				PlaySound(ESound_SuitMenuAppear);
 				pPlayer->GetPlayerInput()->DisableXI(true);
 				g_pGameActions->FilterSuitMenu()->Enable(true);
 				g_pGameActions->FilterInVehicleSuitMenu()->Enable(true);
 				m_bAutosnap = true;
 				UpdateCrosshairVisibility();
+				
+				// Переключаемся на модальное меню
 				SwitchToModalHUD(&m_animQuickMenu, false);
 				m_animQuickMenu.CheckedInvoke("destroy", m_iBreakHUD);
 			}
+			
 			filterOut = false;
 		}
 		else if (m_pModalHUD == &m_animWeaponAccessories)

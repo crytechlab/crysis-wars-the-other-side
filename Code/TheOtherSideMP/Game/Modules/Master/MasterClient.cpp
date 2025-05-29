@@ -1018,7 +1018,7 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 	        // ReSharper disable once CppInconsistentNaming
 	        const auto dudeHP = m_pLocalDude->GetHealth();
 	        const auto spectatorMode = m_pLocalDude->GetSpectatorMode();
-			const auto inSpectatorMode = spectatorMode > CActor::eASM_None && spectatorMode < CActor::eASM_Cutscene;
+			const auto inSpectatorMode = CActor::eASM_None < spectatorMode < CActor::eASM_Last;
 			
             if (dudeHP > 0 || inSpectatorMode)
             {

@@ -1364,7 +1364,7 @@ bool CGameRules::IsPlayerActivelyPlaying(const EntityId playerId, const bool mus
 	if (!pActor)
 		return false;
 
-	// in IA, out of the game if spectating when alive
+	// в InstantAction, вне игры если в режиме наблюдателя когда жив
 	return (pActor->GetHealth() > 0 || pActor->GetSpectatorMode() == CActor::eASM_None);
 }
 
