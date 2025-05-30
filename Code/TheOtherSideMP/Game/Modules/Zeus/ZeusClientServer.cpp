@@ -101,12 +101,13 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3 
 		clientChannelId);
 }
 
-bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor *pPlayer, bool bMake, const char *desiredTeam)
+bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor *pActor, bool bMake, const char *desiredTeam)
 {
-	if (!pPlayer)
+	if (!pActor)
 		return false;
 
-	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
+	auto pModule = g_pTOSGame->GetZeusModule();
+	auto pSync = pModule->GetSynchronizer();
 	if (!pSync)
 		return false;
 
@@ -114,8 +115,17 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor *pPlayer, bool bMake,
 	if (!pGameRules)
 		return false;
 
-	// Нужно для того чтобы игрок летал и был невидимым
-	pGameRules->ChangeSpectatorMode(static_cast<CActor *>(pPlayer), bMake ? CActor::eASM_Zeus : CActor::eASM_None, 0, true);
+	CTOSPlayer *pPlayer = static_cast<CTOSPlayer *>(pActor);
+
+	if (bMake == false 
+		&& pModule->GetLocal().GetFlag(CTOSZeusModule::EFlag::Zeusing) 
+		&& pPlayer->GetSpectatorMode() != CActor::eASM_None)
+	{
+		// Нужно для того чтобы игрок летал и был невидимым
+		pGameRules->ChangeSpectatorMode(pPlayer, CActor::eASM_Fixed, 0, true);
+	}
+	else
+		pGameRules->ChangeSpectatorMode(static_cast<CActor *>(pPlayer), bMake ? CActor::eASM_Zeus : CActor::eASM_None, 0, true);
 
 	if (gEnv->bServer)
 	{

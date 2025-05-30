@@ -542,11 +542,8 @@ function InstantAction.Server:OnChangeSpectatorMode(playerId, mode, targetId, re
 		return;
 	end
 
-	LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] playerId = %s, mode = %s, targetId = %s, resetAll = %s, norevive = %s", 
-		tostring(playerId), tostring(mode), tostring(targetId), tostring(resetAll), tostring(norevive));
-
-	LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] ASM_FREE = %s, ASM_FOLLOW = %s, ASM_FIXED = %s, ASM_ZEUS = %s", 
-		tostring(ASM_FREE), tostring(ASM_FOLLOW), tostring(ASM_FIXED), tostring(ASM_ZEUS));
+	LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] player = %s, mode = %s, targetId = %s, resetAll = %s, norevive = %s", 
+		tostring(System.GetEntity(playerId)), tostring(mode), tostring(targetId), tostring(resetAll), tostring(norevive));
 
 	if (mode>0) then
 		if(resetAll) then
@@ -556,7 +553,7 @@ function InstantAction.Server:OnChangeSpectatorMode(playerId, mode, targetId, re
 			--TheOtherSide: убрать проверку на режимы
 			--if(mode==ASM_FOLLOW or mode==ASM_FIXED or mode==ASM_ZEUS) then
 			self.game:SetTeam(0, playerId);
-			LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] set team %s", tostring(0));
+			--LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] set team %s", tostring(0));
 			--end
 			--~TheOtherSide
 		end
@@ -850,6 +847,9 @@ end
 ----------------------------------------------------------------------------------------------------
 function InstantAction:RevivePlayer(channelId, player, keepEquip)
 
+	LogAlways("<lua> [InstantAction:RevivePlayer] playerName = %s, channelId = %s, keepEquip = %s",
+		tostring(player:GetName()), tostring(channelId), tostring(keepEquip));
+
 	local result=false;
 	local groupId=player.spawnGroupId;
 
@@ -863,7 +863,7 @@ function InstantAction:RevivePlayer(channelId, player, keepEquip)
 		keepEquip=false;
 	end
 
-	Log("<lua> Revive player: '"..playerName.."' team: "..teamName.." teamId: "..teamId)
+	Log("<lua> Revive player: '"..playerName.."' team: "..tostring(teamName).." teamId: "..teamId)
 	
 	player.lastExitedVehicleId = nil;
 	player.lastExitedVehicleTime = nil;
@@ -957,11 +957,6 @@ function InstantAction:RevivePlayer(channelId, player, keepEquip)
 
 		-- Когда игрок не контролирует ни одного раба и не будет контролировать раба
 		if not (isControllingSlave or willControlSlave) then
-			
-			-- Если зевс, то не выдаем оружие
-			if (teamName == ZEUS_TEAM_NAME) then
-				return;
-			end
 
 			if (not keepEquip) then
 				local additionalEquip;
