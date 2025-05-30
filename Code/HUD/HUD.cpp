@@ -1,5 +1,5 @@
-/*************************************************************************
-Crytek Source File.
+﻿/*************************************************************************
+Crytek Surce File.
 Copyright (C), Crytek Studios, 2001-2005.
 -------------------------------------------------------------------------
 $Id$
@@ -1061,6 +1061,10 @@ void CHUD::GameRulesSet(const char* name)
 			gameRules = EHUD_TEAMACTION;
 		else if (!stricmp(name, "TeamInstantAction"))
 			gameRules = EHUD_TEAMINSTANTACTION;
+		//Crysis Co-op
+		else if (!stricmp(name, "Coop"))
+			gameRules = EHUD_COOP;
+		//~Crysis Co-op
 	}
 
 	if (m_currentGameRules != gameRules)//unload stuff
@@ -2029,52 +2033,57 @@ void CHUD::HandleFSCommand(const char* szCommand, const char* szArgs)
 		ChangeBuyMenuLayer(SBuyMenuKeyLog::eBMKL_NoInput);
 	}
 	//multiplayer map functions
-	if (gEnv->bMultiplayer)
+	//Crysis Co-op
+	if (m_currentGameRules != EHUD_COOP)
 	{
-		if (!strcmp(szCommand, "MPMap_SelectObjective"))
+	//~Crysis Co-op
+		if (gEnv->bMultiplayer)
 		{
-			EntityId id = 0;
-			if (szArgs)
-				id = EntityId(atoi(szArgs));
-			SetOnScreenObjective(id);
-		}
-		else if (!strcmp(szCommand, "MPMap_SelectSpawnPoint"))
-		{
-			EntityId id = 0;
-			if (szArgs)
-				id = EntityId(atoi(szArgs));
-
-			CActor* pActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
-
-			CGameRules* pGameRules = (CGameRules*)(gEnv->pGame->GetIGameFramework()->GetIGameRulesSystem()->GetCurrentGameRules());
-			EntityId iCurrentSpawnPoint = 0;
-			if (pGameRules)
-				iCurrentSpawnPoint = pGameRules->GetPlayerSpawnGroup(pActor);
-
-			if (iCurrentSpawnPoint && iCurrentSpawnPoint == id)
+			if (!strcmp(szCommand, "MPMap_SelectObjective"))
 			{
+				EntityId id = 0;
+				if (szArgs)
+					id = EntityId(atoi(szArgs));
 				SetOnScreenObjective(id);
 			}
-			else if (pGameRules)
+			else if (!strcmp(szCommand, "MPMap_SelectSpawnPoint"))
 			{
-				pGameRules->RequestSpawnGroup(id);
-				m_changedSpawnGroup = true;
+				EntityId id = 0;
+				if (szArgs)
+					id = EntityId(atoi(szArgs));
+
+				CActor* pActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
+
+				CGameRules* pGameRules = (CGameRules*)(gEnv->pGame->GetIGameFramework()->GetIGameRulesSystem()->GetCurrentGameRules());
+				EntityId iCurrentSpawnPoint = 0;
+				if (pGameRules)
+					iCurrentSpawnPoint = pGameRules->GetPlayerSpawnGroup(pActor);
+
+				if (iCurrentSpawnPoint && iCurrentSpawnPoint == id)
+				{
+					SetOnScreenObjective(id);
+				}
+				else if (pGameRules)
+				{
+					pGameRules->RequestSpawnGroup(id);
+					m_changedSpawnGroup = true;
+				}
 			}
-		}
-		else if (!strcmp(szCommand, "HoverBuyItem"))
-		{
-			if (szArgs)
+			else if (!strcmp(szCommand, "HoverBuyItem"))
 			{
-				HUD_CALL_LISTENERS(OnBuyMenuItemHover(szArgs));
+				if (szArgs)
+				{
+					HUD_CALL_LISTENERS(OnBuyMenuItemHover(szArgs));
+				}
 			}
-		}
-		else if (!strcmp(szCommand, "RequestNewLoadoutName"))
-		{
-			if (m_pModalHUD == &m_animBuyMenu)
+			else if (!strcmp(szCommand, "RequestNewLoadoutName"))
 			{
-				string name;
-				m_pHUDPowerStruggle->RequestNewLoadoutName(name, "");
-				m_animBuyMenu.SetVariable("_root.POPUP.POPUP_NewPackage.m_modifyPackageName", SFlashVarValue(name));
+				if (m_pModalHUD == &m_animBuyMenu)
+				{
+					string name;
+					m_pHUDPowerStruggle->RequestNewLoadoutName(name, "");
+					m_animBuyMenu.SetVariable("_root.POPUP.POPUP_NewPackage.m_modifyPackageName", SFlashVarValue(name));
+				}
 			}
 		}
 	}
@@ -2697,8 +2706,10 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 	}
 	else if (action == rGameActions.hud_show_multiplayer_scoreboard && activationMode == eIS_Pressed)
 	{
-		if (gEnv->bMultiplayer)
+		// Crysis Co-op
+		if (gEnv->bMultiplayer && m_currentGameRules != EHUD_COOP)
 		{
+			// ~Crysis Co-op
 			if (m_animScoreBoard.IsLoaded() && m_pHUDScore && !m_pHUDScore->m_bShow && GetModalHUD() != &m_animWarningMessages)
 			{
 				g_pGame->GetGameRules()->ShowScores(true);
@@ -2733,8 +2744,10 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 			 ((action == rGameActions.hud_show_multiplayer_scoreboard && activationMode == eIS_Released) ||
 			 action == rGameActions.hud_hide_multiplayer_scoreboard))
 	{
-		if (gEnv->bMultiplayer)
+		// Crysis Co-op
+		if (gEnv->bMultiplayer && m_currentGameRules != EHUD_COOP)
 		{
+			//~Crysis Co-op
 			if (m_animScoreBoard.IsLoaded() && m_pHUDScore && m_pHUDScore->m_bShow)
 			{
 				g_pGame->GetGameRules()->ShowScores(false);
@@ -3007,8 +3020,18 @@ void CHUD::ShowObjectives(bool bShow)
 		m_animBattleLog.SetVisible(!bShow);
 	}
 
-	if (!gEnv->bMultiplayer)
+	//Crysis Co-op
+
+	/*if(!gEnv->bMultiplayer)
+		ShowPDA(bShow, false);*/
+
+	// Если в не мультиплеере или в режиме Crysis Co-op, то показываем PDA
+	if (!gEnv->bMultiplayer || m_currentGameRules == EHUD_COOP)
+	{
 		ShowPDA(bShow, false);
+	}
+
+	//~Crysis Co-op
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -3060,43 +3083,48 @@ bool CHUD::ShowPDA(bool show, bool buyMenu)
 					pWeapon->StopZoom(pActor->GetEntityId());
 
 	//TheOtherSide
-	auto pZeusModule = g_pTOSGame->GetZeusModule();
-	if (show && pZeusModule && pZeusModule->GetHUD().IsShowZeusMenu())
-		pZeusModule->GetHUD().ShowZeusMenu(false);
+	auto& hud = g_pTOSGame->GetZeusModule()->GetHUD();
+	if (show && hud.IsShowZeusMenu())
+		hud.ShowZeusMenu(false);
 	//~TheOtherSide
 
-	if (gEnv->bMultiplayer && pGameRules->GetTeamCount() > 1)
+	//Crysis Co-op
+	if (m_currentGameRules != EHUD_COOP)
 	{
-		if (pGameRules->GetTeam(pActor->GetEntityId()) == 0) //show team selection
+		//~Crysis Co-op
+		if (gEnv->bMultiplayer && pGameRules->GetTeamCount() > 1)
 		{
-			if (buyMenu)
+			if (pGameRules->GetTeam(pActor->GetEntityId()) == 0) //show team selection
+			{
+				if (buyMenu)
+					return false;
+
+				if (show && (!GetModalHUD() || GetModalHUD() != &m_animTeamSelection))
+				{
+					m_animTeamSelection.GetFlashPlayer()->SetVisible(true);
+					SwitchToModalHUD(&m_animTeamSelection, true);
+					m_spawnWarningTimer = 2.0f;
+				}
+				else if (GetModalHUD() == &m_animTeamSelection)
+				{
+					m_animTeamSelection.SetVisible(false);
+					SwitchToModalHUD(NULL, false);
+				}
+
 				return false;
-
-			if (show && (!GetModalHUD() || GetModalHUD() != &m_animTeamSelection))
-			{
-				m_animTeamSelection.GetFlashPlayer()->SetVisible(true);
-				SwitchToModalHUD(&m_animTeamSelection, true);
-				m_spawnWarningTimer = 2.0f;
-			}
-			else if (GetModalHUD() == &m_animTeamSelection)
-			{
-				m_animTeamSelection.SetVisible(false);
-				SwitchToModalHUD(NULL, false);
 			}
 
-			return false;
-		}
-
-		if (m_currentGameRules == EHUD_POWERSTRUGGLE ||
-			m_currentGameRules == EHUD_TEAMINSTANTACTION)
-		{
-			if (!buyMenu && show && m_pModalHUD == NULL)
+			if (m_currentGameRules == EHUD_POWERSTRUGGLE ||
+				m_currentGameRules == EHUD_TEAMINSTANTACTION)
 			{
-				if (!pActor || pGameRules->GetTeam(pActor->GetEntityId()) != 0)
-					ShowObjectives(true);
+				if (!buyMenu && show && m_pModalHUD == NULL)
+				{
+					if (!pActor || pGameRules->GetTeam(pActor->GetEntityId()) != 0)
+						ShowObjectives(true);
+				}
+				else if (!show)
+					ShowObjectives(false);
 			}
-			else if (!show)
-				ShowObjectives(false);
 		}
 	}
 
@@ -3137,10 +3165,15 @@ bool CHUD::ShowPDA(bool show, bool buyMenu)
 
 	if (show && m_pModalHUD == NULL)
 	{
-		if (gEnv->bMultiplayer && m_animRadioButtons.GetVisible())
+		//Crysis Co-op
+		if (m_currentGameRules != EHUD_COOP)
 		{
-			pGameRules->GetRadio()->CancelRadio();
-			SetRadioButtons(false);
+			//~Crysis Co-op
+			if (gEnv->bMultiplayer && m_animRadioButtons.GetVisible())
+			{
+				pGameRules->GetRadio()->CancelRadio();
+				SetRadioButtons(false);
+			}
 		}
 
 		if (m_pHUDPowerStruggle)
@@ -3180,7 +3213,9 @@ bool CHUD::ShowPDA(bool show, bool buyMenu)
 		}
 
 		SetFlashColor(anim);
-		anim->Invoke("showPDA", gEnv->bMultiplayer);
+		//Crysis Co-op: показываем PDA если в мультиплеере и не в режиме Crysis Co-op
+		anim->Invoke("showPDA", gEnv->bMultiplayer && m_currentGameRules != EHUD_COOP);
+		//~Crysis Co-op
 		if (buyMenu)
 		{
 			anim->GetFlashPlayer()->Advance(0.1f);
@@ -4014,11 +4049,13 @@ void CHUD::OnPostUpdate(float frameTime)
 				FadeCinematicBars(0);
 			}
 
-			if (GetModalHUD() == &m_animTeamSelection)
+			// TheOtherSide: скрываем меню выбора команды если игрок не в режиме зевса
+			if (!(specMode == CActor::eASM_Zeus) && GetModalHUD() == &m_animTeamSelection)
 			{
 				m_animTeamSelection.SetVisible(false);
 				SwitchToModalHUD(NULL, false);
 			}
+			//~TheOtherSide
 
 			CreateInterference();
 
@@ -4363,6 +4400,21 @@ bool CHUD::UpdateTimers(float frameTime)
 
 	CTimeValue now = gEnv->pTimer->GetFrameStartTime();
 	CPlayer* pPlayer = static_cast<CPlayer*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
+
+	// Crysis Co-op
+	// TheOtherSide TODO: ХЗ зачем тут m_bDead
+	//if (gEnv->bMultiplayer && m_currentGameRules == EHUD_COOP && pPlayer->GetHealth() <= 0.f)
+	//{
+	//	DisplayOverlayFlashMessage("Waiting for Revive.", ColorF(0, 1.0, 0), false);
+	//	m_bDead = true;
+	//}
+	//else if (m_bDead)
+	//{
+	//	m_bDead = false;
+	//	DisplayOverlayFlashMessage("");
+	//}
+	// ~Crysis Co-op
+
 
 	if (m_fPlayerDeathTime && m_animWarningMessages.IsLoaded())
 	{
@@ -5054,7 +5106,12 @@ void CHUD::UpdateObjective(CHUDMissionObjective* pObjective)
 		m_pHUDRadar->UpdateMissionObjective(pObjective->GetTrackedEntity(), active, pObjective->GetMapLabel(), pObjective->IsSecondary());
 	}
 
-	if (!gEnv->bMultiplayer || m_currentGameRules == EHUD_POWERSTRUGGLE) //in multiplayer the objectives are set in the miniMap only
+	// Crysis Co-op
+	//if(!gEnv->bMultiplayer || m_currentGameRules == EHUD_POWERSTRUGGLE) //in multiplayer the objectives are set in the miniMap only
+	if (!gEnv->bMultiplayer 
+		|| m_currentGameRules == EHUD_POWERSTRUGGLE 
+		|| m_currentGameRules == EHUD_COOP) //in multiplayer the objectives are set in the miniMap only
+		//~Crysis Co-op
 	{
 		m_animObjectivesTab.Invoke("resetObjectives");
 		THUDObjectiveList::iterator it = m_hudObjectivesList.begin();
@@ -5667,6 +5724,50 @@ void CHUD::LoadGameRulesHUD(bool load)
 				m_animObjectivesTab.Unload();
 			}
 			break;
+		//Crysis Co-op
+		case EHUD_COOP:
+			if (load)
+			{
+				if (!m_animObjectivesTab.IsLoaded())
+				{
+					m_animObjectivesTab.Load("Libs/UI/HUD_MissionObjectives.gfx", eFD_Left, eFAF_Visible);
+					m_animObjectivesTab.Invoke("showObjectives", "noAnim");
+					m_animObjectivesTab.SetVisible(false);
+				}
+
+				if (!m_animMessages.IsLoaded())
+					m_animMessages.Load("Libs/UI/HUD_Messages.gfx");
+
+				if (m_animHexIcons.IsLoaded())
+					m_animHexIcons.Unload();
+
+				if (!m_animHexIcons.IsLoaded())
+					m_animHexIcons.Load("Libs/UI/HUD_SP_HexIcons.gfx", eFD_Left, eFAF_Visible);
+
+				if (!m_animChat.IsLoaded())
+				{
+					m_animChat.Load("Libs/UI/HUD_ChatSystem.gfx", eFD_Left);
+					if (m_pHUDTextChat)
+						m_pHUDTextChat->Init(&m_animChat);
+				}
+
+				if (!m_animVoiceChat.IsLoaded())
+					m_animVoiceChat.Load("Libs/UI/HUD_MultiPlayer_VoiceChat.gfx", eFD_Right, eFAF_ThisHandler);
+				if (!m_animBattleLog.IsLoaded())
+					m_animBattleLog.Load("Libs/UI/HUD_MP_Log.gfx", eFD_Left);
+			}
+			else
+			{
+				m_animObjectivesTab.Unload();
+				m_animMessages.Unload();
+				if (m_pHUDTextChat)
+					m_pHUDTextChat->Init(0);
+				m_animChat.Unload();
+				m_animVoiceChat.Unload();
+				m_animBattleLog.Unload();
+			}
+			break;
+			//~Crysis Co-op
 	}
 }
 

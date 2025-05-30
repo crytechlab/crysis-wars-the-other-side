@@ -1,4 +1,4 @@
-/*************************************************************************
+﻿/*************************************************************************
 Crytek Source File.
 Copyright (C), Crytek Studios, 2001-2005.
 -------------------------------------------------------------------------
@@ -22,6 +22,11 @@ History:
 #include "HUDRadar.h"
 #include "HUDTagNames.h"
 #include "IUIDraw.h"
+
+//TheOtherSide
+#include <TheOtherSideMP/Helpers/TOS_Script.h>
+#include <TheOtherSideMP/Helpers/TOS_Entity.h>
+//~TheOtherSide
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -140,21 +145,43 @@ bool CHUDTagNames::ProjectOnSphere(Vec3 &rvWorldPos,const AABB &rBBox)
 
 bool CHUDTagNames::IsFriendlyToClient(EntityId uiEntityId)
 {
-	IActor *client = g_pGame->GetIGameFramework()->GetClientActor();
+	IActor *pLocalPlayer = g_pGame->GetIGameFramework()->GetClientActor();
 	CGameRules *pGameRules = g_pGame->GetGameRules();
-	if(!client || !pGameRules)
+	if(!pLocalPlayer || !pGameRules)
 		return false;
 
+	// Crysis Co-op :: Player is always friendly in co-op if have same species
+	if (CHUD* pHud = g_pGame->GetHUD())
+	{
+		if (pHud->GetCurrentGameRules() == EHUDGAMERULES::EHUD_COOP)
+		{
+			if (IActor* pActor = TOS_GET_ACTOR(uiEntityId))
+			{
+				int actorSpecies = -1;
+				int localPlayerSpecies = -1;
+
+				tos::script::GetEntityProperty(pActor->GetEntity(), "species", actorSpecies);
+				tos::script::GetEntityProperty(pActor->GetEntity(), "species", localPlayerSpecies);
+
+				if (pActor->IsPlayer() 
+					&& pActor != pLocalPlayer
+					&& actorSpecies == localPlayerSpecies)
+					return true;
+			}
+		}
+	}
+	// ~Crysis Co-op
+
 	// local player is always friendly to himself :)
-	if(client->GetEntityId() == uiEntityId)
+	if(pLocalPlayer->GetEntityId() == uiEntityId)
 		return true;
 
-	int playerTeam = pGameRules->GetTeam(client->GetEntityId());
+	int playerTeam = pGameRules->GetTeam(pLocalPlayer->GetEntityId());
 
 	// if this actor is spectating, use the team of the player they are spectating instead...
-	if(static_cast<CActor*>(client)->GetSpectatorMode() == CActor::eASM_Follow)
+	if(static_cast<CActor*>(pLocalPlayer)->GetSpectatorMode() == CActor::eASM_Follow)
 	{
-		playerTeam = pGameRules->GetTeam(static_cast<CActor*>(client)->GetSpectatorTarget());
+		playerTeam = pGameRules->GetTeam(static_cast<CActor*>(pLocalPlayer)->GetSpectatorTarget());
 	}
 
 	// Less than 2 teams means we are in a FFA based game.
