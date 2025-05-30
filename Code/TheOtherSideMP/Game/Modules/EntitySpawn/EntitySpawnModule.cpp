@@ -36,6 +36,34 @@ void CTOSEntitySpawnModule::GetMemoryStatistics(ICrySizer* s)
     s->AddContainer(m_removeDelay);
 }
 
+void CTOSEntitySpawnModule::DumpModuleInfo()
+{
+    
+}
+
+CScriptableBase *CTOSEntitySpawnModule::GetScriptBind()
+{
+    return nullptr;
+}
+
+void CTOSEntitySpawnModule::InitScriptBinds()
+{
+}
+
+void CTOSEntitySpawnModule::ReleaseScriptBinds()
+{
+}
+
+bool CTOSEntitySpawnModule::OnInputEvent(const SInputEvent &event)
+{
+    return false;
+}
+
+bool CTOSEntitySpawnModule::OnInputEventUI(const SInputEvent &event)
+{
+    return false;
+}
+
 void CTOSEntitySpawnModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event)
 {
     TOS_INIT_EVENT_VALUES(pEntity, event);

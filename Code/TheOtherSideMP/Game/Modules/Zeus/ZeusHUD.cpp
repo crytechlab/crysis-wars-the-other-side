@@ -13,6 +13,7 @@ Copyright (C), AlienKeeper, 2024.
 #include <TheOtherSideMP\Helpers\TOS_Entity.h>
 #include <TheOtherSideMP\Helpers\TOS_Screen.h>
 #include <TheOtherSideMP\Helpers\TOS_STL.h>
+#include <GameActions.h>
 
 void CTOSZeusModule::HUD::Init()
 {
@@ -315,15 +316,26 @@ void CTOSZeusModule::HUD::UpdateZeusMenuItemList(const char* szPageIdx)
 
 bool CTOSZeusModule::HUD::ShowZeusMenu(bool show)
 {
+	auto pHUD = g_pGame->GetHUD();
+	if (!pHUD)
+		return false;
+
 	if (show && gEnv->pGame->GetIGameFramework()->GetIViewSystem()->IsPlayingCutScene())
 		return false;
 
 	m_menuShow = show;
 	m_animZeusMenu.Invoke(m_menuShow ? "showPDA" : "hidePDA");
 
-	auto pHUD = g_pGame->GetHUD();
-	if (show && pHUD)
+	if (show)
+	{
 		pHUD->ShowPDA(false, false);
+		pHUD->SwitchToModalHUD(&m_animZeusMenu, true);
+	}
+	else
+	{
+		if (pHUD->GetModalHUD() == &m_animZeusMenu)
+			pHUD->SwitchToModalHUD(nullptr, true);
+	}
 }
 
 bool CTOSZeusModule::HUD::IsShowZeusMenu() const
@@ -457,6 +469,16 @@ CTOSZeusModule::HUD::HUD(CTOSZeusModule* _pParent)
 	m_menuSpawnHandling(false),
 	m_menuShow(false)
 {
+}
+
+bool CTOSZeusModule::HUD::IsModalZeusMenu() const
+{
+	return g_pGame->GetHUD()->IsHaveModalHUD() && g_pGame->GetHUD()->GetModalHUD() == &m_animZeusMenu;
+}
+
+bool CTOSZeusModule::HUD::IsModalZeusMenuOnlyOrNot() const
+{
+	return IsModalZeusMenu() || g_pGame->GetHUD()->IsHaveModalHUD() == false;
 }
 
 void CTOSZeusModule::HUD::Reset()

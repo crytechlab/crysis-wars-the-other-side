@@ -541,16 +541,23 @@ function InstantAction.Server:OnChangeSpectatorMode(playerId, mode, targetId, re
 	if (not player) then
 		return;
 	end
-		
+
+	LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] playerId = %s, mode = %s, targetId = %s, resetAll = %s, norevive = %s", 
+		tostring(playerId), tostring(mode), tostring(targetId), tostring(resetAll), tostring(norevive));
+
+	LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] ASM_FREE = %s, ASM_FOLLOW = %s, ASM_FIXED = %s, ASM_ZEUS = %s", 
+		tostring(ASM_FREE), tostring(ASM_FOLLOW), tostring(ASM_FIXED), tostring(ASM_ZEUS));
+
 	if (mode>0) then
 		if(resetAll) then
 			player.death_time=nil;
 			player.inventory:Destroy();	
 
-			--TheOtherSide: добавляем проверку на режимы ASM_ZEUS
-			if(mode==ASM_FOLLOW or mode==ASM_FIXED or mode==ASM_ZEUS) then
-				self.game:SetTeam(0, playerId);
-			end
+			--TheOtherSide: убрать проверку на режимы
+			--if(mode==ASM_FOLLOW or mode==ASM_FIXED or mode==ASM_ZEUS) then
+			self.game:SetTeam(0, playerId);
+			LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] set team %s", tostring(0));
+			--end
 			--~TheOtherSide
 		end
 		

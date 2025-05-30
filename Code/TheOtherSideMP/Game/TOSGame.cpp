@@ -179,7 +179,7 @@ void CTOSGame::ReleaseScriptBinds()
 
 void CTOSGame::OnLevelNotFound(const char* levelName)
 {
-
+	
 }
 
 void CTOSGame::OnLoadingStart(ILevelInfo* pLevel)
@@ -354,7 +354,7 @@ void CTOSGame::UpdateContextViewState()
 				break;
 		}
 
-		TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_UpdateContextViewState, state, true));
+		TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_UpdateContextViewState, state, true, false, nullptr, 0.0f, currentState));
 	}
 
 }

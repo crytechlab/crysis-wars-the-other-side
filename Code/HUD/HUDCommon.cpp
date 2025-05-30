@@ -335,4 +335,10 @@ void CHUDCommon::Serialize(TSerialize ser)
 	m_bForceInterferenceUpdate = true;
 }
 
+//TheOtherSide
 //-----------------------------------------------------------------------------------------------------
+int CHUDCommon::GetCursorVisibilityCounter() const
+{
+	return m_iCursorVisibilityCounter;
+}
+//~TheOtherSide

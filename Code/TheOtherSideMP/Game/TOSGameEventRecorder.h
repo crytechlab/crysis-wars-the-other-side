@@ -33,7 +33,7 @@ enum EExtraGameplayEvent
 {
 	//If update this, plz update GetStringFromEnum func
 
-	eEGE_MainMenuOpened = 36,
+	eEGE_InGameMainMenuOpened = 36,
 
 	eEGE_ActorGrabbed, //NOT USED
 	eEGE_ActorDropped, //NOT USED
@@ -65,8 +65,9 @@ enum EExtraGameplayEvent
 
 	eEGE_OnPlayerJoinedGame, // Игрок нажал кнопку "Присоединится" и появился в игре. Не срабатывает автоматически когда игрок в игре, но после sv_restart 
 	eEGE_OnPlayerJoinedSpectator, // Игрок нажал кнопку "Зритель" и перешёл в режим зрителя
-	eEGE_OnPlayerJoinedCutscene,
-	eEGE_OnPlayerJoinedZeus,
+	eEGE_OnPlayerLeftZeus, // Игрок вышел из режима зрителя зевса
+	eEGE_OnPlayerJoinedCutscene, // Игрок смотрит сцену
+	eEGE_OnPlayerJoinedZeus, // Игрок нажал кнопку "Зевс" и перешёл в режим зевса
 
 	eEGE_GamerulesReset, // log off
 	eEGE_GamerulesStartGame, // log off
@@ -125,7 +126,7 @@ enum EExtraGameplayEvent
 
 	eEGE_VehicleDestroyed,
 	eEGE_OnEntitySetTeam, //Смена команды у сущности
-	eEGE_OnPlayerChangeTeam, //Смена команды у игрока с учетом игровых правил
+	eEGE_OnPlayerPreChangeTeam, //Смена команды у игрока с учетом игровых правил
 
 	eEGE_Last,
 };
@@ -259,8 +260,8 @@ public:
 				return "LeftVehicle";
 
 				//eEGE - TOS events
-			case eEGE_MainMenuOpened:
-				return "MainMenuOpened";
+			case eEGE_InGameMainMenuOpened:
+				return "InGameMainMenuOpened";
 			case eEGE_ActorGrabbed:
 				return "ActorGrabbed";
 			case eEGE_ActorDropped:
@@ -293,6 +294,8 @@ public:
 				return "EditorGameExit";
 			case eEGE_OnPlayerJoinedGame:
 				return "PlayerJoinedGame";
+			case eEGE_OnPlayerLeftZeus:
+				return "PlayerLeftSpectator";
 			case eEGE_OnPlayerJoinedSpectator:
 				return "PlayerJoinedSpectator";
 			case eEGE_OnPlayerJoinedCutscene:
@@ -393,7 +396,7 @@ public:
 				return "ActorInit";
 			case eEGE_OnEntitySetTeam:
 				return "EntitySetTeam";
-			case eEGE_OnPlayerChangeTeam:
+			case eEGE_OnPlayerPreChangeTeam:
 				return "PlayerChangeTeam";
 			case eEGE_Last:
 				return "Last";

@@ -12,18 +12,16 @@ Copyright (C), AlienKeeper, 2024.
 
 void CTOSEntitySpawnModule::InitCVars(IConsole* pConsole)
 {
-	CTOSGenericModule::InitCVars(pConsole);
+
 }
 
 void CTOSEntitySpawnModule::ReleaseCVars()
 {
-	CTOSGenericModule::ReleaseCVars();
+
 }
 
 void CTOSEntitySpawnModule::InitCCommands(IConsole* pConsole)
 {
-	CTOSGenericModule::InitCCommands(pConsole);
-
 	pConsole->AddCommand("spawnentity", CmdSpawnEntity);
 	pConsole->AddCommand("removeentity", CmdRemoveEntity);
 	pConsole->AddCommand("removeentityforced", CmdRemoveEntityForced);
@@ -33,8 +31,6 @@ void CTOSEntitySpawnModule::InitCCommands(IConsole* pConsole)
 
 void CTOSEntitySpawnModule::ReleaseCCommands()
 {
-	CTOSGenericModule::ReleaseCCommands();
-
 	const auto pConsole = gEnv->pConsole;
 
 	pConsole->RemoveCommand("spawnentity");

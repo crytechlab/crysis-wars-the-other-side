@@ -1011,6 +1011,9 @@
     <ClCompile Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_ItemSystem.cpp">
       <Filter>TheOtherSideMP\Game\ScriptBinds</Filter>
     </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusInput.cpp">
+      <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">

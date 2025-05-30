@@ -21,69 +21,68 @@ class CTOSGenericSynchronizer;
  */
 struct STOSMasterClientSavedParams
 {
-	EntityId                                 masterId;
-	Vec3                                     pos;
-	Quat                                     rot;
-	float                                    suitEnergy;
-	uint                                     suitMode;
-	int                                      species;
+	EntityId masterId;
+	Vec3 pos;
+	Quat rot;
+	float suitEnergy;
+	uint suitMode;
+	int species;
 	std::unordered_map<unsigned int, string> inventoryItems;
-	string                                   currentItemClass;
-	bool                                     dirty;
+	string currentItemClass;
+	bool dirty;
 
 	STOSMasterClientSavedParams()
 		: masterId(0),
-		suitEnergy(0),
-		suitMode(0),
-		species(-1),
-		dirty(false)
-	{};
+		  suitEnergy(0),
+		  suitMode(0),
+		  species(-1),
+		  dirty(false) {};
 
-	STOSMasterClientSavedParams(const STOSMasterClientSavedParams& other)
+	STOSMasterClientSavedParams(const STOSMasterClientSavedParams &other)
 		: masterId(other.masterId),
-		pos(other.pos),
-		rot(other.rot),
-		suitEnergy(other.suitEnergy),
-		suitMode(other.suitMode),
-		species(other.species),
-		inventoryItems(other.inventoryItems),
-		currentItemClass(other.currentItemClass)
-	{}
+		  pos(other.pos),
+		  rot(other.rot),
+		  suitEnergy(other.suitEnergy),
+		  suitMode(other.suitMode),
+		  species(other.species),
+		  inventoryItems(other.inventoryItems),
+		  currentItemClass(other.currentItemClass)
+	{
+	}
 };
-
 
 /**
  * \brief хранит информацию о канале мастера во время перезапуска игры.
    \n Нужен для фикса бага: https://github.com/akeeperctl/crysis-wars-the-other-side/issues/9
  */
-struct STOSScheduledMasterInfo : STOSSmartStruct  // NOLINT(cppcoreguidelines-special-member-functions)
+struct STOSScheduledMasterInfo : STOSSmartStruct // NOLINT(cppcoreguidelines-special-member-functions)
 {
-	STOSScheduledMasterInfo()
-		: masterChannelId(0),
-		inGameDelay(0)
-	{}
+	STOSScheduledMasterInfo() = default;
+	explicit STOSScheduledMasterInfo(const uint channelId, const float _delay)
+		 : masterChannelId(channelId)
+		 , inGameDelay(_delay)
+	{
+	}
 
-	explicit STOSScheduledMasterInfo(const uint channelId, const float _delay) :
-		masterChannelId(channelId),
-		inGameDelay(_delay)
-	{}
+	// ID канала мастера
+	uint masterChannelId{0};
 
-	uint masterChannelId;
-	float inGameDelay; ///< Задержка, которая начинает свой отсчёт (от x до 0) после того как \n канал мастера пребудет в состояние eCVS_InGame
+	// Задержка, которая начинает свой отсчёт (от x до 0) после того как \n канал мастера пребудет в состояние eCVS_InGame
+	float inGameDelay{0}; 
 };
 
 /**
  * \brief хранит информацию о работе одного мастера
  */
-struct STOSMasterInfo : STOSSmartStruct  // NOLINT(cppcoreguidelines-special-member-functions)
+struct STOSMasterInfo : STOSSmartStruct // NOLINT(cppcoreguidelines-special-member-functions)
 {
-	STOSMasterInfo() :
-		slaveId(0), flags(0)
-	{}
+	STOSMasterInfo() : slaveId(0), flags(0)
+	{
+	}
 
-	explicit STOSMasterInfo(const EntityId _slaveId) :
-		slaveId(_slaveId), flags(0)
-	{}
+	explicit STOSMasterInfo(const EntityId _slaveId) : slaveId(_slaveId), flags(0)
+	{
+	}
 
 	bool Serialize(TSerialize ser)
 	{
@@ -97,22 +96,24 @@ struct STOSMasterInfo : STOSSmartStruct  // NOLINT(cppcoreguidelines-special-mem
 	EntityId slaveId;
 	string desiredSlaveClassName;
 	uint flags;
-	STOSMasterClientSavedParams mcSavedParams;///< Сохраненные параметры, которые отправил мастер-клиент на сервер перед началом управления рабом. \n mc - мастер клиент
+	STOSMasterClientSavedParams mcSavedParams; ///< Сохраненные параметры, которые отправил мастер-клиент на сервер перед началом управления рабом. \n mc - мастер клиент
 };
 
 struct STOSStartControlInfo
 {
 	STOSStartControlInfo()
 		: slaveId(0),
-		masterChannelId(0),
-		startDelay(0)
-	{}
+		  masterChannelId(0),
+		  startDelay(0)
+	{
+	}
 
 	explicit STOSStartControlInfo(const EntityId _slaveId, const uint _masterChannelId, const float _delay)
 		: slaveId(_slaveId),
-		masterChannelId(_masterChannelId),
-		startDelay(_delay)
-	{}
+		  masterChannelId(_masterChannelId),
+		  startDelay(_delay)
+	{
+	}
 
 	EntityId slaveId;
 	uint masterChannelId;
@@ -127,9 +128,8 @@ struct STOSStartControlInfo
  * \note \a Мастер - это игрок, контролирующий в данный момент \a раба (в частности пришельца). (консольная команда tos_cl_JoinAsAlien)
  * \note \a Раб - это сущность, которую контролирует \a мастер в данный момент.
  */
-class CTOSMasterModule :
-	public CTOSGenericModule,
-	public IHitListener
+class CTOSMasterModule : public CTOSGenericModule,
+						 public IHitListener
 {
 	friend class CTOSMasterSynchronizer;
 	friend class CTOSMasterClient;
@@ -138,28 +138,32 @@ public:
 	CTOSMasterModule();
 	~CTOSMasterModule();
 
-	//ITOSGameModule
-	void OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event);
-	const char* GetName()
+	// ITOSGameModule
+	void OnExtraGameplayEvent(IEntity *pEntity, const STOSGameEvent &event) override;
+	const char *GetName() const override
 	{
 		return "ModuleMaster";
 	};
 	void Init();
-	void Update(float frametime);
-	void Serialize(TSerialize ser);
-	//bool NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profile, int flags) ;
-	void InitCVars(IConsole* pConsole);
-	void InitCCommands(IConsole* pConsole);
-	void ReleaseCVars();
-	void ReleaseCCommands();
-	//ITOSGameModule
+	void Update(float frametime) override;
+	void Serialize(TSerialize ser) override;
+	// bool NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profile, int flags) ;
+	void InitCVars(IConsole *pConsole) override;
+	void InitCCommands(IConsole *pConsole) override;
+	void ReleaseCVars() override;
+	void ReleaseCCommands() override;
+	void DumpModuleInfo() override;
+	CScriptableBase *GetScriptBind() override;
+	void InitScriptBinds() override;
+	void ReleaseScriptBinds() override;
+	bool OnInputEvent(const SInputEvent &event) override;
+	bool OnInputEventUI(const SInputEvent &event) override;
+	// ITOSGameModule
 
-	//IHitListener
-	void OnHit(const HitInfo&);
-	void OnExplosion(const ExplosionInfo&)
-	{};
-	void OnServerExplosion(const ExplosionInfo&)
-	{};
+	// IHitListener
+	void OnHit(const HitInfo &);
+	void OnExplosion(const ExplosionInfo &) {};
+	void OnServerExplosion(const ExplosionInfo &) {};
 	//~IHitListener
 
 	void Reset();
@@ -169,13 +173,13 @@ public:
 		\note Мастер-клиент создаётся при инициализации локального игрока
 	 * \return Указатель на локальный мастер-клиент
 	 */
-	CTOSMasterClient* GetMasterClient() const
+	CTOSMasterClient *GetMasterClient() const
 	{
-		//assert(m_pLocalMasterClient);
+		// assert(m_pLocalMasterClient);
 		return m_pLocalMasterClient;
 	};
 
-	void RegisterMasterClient(CTOSMasterClient* pMC)
+	void RegisterMasterClient(CTOSMasterClient *pMC)
 	{
 		assert(pMC);
 		m_pLocalMasterClient = pMC;
@@ -186,77 +190,73 @@ public:
 		m_pLocalMasterClient = nullptr;
 	}
 
-	void     MasterAdd(const IEntity* pMasterEntity, const char* slaveDesiredClass);
-	void     MasterRemove(const IEntity* pMasterEntity);
-	bool     IsMaster(const IEntity* pMasterEntity);
-	void	 GetMasters(std::map<EntityId, _smart_ptr<STOSMasterInfo>>& masters) const;
-	IEntity* GetMaster(const IEntity* pSlaveEntity) const;
-	bool     SetMasterDesiredSlaveCls(const IEntity* pEntity, const char* slaveDesiredClass);
+	void MasterAdd(const IEntity *pMasterEntity, const char *slaveDesiredClass);
+	void MasterRemove(const IEntity *pMasterEntity);
+	bool IsMaster(const IEntity *pMasterEntity);
+	void GetMasters(std::map<EntityId, _smart_ptr<STOSMasterInfo>> &masters) const;
+	IEntity *GetMaster(const IEntity *pSlaveEntity) const;
+	bool SetMasterDesiredSlaveCls(const IEntity *pEntity, const char *slaveDesiredClass);
 
-	IEntity* GetCurrentSlave(const IEntity* pMasterEntity);
-	void     SetCurrentSlave(const IEntity* pMasterEntity, const IEntity* pSlaveEntity, uint masterFlags);
-	void     ClearCurrentSlave(const IEntity* pMasterEntity);
-	bool     IsSlave(const IEntity* pPotentialSlave) const;
-	bool	 ReviveSlave(const IEntity* pSlaveEntity, const Vec3& revivePos, const Ang3& angles, const int teamId, const bool resetWeapons) const;
+	IEntity *GetCurrentSlave(const IEntity *pMasterEntity);
+	void SetCurrentSlave(const IEntity *pMasterEntity, const IEntity *pSlaveEntity, uint masterFlags);
+	void ClearCurrentSlave(const IEntity *pMasterEntity);
+	bool IsSlave(const IEntity *pPotentialSlave) const;
+	bool ReviveSlave(const IEntity *pSlaveEntity, const Vec3 &revivePos, const Ang3 &angles, const int teamId, const bool resetWeapons) const;
 
-	void     DebugDraw(const Vec2& screenPos = Vec2(20, 300), float fontSize = 1.2f, float interval = 20.0f, int maxElemNum = 5);
+	void DebugDraw(const Vec2 &screenPos = Vec2(20, 300), float fontSize = 1.2f, float interval = 20.0f, int maxElemNum = 5);
 
+	// Console command's functions
+	static void CmdDumpMastersList(IConsoleCmdArgs *pArgs);
+	static void CmdIsMaster(IConsoleCmdArgs *pArgs);
+	static void CmdMCStopControl(IConsoleCmdArgs *pArgs);
+	static void CmdDumpDudeItems(IConsoleCmdArgs *pArgs);
+	static void CmdDumpActorItems(IConsoleCmdArgs *pArgs);
+	static void CmdSetPhysProfile(IConsoleCmdArgs *pArgs);
+	static void CmdSetActorHealth(IConsoleCmdArgs *pArgs);
+	static void CmdGetActorHealth(IConsoleCmdArgs *pArgs);
+	static void CmdGetActorCurrentItem(IConsoleCmdArgs *pArgs);
+	static void CmdPlaySound2D(IConsoleCmdArgs *pArgs);
 
-	//Console command's functions
-	static void CmdDumpMastersList(IConsoleCmdArgs* pArgs);
-	static void CmdIsMaster(IConsoleCmdArgs* pArgs);
-	static void CmdMCStopControl(IConsoleCmdArgs* pArgs);
-	static void CmdDumpDudeItems(IConsoleCmdArgs* pArgs);
-	static void CmdDumpActorItems(IConsoleCmdArgs* pArgs);
-	static void CmdSetPhysProfile(IConsoleCmdArgs* pArgs);
-	static void CmdSetActorHealth(IConsoleCmdArgs* pArgs);
-	static void CmdGetActorHealth(IConsoleCmdArgs* pArgs);
-	static void CmdGetActorCurrentItem(IConsoleCmdArgs* pArgs);
-	static void CmdPlaySound2D(IConsoleCmdArgs* pArgs);
+	// Console variable's functions
+	static void CVarSetDesiredSlaveCls(ICVar *pVar);
 
-	//Console variable's functions
-	static void CVarSetDesiredSlaveCls(ICVar* pVar);
+	bool GetMasterInfo(const IEntity *pMasterEntity, STOSMasterInfo *info);
 
-	bool GetMasterInfo(const IEntity* pMasterEntity, STOSMasterInfo* info);
 protected:
 	/**
- * \brief Берёт параметры сущности с сервера и сохраняет их там-же на сервере
- * \param pMasterEntity - указатель на сущность мастера
- */
-	void SaveMasterClientParams(IEntity* pMasterEntity);
-	void ApplyMasterClientParams(IEntity* pMasterEntity);
+	 * \brief Берёт параметры сущности с сервера и сохраняет их там-же на сервере
+	 * \param pMasterEntity - указатель на сущность мастера
+	 */
+	void SaveMasterClientParams(IEntity *pMasterEntity);
+	void ApplyMasterClientParams(IEntity *pMasterEntity);
 
 private:
-
 	/**
 	 * \brief Функция предназначена дял конкретного случая на сервере. \n Она планирует отправку RMI'шку на клиент, \n когда тот будет полностью готов её принять.
 	 * \param info - информация о сущности раба и о канале клиента, \n которому передастся управление над рабом.
 	 */
-	void ScheduleMasterStartControl(const STOSStartControlInfo& info);
-
-
+	void ScheduleMasterStartControl(const STOSStartControlInfo &info);
 
 public:
+	// Console variables
+	//  cl - client
+	//  sv - server
+	//  mc - master client
+	//  pl - player
 
-	//Console variables
-	// cl - client
-	// sv - server
-	// mc - master client
-	// pl - player
+	// client variables
+	int tos_cl_JoinAsMaster;
+	// ICVar* tos_cl_SlaveEntityClass;
+	int tos_cl_playerFeedbackSoundsVersion;
+	int tos_cl_nanosuitSoundsVersion;
 
-	//client variables
-	int    tos_cl_JoinAsMaster;
-	//ICVar* tos_cl_SlaveEntityClass;
-	int	   tos_cl_playerFeedbackSoundsVersion;
-	int	   tos_cl_nanosuitSoundsVersion;
+	// server variables
+	int tos_sv_mc_LookDebugDraw;
+	float tos_sv_SlaveSpawnDelay;
+	float tos_sv_mc_StartControlDelay; // not used
+	float tos_sv_pl_inputAccel;
 
-	//server variables
-	int    tos_sv_mc_LookDebugDraw;
-	float  tos_sv_SlaveSpawnDelay;
-	float  tos_sv_mc_StartControlDelay;// not used
-	float  tos_sv_pl_inputAccel;
-
-	//trooper server variables
+	// trooper server variables
 	float tos_tr_jump_height;
 	float tos_tr_double_jump_force;
 	float tos_tr_charged_jump_mul;
@@ -271,7 +271,7 @@ public:
 	float tos_tr_regen_energy_recharge_time_mp;
 
 private:
-	std::map<EntityId, _smart_ptr<STOSMasterInfo>> m_masters; //ключ - мастер, значение - структура, хранящая имя класса раба, который должен будет заспавниться
-	CTOSMasterClient* m_pLocalMasterClient;
+	std::map<EntityId, _smart_ptr<STOSMasterInfo>> m_masters; // ключ - мастер, значение - структура, хранящая имя класса раба, который должен будет заспавниться
+	CTOSMasterClient *m_pLocalMasterClient;
 	std::map<EntityId, _smart_ptr<STOSScheduledMasterInfo>> m_scheduledTakeControls; ///< \b Что \b хранит: \n ключ - ID сущности раба \n значение - структуру канала клиента через который подключен мастер
 };

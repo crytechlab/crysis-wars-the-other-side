@@ -201,6 +201,11 @@ void CCoopSystem::OnPostResetEntities()
 //	Returns if the current gamerules being played is cooperative.
 bool CCoopSystem::IsCoop()
 {
-	const char* gameRulesName = gEnv->pGame->GetIGameFramework()->GetIGameRulesSystem()->GetCurrentGameRules()->GetEntity()->GetClass()->GetName();
-	return (strcmp(gameRulesName, "Coop") == 0);
+	if (auto pGameRules = gEnv->pGame->GetIGameFramework()->GetIGameRulesSystem()->GetCurrentGameRules())
+	{
+		const char* gameRulesName = pGameRules->GetEntity()->GetClass()->GetName();
+		return (strcmp(gameRulesName, "Coop") == 0);
+	}
+
+	return false;
 }

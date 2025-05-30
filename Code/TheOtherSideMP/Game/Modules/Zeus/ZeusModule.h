@@ -35,7 +35,7 @@ public:
 	{
 		CanRotateCamera = BIT(0),
 		Possessing = BIT(1), // зевс вселился в кого-то
-		CanUseMouse = BIT(2),
+		CanUseMouse = BIT(2), // можно ли использовать мышь для манипуляций с сущностями
 		Zeusing = BIT(3), // зевс активирован
 	};
 
@@ -250,9 +250,9 @@ public:
 
 	private:
 		static bool ServerMakeZeus(int playerChannelId, bool make, const char* desiredTeam = nullptr);
-		static bool ClientMakeZeus(bool make);
+        static bool ClientMakeZeus(bool make, bool bfromInit = false);
 
-		static bool ServerEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
+        static bool ServerEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
 		static bool ClientEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
 
 	public:
@@ -268,9 +268,8 @@ public:
 
 		Local::Local(CTOSZeusModule* _pParent);
 		bool GetFlag(EFlag flag) const;
-		CTOSPlayer* GetPlayer() const;
 
-	private:
+    private:
 		void ShowMouse(bool show);
 		void SetFlag(EFlag flag, bool value);
 		void Reset();
@@ -279,7 +278,7 @@ public:
 		void SaveEntitiesStartPositions();
 		bool SelectionFilter(EntityId id) const;
 		void UpdateUnitIcons(IActor* pClientActor);
-		void UpdateOrderIcons();
+		void UpdateOrderIcons(); 
 		void CreateOrderIcon(EntityId executorId, const SOrder& info);
 		void StopOrder(EntityId executorId);
 		void RemoveOrder(EntityId executorId);
@@ -330,15 +329,15 @@ public:
 		float m_mouseDownDurationSec; /// используется для включения режима выделения нескольких объектов одновременно
 
 		bool m_mouseDisplayed;
-		bool m_copying;
-		bool m_select;
-		bool m_dragging;
-		bool m_doubleClick;
+		bool m_copying; // true - идет копирование сущностей
+		bool m_select; // true - идет выделение сущностей
+		bool m_dragging; // true - идет перетаскивание сущностей
+		bool m_doubleClick; // true - идет двойной клик
 		bool m_ctrlModifier;
 		bool m_shiftModifier;
 		bool m_altModifier;
 		bool m_debugZModifier;
-		bool m_spaceFreeCam;
+		bool m_spaceFreeCam; // true - свободное движение камеры
 
 		uint m_mouseRayEntityFlags;
 		uint m_zeusFlags;
@@ -346,31 +345,31 @@ public:
 		Vec3 m_worldProjectedMousePos; // проекция от камеры до курсора умноженное на некоторое расстояние
 		Vec3 m_clickedSelectStartPos; // позиция кликнутой сущности во время её выделения
 		Vec3 m_worldMousePos;
-		Vec3 m_draggingDelta;
-		Vec3 m_orderPos;
-		Vec2 m_selectStartPos;
-		Vec2 m_selectStopPos;
+		Vec3 m_draggingDelta; // смещение перетаскиваемой сущности
+		Vec3 m_orderPos; 
+		Vec2 m_selectStartPos; // позиция начала выделения
+		Vec2 m_selectStopPos; // позиция конца выделения
 		Vec2 m_anchoredMousePos; // используется при остановке движения мыши, когда вертится камера
-		Vec2i m_mouseIPos;
+		Vec2i m_mouseIPos; // позиция мыши в пикселях
 
 		SmartScriptTable m_orderInfo;
 		SmartScriptTable m_executorInfo;
 
-		std::set<EntityId> m_doubleClickLastSelectedEntities;
+		std::set<EntityId> m_doubleClickLastSelectedEntities; // последние выбранные сущности при двойном клике
 		std::set<EntityId> m_selectedEntities; /// выделенные сущности
 
-		std::map<EntityId, Vec3> m_selectStartEntitiesPositions;
+		std::map<EntityId, Vec3> m_selectStartEntitiesPositions; // позиции сущностей в момент начала выделения
 		std::map<EntityId, Vec3> m_storedEntitiesPositions;
 		std::map<EntityId, _smart_ptr<SOBBWorldPos>> m_boxes; /// боксы выделенных сущностей
 		std::map<EntityId, SOrder> m_orders;
 
-		EntityId m_mouseOveredEntityId;
-		EntityId m_curClickedEntityId;
-		EntityId m_lastClickedEntityId;
+		EntityId m_mouseOveredEntityId; // сущность под курсором
+		EntityId m_curClickedEntityId; // текущая сущность, на которую нажали
+		EntityId m_lastClickedEntityId; // последняя сущность, на которую нажали
 		EntityId m_dragTargetId; // Сущность на которую перетаскивают
 		EntityId m_orderTargetId;
 
-		ray_hit m_mouseRay;
+		ray_hit m_mouseRay; 
 	public:
 		CTOSZeusModule* pParent;
 	};
@@ -383,6 +382,12 @@ public:
 		friend class CHUD;
 
 		HUD::HUD(CTOSZeusModule* _pParent);
+
+		// возвращает true, если модальное окно Зевса активно
+		bool IsModalZeusMenu() const;
+
+		// возвращает true, если модальное окно Зевса активно или нет других модальных окон
+		bool IsModalZeusMenuOnlyOrNot() const;
 
 	private:
 		void Reset();
@@ -429,21 +434,22 @@ public:
 	void Reset();
 
 	//ITOSGameModule
-	bool        OnInputEvent(const SInputEvent& event);
-	bool        OnInputEventUI(const SInputEvent& event);
-	void        OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event);
-	void        GetMemoryStatistics(ICrySizer* s);
-	const char* GetName();
-	void        Init();
-	void        Update(float frametime);
-	void        Serialize(TSerialize ser);
-	int			GetDebugLog();
-	void		InitCVars(IConsole* pConsole);
-	void		InitCCommands(IConsole* pConsole);
-	void		InitScriptBinds();
-	void		ReleaseCVars();
-	void		ReleaseCCommands();
-	void		ReleaseScriptBinds();
+    bool 		OnInputEvent(const SInputEvent &event) override;
+    bool        OnInputEventUI(const SInputEvent& event) override;
+	void        OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event) override;
+	void        GetMemoryStatistics(ICrySizer* s) override;
+	const char* GetName() const override;
+	void        Init() override;
+	void        Update(float frametime) override;
+	void        Serialize(TSerialize ser) override;
+	int			GetDebugLog() const override;
+	CScriptableBase* GetScriptBind() override;
+	void		InitCVars(IConsole* pConsole) override;
+	void		InitCCommands(IConsole* pConsole) override;
+	void		InitScriptBinds() override;
+	void		ReleaseCVars() override;
+	void		ReleaseCCommands() override;
+	void		ReleaseScriptBinds() override;
 	//~ITOSGameModule
 
 	//IHardwareMouseEventListener
@@ -465,6 +471,8 @@ public:
 	ClientServer& GetClientServer();
 	Local& GetLocal();
 	HUD& GetHUD();
+
+	void DumpModuleInfo() override;
 
 private:
 	Local m_local;

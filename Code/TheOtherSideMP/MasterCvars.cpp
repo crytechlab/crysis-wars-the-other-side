@@ -15,8 +15,6 @@ Copyright (C), AlienKeeper, 2024.
 
 void CTOSMasterModule::InitCVars(IConsole* pConsole)
 {
-	CTOSGenericModule::InitCVars(pConsole);
-
 	// консольные значения локального клиента
 	//tos_cl_SlaveEntityClass = pConsole->RegisterString("tos_cl_SlaveEntityClass", "Trooper", VF_NOT_NET_SYNCED, 
 		//"Class of entity that will be created as a slave for the client. "
@@ -87,8 +85,6 @@ void CTOSMasterModule::InitCVars(IConsole* pConsole)
 
 void CTOSMasterModule::ReleaseCVars()
 {
-	CTOSGenericModule::ReleaseCVars();
-
 	const auto pConsole = gEnv->pConsole;
 
 	//pConsole->UnregisterVariable("tos_cl_SlaveEntityClass", true);
@@ -120,8 +116,6 @@ void CTOSMasterModule::ReleaseCVars()
 
 void CTOSMasterModule::InitCCommands(IConsole* pConsole)
 {
-	CTOSGenericModule::InitCCommands(pConsole);
-
 	pConsole->AddCommand("tos_cmd_dumpmasterslist", CmdDumpMastersList);
 	pConsole->AddCommand("tos_cmd_dumpdudeitems", CmdDumpDudeItems);
 	pConsole->AddCommand("tos_cmd_dumpactoritems", CmdDumpActorItems);
@@ -136,8 +130,6 @@ void CTOSMasterModule::InitCCommands(IConsole* pConsole)
 
 void CTOSMasterModule::ReleaseCCommands()
 {
-	CTOSGenericModule::ReleaseCCommands();
-
 	const auto pConsole = gEnv->pConsole;
 
 	pConsole->RemoveCommand("tos_cmd_getmasterslist");
@@ -153,6 +145,29 @@ void CTOSMasterModule::ReleaseCCommands()
 	pConsole->RemoveCommand("tos_cmd_getactorcurrentitem");
 	pConsole->RemoveCommand("tos_cmd_playsound2d");
 
+}
+
+CScriptableBase *CTOSMasterModule::GetScriptBind()
+{
+    return nullptr;
+}
+
+void CTOSMasterModule::InitScriptBinds()
+{
+}
+
+void CTOSMasterModule::ReleaseScriptBinds()
+{
+}
+
+bool CTOSMasterModule::OnInputEvent(const SInputEvent &event)
+{
+    return false;
+}
+
+bool CTOSMasterModule::OnInputEventUI(const SInputEvent &event)
+{
+    return false;
 }
 
 void CTOSMasterModule::OnHit(const HitInfo& info)
@@ -437,4 +452,12 @@ void CTOSMasterModule::CVarSetDesiredSlaveCls(ICVar* pVar)
 
 		pSynch->RMISend(CTOSMasterSynchronizer::SvRequestSetDesiredSlaveCls(), params, eRMI_ToServer);
 	}
+}
+
+void CTOSMasterModule::DumpModuleInfo()
+{
+	CryLog("Info for %s", GetName());
+
+	
+	CryLog("---------------------------");
 }

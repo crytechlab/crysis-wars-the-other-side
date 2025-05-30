@@ -1283,6 +1283,10 @@ void CFlashMenuObject::ShowInGameMenu(bool bShow)
 	{
 		SAFE_HUD_FUNC(UpdateHUDElements());
 	}
+
+	//TheOtherSide: запись события о том, что открылось главное меню в игре
+	TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_InGameMainMenuOpened, "", true));
+	//~TheOtherSide
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -3038,10 +3042,6 @@ void CFlashMenuObject::InitStartMenu()
 	SetAntiAliasingModes();
 
 	SetProfile();
-
-	//TheOtherSide
-	TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_MainMenuOpened, "", true));
-	//~TheOtherSide
 }
 
 //-----------------------------------------------------------------------------------------------------

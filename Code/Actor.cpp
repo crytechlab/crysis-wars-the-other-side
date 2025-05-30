@@ -475,15 +475,15 @@ void CActor::Revive( bool fromInit )
 
   if (IPhysicalEntity* pPhysics = GetEntity()->GetPhysics())
   {
-    pe_action_move actionMove;    
-    actionMove.dir.zero();
-    actionMove.iJump = 1;
+		pe_action_move actionMove;    
+		actionMove.dir.zero();
+		actionMove.iJump = 1;
 
 		pe_action_set_velocity actionVel;
 		actionVel.v.zero();
 		actionVel.w.zero();
     
-    pPhysics->Action(&actionMove);
+		pPhysics->Action(&actionMove);
 		pPhysics->Action(&actionVel);
   }
 

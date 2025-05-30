@@ -18,8 +18,6 @@ System.LogAlways("<lua> loading scripts/gamerules/teaminstantaction.lua")
 --------------------------------------------------------------------------
 TeamInstantAction = new(InstantAction);
 TeamInstantAction.States = { "Reset", "PreGame", "InGame", "PostGame", };
-
-
 -- timers
 TeamInstantAction.TEAM_CHANGE_MIN_TIME			= 60; -- time before allowing teamchange
 TeamInstantAction.MIN_TEAM_LIMIT_WARN_TIMER	= 15; -- team limit warning timer
@@ -43,7 +41,7 @@ TeamInstantAction.SCORE_SELFKILLS_KEY 		= InstantAction.SCORE_LAST_KEY+2;
 
 ----------------------------------------------------------------------------------------------------
 ZEUS_TEAM_NAME = "zeus"
-TeamInstantAction.teamName={ "tan", "black", "aliens", ZEUS_TEAM_NAME };
+TeamInstantAction.teamName={ "tan", "black", "aliens" };
 TeamInstantAction.teamModel=
 {
 	black =
@@ -76,16 +74,24 @@ TeamInstantAction.teamModel=
 		},
 	},
 	
-	zeus =
-	{
-		{
-			"objects/characters/human/us/nanosuit/nanosuit_us_multiplayer.cdf",
-			"objects/weapons/arms_global/arms_nanosuit_us.chr",
-			"objects/characters/human/asian/nk_soldier/nk_soldier_frozen_scatter.cgf",
-			"objects/characters/human/us/nanosuit/nanosuit_us_fp3p.cdf",
-		},
-	},
+	-- zeus =
+	-- {
+	-- 	{
+	-- 		"objects/characters/human/us/nanosuit/nanosuit_us_multiplayer.cdf",
+	-- 		"objects/weapons/arms_global/arms_nanosuit_us.chr",
+	-- 		"objects/characters/human/asian/nk_soldier/nk_soldier_frozen_scatter.cgf",
+	-- 		"objects/characters/human/us/nanosuit/nanosuit_us_fp3p.cdf",
+	-- 	},
+	-- },
 }
+
+--TheOtherSide: добавляем связь между командами и видами
+TeamInstantAction.teamSpeciesRelations = {
+	black = 0,
+	tan = 1,
+	aliens = 2,
+}
+--~TheOtherSide
 
 TeamInstantAction.SoundAlert=
 {

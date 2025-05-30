@@ -124,6 +124,12 @@ public:
     void ReleaseCVars() override;
     void ReleaseCCommands() override;
     void GetMemoryStatistics(ICrySizer* s) override;
+    void DumpModuleInfo() override;
+    CScriptableBase* GetScriptBind() override;
+    void InitScriptBinds() override;
+    void ReleaseScriptBinds() override;
+    bool OnInputEvent(const SInputEvent& event) override;
+    bool OnInputEventUI(const SInputEvent& event) override;
     // ~ITOSGameModule
 
     void Reset() noexcept;

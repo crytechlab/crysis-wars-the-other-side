@@ -68,6 +68,10 @@ public:
 	// Cursor handling
 	void CursorIncrementCounter();
 	void CursorDecrementCounter();
+	
+	//TheOtherSide
+	int GetCursorVisibilityCounter() const;
+	//~TheOtherSide
 
 	bool IsVisible() { return m_bShow; }
 

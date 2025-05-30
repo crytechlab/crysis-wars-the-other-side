@@ -507,6 +507,7 @@
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusClientServer.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusCvars.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusHUD.cpp" />
+    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusInput.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusLocal.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusModule.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusNodes.cpp" />

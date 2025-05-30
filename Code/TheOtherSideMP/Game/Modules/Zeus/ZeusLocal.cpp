@@ -8,6 +8,7 @@
 #include <TheOtherSideMP/Helpers/TOS_Vehicle.h>
 #include <TheOtherSideMP/Helpers/TOS_STL.h>
 #include <TheOtherSideMP/Helpers/TOS_NET.h>
+#include <GameActions.h>
 
 static CTOSZeusModule::SOBBWorldPos* CreateBoxForEntity(EntityId id)
 {
@@ -85,13 +86,21 @@ bool CTOSZeusModule::Local::GetFlag(EFlag flag) const
 
 void CTOSZeusModule::Local::ShowMouse(bool show)
 {
-	auto pMouse = gEnv->pHardwareMouse;
-	if (pMouse)
+	auto pHUD = g_pGame->GetHUD();
+	if (!pHUD)
+		return;
+
+	if (show)
 	{
-		m_mouseDisplayed = show;
-		m_mouseDisplayed ? pMouse->IncrementCounter() : pMouse->DecrementCounter();
-		pMouse->ConfineCursor(m_mouseDisplayed);
+		pHUD->CursorIncrementCounter();
 	}
+	else
+	{
+		while (pHUD->GetCursorVisibilityCounter())
+			pHUD->CursorDecrementCounter();
+	}
+
+	m_mouseDisplayed = show;
 }
 
 void CTOSZeusModule::Local::Reset()

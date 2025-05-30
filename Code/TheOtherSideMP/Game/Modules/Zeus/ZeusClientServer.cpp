@@ -15,11 +15,11 @@ void CTOSZeusModule::ClientServer::SetPP(int amount)
 	if (!gEnv->bServer)
 		return;
 
-	CGameRules* pGameRules = g_pGame->GetGameRules();
-	IScriptTable* pScriptTable = pGameRules->GetEntity()->GetScriptTable();
+	CGameRules *pGameRules = g_pGame->GetGameRules();
+	IScriptTable *pScriptTable = pGameRules->GetEntity()->GetScriptTable();
 	if (pScriptTable)
 	{
-		//FIXME: НУЖНО СИНХРОНИТЬ И НЕ ИСПОЛЬЗОВТАЬ ЛОК. АКТЕРА
+		// FIXME: НУЖНО СИНХРОНИТЬ И НЕ ИСПОЛЬЗОВТАЬ ЛОК. АКТЕРА
 		pGameRules->SetSynchedEntityValue(
 			pParent->GetPlayer()->GetEntityId(),
 			TSynchedKey(ZEUS_PP_AMOUNT_KEY),
@@ -33,8 +33,8 @@ int CTOSZeusModule::ClientServer::GetPP()
 		return 0;
 
 	int pp = 0;
-	CGameRules* pGameRules = g_pGame->GetGameRules();
-	IScriptTable* pScriptTable = pGameRules->GetEntity()->GetScriptTable();
+	CGameRules *pGameRules = g_pGame->GetGameRules();
+	IScriptTable *pScriptTable = pGameRules->GetEntity()->GetScriptTable();
 	if (pScriptTable)
 		pGameRules->GetSynchedEntityValue(
 			pParent->GetPlayer()->GetEntityId(),
@@ -45,20 +45,20 @@ int CTOSZeusModule::ClientServer::GetPP()
 }
 // ~ПОКА НЕ ИСПОЛЬЗУЕТСЯ
 
-void CTOSZeusModule::ClientServer::ServerOnEntitySpawned(EntityId id, const Vec3& pos, int clientChannelId)
+void CTOSZeusModule::ClientServer::ServerOnEntitySpawned(EntityId id, const Vec3 &pos, int clientChannelId)
 {
 	auto pSpawned = TOS_GET_ENTITY(id);
 	assert(pSpawned != nullptr);
 	assert(clientChannelId > 0);
 
-	//CryLogAlways("[TOS][ServerOnEntitySpawned] %s", pSpawned->GetName());
+	// CryLogAlways("[TOS][ServerOnEntitySpawned] %s", pSpawned->GetName());
 
 	if (pSpawned == nullptr)
 		return;
 
-	//char buffer[64];
-	//sprintf(buffer, "%d", id);
-	//pSpawned->SetName(string(pSpawned->GetName()) + "_" + buffer);
+	// char buffer[64];
+	// sprintf(buffer, "%d", id);
+	// pSpawned->SetName(string(pSpawned->GetName()) + "_" + buffer);
 
 	// Извещаем клиента, о том, что он может перемещать заспавненную сущность
 	CTOSZeusSynchronizer::NetSpawnedInfo info;
@@ -73,7 +73,7 @@ void CTOSZeusModule::ClientServer::ServerOnEntitySpawned(EntityId id, const Vec3
 		clientChannelId);
 }
 
-void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId, EntityId originalId)
+void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3 &pos, int clientChannelId, EntityId originalId)
 {
 	auto pSpawned = TOS_GET_ENTITY(id);
 	assert(pSpawned != nullptr);
@@ -81,11 +81,11 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3&
 	if (pSpawned == nullptr)
 		return;
 
-	//CryLogAlways("[TOS][ServerOnEntityCopied] %s", pSpawned->GetName());
+	// CryLogAlways("[TOS][ServerOnEntityCopied] %s", pSpawned->GetName());
 
-	//char buffer[64];
-	//sprintf(buffer, "%d", id);
-	//pSpawned->SetName(string(pSpawned->GetName()) + "_" + buffer);
+	// char buffer[64];
+	// sprintf(buffer, "%d", id);
+	// pSpawned->SetName(string(pSpawned->GetName()) + "_" + buffer);
 
 	// Извещаем клиента, о том, что он может перемещать заспавненную сущность
 	CTOSZeusSynchronizer::NetCopiedInfo info;
@@ -101,7 +101,7 @@ void CTOSZeusModule::ClientServer::ServerOnEntityCopied(EntityId id, const Vec3&
 		clientChannelId);
 }
 
-bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake, const char* desiredTeam)
+bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor *pPlayer, bool bMake, const char *desiredTeam)
 {
 	if (!pPlayer)
 		return false;
@@ -110,12 +110,12 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake,
 	if (!pSync)
 		return false;
 
-	CGameRules* pGameRules = g_pGame->GetGameRules();
+	CGameRules *pGameRules = g_pGame->GetGameRules();
 	if (!pGameRules)
 		return false;
 
 	// Нужно для того чтобы игрок летал и был невидимым
-	pGameRules->ChangeSpectatorMode(static_cast<CActor*>(pPlayer), CActor::eASM_Zeus, 0, true);
+	pGameRules->ChangeSpectatorMode(static_cast<CActor *>(pPlayer), bMake ? CActor::eASM_Zeus : CActor::eASM_None, 0, true);
 
 	if (gEnv->bServer)
 	{
@@ -133,7 +133,6 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake,
 
 		return CTOSZeusModule::ClientServer::ClientMakeZeus(bMake);
 	}
-
 
 	// CTOSZeusSynchronizer::NetMakeParams params;
 	// params.bMake = bMake;
@@ -173,17 +172,15 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor* pPlayer, bool bMake,
 	// 		params.bMake,
 	// 		desiredTeam);
 	// }
-
-	
 }
 
-bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make, const char* desiredTeam)
+bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make, const char *desiredTeam)
 {
 	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
 	if (!pSync)
 		return false;
 
-	auto pTOSPlayer = static_cast<CTOSPlayer*>(TOS_GET_ACTOR_CHANNELID(playerChannelId));
+	auto pTOSPlayer = static_cast<CTOSPlayer *>(TOS_GET_ACTOR_CHANNELID(playerChannelId));
 	if (!gEnv->bServer || !pTOSPlayer)
 		return false;
 
@@ -208,15 +205,11 @@ bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make
 			playerChannelId);
 	}
 
-    return true;
+	return true;
 }
 
-bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
+bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make, bool bfromInit)
 {
-	//TODO: Меня не устраивает что поддерживать режим зевса так сложно
-	//TODO: Нужно сделать режим зевса через SetSpectatorMode
-	//TODO: Добавить ещё один режим зрителя для режима зевса, отключив HUD зрителя
-	
 	const auto pZeusModule = g_pTOSGame->GetZeusModule();
 	if (!pZeusModule)
 		return false;
@@ -225,46 +218,52 @@ bool CTOSZeusModule::ClientServer::ClientMakeZeus(bool make)
 	if (!pLocalPlayer)
 		return false;
 
+	const bool alreadyZeusing = pZeusModule->GetLocal().GetFlag(CTOSZeusModule::EFlag::Zeusing);
+
 	if (make)
 	{
-		// Убираем лишние действия
-		g_pGameActions->FilterZeus()->Enable(true);
+		if (!alreadyZeusing || bfromInit)
+		{
+			// Убираем лишние действия
+			g_pGameActions->FilterZeus()->Enable(true);
 
-		// Скрываем HUD игрока
-		pZeusModule->GetHUD().ShowPlayerHUD(false);
-		pZeusModule->GetHUD().ShowZeusMenu(true);
+			// Скрываем HUD игрока
+			pZeusModule->GetHUD().ShowPlayerHUD(false);
+			pZeusModule->GetHUD().ShowZeusMenu(true);
 
-		//Включаем мышь
-		pZeusModule->GetLocal().ShowMouse(true);
-		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::CanUseMouse, true);
+			// Включаем мышь
+			if (!pZeusModule->GetLocal().IsMouseDisplayed())
+				pZeusModule->GetLocal().ShowMouse(true);
+			pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::CanUseMouse, true);
 
-		//Включаем режим зевса
-		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, true);
+			// Включаем режим зевса
+			pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, true);
+		}
 	}
 	else
 	{
-		// Возвращаем доступные дейтсвия
-		g_pGameActions->FilterZeus()->Enable(false);
+		if (alreadyZeusing)
+		{
+			// Возвращаем доступные дейтсвия
+			g_pGameActions->FilterZeus()->Enable(false);
 
-		// Показываем HUD игрока
-		// pZeusModule->GetHUD().ShowPlayerHUD(true);
-		pZeusModule->GetHUD().ShowZeusMenu(false);
+			// Показываем HUD игрока
+			pZeusModule->GetHUD().ShowPlayerHUD(true);
+			pZeusModule->GetHUD().ShowZeusMenu(false);
 
-		//Выключаем мышь
-		if (pZeusModule->GetLocal().IsMouseDisplayed())
-			pZeusModule->GetLocal().ShowMouse(false);		
-		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::CanUseMouse, false);
+			// Выключаем мышь
+			if (pZeusModule->GetLocal().IsMouseDisplayed())
+				pZeusModule->GetLocal().ShowMouse(false);
 
-		//Выключаем режим зевса
-		pZeusModule->GetLocal().SetFlag(CTOSZeusModule::EFlag::Zeusing, false);
-		pZeusModule->GetLocal().Reset(); // Сбрасываем все флаги и состояния
+			// Сбрасываем все флаги и состояния
+			pZeusModule->GetLocal().Reset();
+		}
 	}
 
 	return true;
 }
 
-
-bool CTOSZeusModule::ClientServer::DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast)
+bool CTOSZeusModule::ClientServer::DispatchEnterVehicle(IActor *pActor, IVehicle *pVehicle, bool fast)
 {
 	if (!pActor || !pVehicle)
 		return false;
@@ -275,8 +274,7 @@ bool CTOSZeusModule::ClientServer::DispatchEnterVehicle(IActor* pActor, IVehicle
 		return ClientEnterVehicle(pActor, pVehicle, fast);
 }
 
-
-bool CTOSZeusModule::ClientServer::ClientEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast)
+bool CTOSZeusModule::ClientServer::ClientEnterVehicle(IActor *pActor, IVehicle *pVehicle, bool fast)
 {
 	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
 	if (!pSync)
@@ -303,7 +301,7 @@ bool CTOSZeusModule::ClientServer::ClientEnterVehicle(IActor* pActor, IVehicle* 
 	return true;
 }
 
-bool CTOSZeusModule::ClientServer::ServerEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast)
+bool CTOSZeusModule::ClientServer::ServerEnterVehicle(IActor *pActor, IVehicle *pVehicle, bool fast)
 {
 	if (!pActor || !pVehicle)
 		return false;

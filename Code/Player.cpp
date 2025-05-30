@@ -1340,35 +1340,34 @@ void CPlayer::ProcessCharacterOffset()
 
 void CPlayer::PrePhysicsUpdate()
 {
-	FUNCTION_PROFILER(GetISystem(), PROFILE_GAME);
+    FUNCTION_PROFILER(GetISystem(), PROFILE_GAME);
 
-	// TODO: This whole function needs to be optimized.
-	// TODO: Especially when characters are dead, alot of stuff here can be skipped.
+    // TODO: Оптимизировать эту функцию.
+    // TODO: Особенно когда персонажи мертвы, много чего можно пропустить.
 
-	if (!m_pAnimatedCharacter)
-		return;
+    if (!m_pAnimatedCharacter)
+        return;
 
-	IEntity* pEnt = GetEntity();
-	if (pEnt->IsHidden() && !(GetEntity()->GetFlags() & ENTITY_FLAG_UPDATE_HIDDEN))
-		return;
+    IEntity* pEnt = GetEntity();
+    if (pEnt->IsHidden() && !(GetEntity()->GetFlags() & ENTITY_FLAG_UPDATE_HIDDEN))
+        return;
 
-	Debug();
+    Debug();
 
-	//workaround - Avoid collision with grabbed NPC - Beni
-	/*if(m_pHumanGrabEntity && !m_throwingNPC)
-	{
-		IMovementController * pMC = GetMovementController();
-		if(pMC)
-		{
-			SMovementState info;
-			pMC->GetMovementState(info);
+    // Временное решение - Избежать столкновения с захваченным NPC - Бени
+    /*if(m_pHumanGrabEntity && !m_throwingNPC)
+    {
+        IMovementController * pMC = GetMovementController();
+        if(pMC)
+        {
+            SMovementState info;
+            pMC->GetMovementState(info);
 
-			Matrix34 prePhysics = m_pHumanGrabEntity->GetWorldTM();
-			prePhysics.AddTranslation(info.eyeDirection*0.5f);
-			m_pHumanGrabEntity->SetWorldTM(prePhysics);
-		}
-
-	}*/
+            Matrix34 prePhysics = m_pHumanGrabEntity->GetWorldTM();
+            prePhysics.AddTranslation(info.eyeDirection * 0.5f);
+            m_pHumanGrabEntity->SetWorldTM(prePhysics);
+        }
+    }*/
 
 	if (m_pMovementController)
 	{
@@ -5303,7 +5302,7 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 	if(gEnv->bClient)
 		m_pPlayerInput.reset();
 
-	if (mode && !m_stats.spectatorMode)
+	if (mode && !oldSpectatorMode)
 	{
 		if (IVehicle *pVehicle=GetLinkedVehicle())
 		{
@@ -5334,7 +5333,7 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 		if(mode == CActor::eASM_Follow)
 			MoveToSpectatorTargetPosition();
 	}
-	else if (!mode && m_stats.spectatorMode)
+	else if (!mode && oldSpectatorMode)
 	{
 		GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Alive);
 
@@ -5349,6 +5348,11 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 		m_stats.spectatorMode=mode;
 		m_stats.inAir=0.0f;
 		m_stats.onGround=0.0f;
+
+		// TheOtherSide: запись события о том, что игрок вышел из режима наблюдателя зевса
+		if (oldSpectatorMode == CActor::eASM_Zeus)
+			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnPlayerLeftZeus, "", true, false, nullptr, 0.0f, mode));
+		//~TheOtherSide
 	}
 	else if (oldSpectatorMode!=mode || m_stats.spectatorTarget != targetId)
 	{
@@ -5363,6 +5367,12 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 
 		if(mode == CActor::eASM_Follow)
 			MoveToSpectatorTargetPosition();
+
+		// TheOtherSide: запись события о том, что игрок сменил режим наблюдателя
+		if (oldSpectatorMode == CActor::eASM_Zeus)
+			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnPlayerLeftZeus, "", true, false, nullptr, 0.0f, mode));
+		//~TheOtherSide
+
 	}
 }
 

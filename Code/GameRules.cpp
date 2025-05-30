@@ -43,6 +43,7 @@
 #include "TheOtherSideMP/Actors/player/TOSPlayer.h"
 #include "TheOtherSideMP/Game/TOSGameEventRecorder.h"
 #include "TheOtherSideMP/Game/Modules/Master/MasterModule.h"
+#include "TheOtherSideMP/Game/Modules/Zeus/ZeusModule.h"
 #include "TheOtherSideMP/Helpers/TOS_MasterModule.h"
 #include "TheOtherSideMP/HUD/TOSCrosshair.h"
 #include "TheOtherSideMP/Helpers/TOS_AI.h"
@@ -1240,8 +1241,7 @@ void CGameRules::ChangeTeam(IActor* pActor, const int teamId)
 	//TheOtherSide
 	//auto pClient = m_pGameFramework->GetClientActor();
 	const auto pClient = g_pTOSGame->GetActualClientActor();
-	//TheOtherSide
-	TOS_RECORD_EVENT(params.entityId, STOSGameEvent(eEGE_OnPlayerChangeTeam, GetTeamName(params.teamId), true, false, nullptr, 0.0f, params.teamId));
+	TOS_RECORD_EVENT(params.entityId, STOSGameEvent(eEGE_OnPlayerPreChangeTeam, GetTeamName(params.teamId), true, false, nullptr, 0.0f, params.teamId));
 	//~TheOtherSide
 
 	if (gEnv->bServer)
@@ -1256,6 +1256,7 @@ void CGameRules::ChangeTeam(IActor* pActor, const int teamId)
 	{
 		GetGameObject()->InvokeRMIWithDependentObject(SvRequestChangeTeam(), params, eRMI_ToServer, params.entityId);
 	}
+
 }
 
 //------------------------------------------------------------------------
