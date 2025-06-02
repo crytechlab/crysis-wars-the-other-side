@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
   History:
   - 22:11:2005: Created by Filippo De Luca
-	- 31:01:2006: taken over by Jan Mьller
+	- 31:01:2006: taken over by Jan MСЊller
 
 *************************************************************************/
 #ifndef __NANOSUIT_H__
@@ -20,10 +20,10 @@
 #endif
 
 //TheOtherSide
-#include "TheOtherSideMP/Extensions/EnergyСonsumer.h"
+#include "TheOtherSideMP/Extensions/EnergyManager.h"
 //TheOtherSide
 
-static const float NANOSUIT_ENERGY                = CTOSEnergyConsumer::DEFAULT_ENERGY;
+static const float NANOSUIT_ENERGY                = CTOSEnergyManager::DEFAULT_ENERGY;
 static const float NANOSUIT_HEALTH_REGEN_INTERVAL = 1.0f;
 static const float NANOSUIT_MAXIMUM_HEALTH_REGEN  = 40.0f;
 
@@ -422,7 +422,7 @@ private:
 
 	//TheOtherSide
 public:
-	bool RegisterEnergyConsumer(CTOSEnergyConsumer* pConsumer);
+	bool RegisterEnergyConsumer(CTOSEnergyManager* pConsumer);
 	void UnregisterEnergyConsumer();
 	//void ResetEnergy(float maxEnergy);
 
@@ -437,7 +437,7 @@ public:
 	std::map<ENanoMode, _smart_ptr<ISound>> m_modesLoopSounds;
 
 private:
-	CTOSEnergyConsumer* m_pConsumer; // Указатель на потребитель энергии владельца нанокостюма
+	CTOSEnergyManager* m_pEnergyManager; // Указатель на потребитель энергии владельца нанокостюма
 	//~TheOtherSide
 };
 

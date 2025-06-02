@@ -1,4 +1,4 @@
-/*************************************************************************
+﻿/*************************************************************************
 Crytek Source File.
 Copyright (C), Crytek Studios, 2001-2005.
 -------------------------------------------------------------------------
@@ -87,6 +87,10 @@ class CHUD : public CHUDCommon,
 	friend class CHUDVehicleInterface;
 	friend class CHUDScopes;
 	friend class CHUDCrosshair;
+
+	//TheOtherSide
+	friend class CTOSZeusModule;
+	//~TheOtherSide
 
 public:
 
@@ -702,6 +706,9 @@ public:
 		return m_currentGameRules;
 	}
 
+	//TheOtherSide
+	void GetProjectionScale(CGameFlashAnimation* pGameFlashAnimation, float* pfScaleX, float* pfScaleY, float* pfHalfUselessSize);
+	//~TheOtherSide
 
 private:
 	//some Update functions
@@ -745,7 +752,9 @@ private:
 	}
 
 	//helper funcs
-	void GetProjectionScale(CGameFlashAnimation* pGameFlashAnimation, float* pfScaleX, float* pfScaleY, float* pfHalfUselessSize);
+	//TheOtherSide
+	//void GetProjectionScale(CGameFlashAnimation* pGameFlashAnimation, float* pfScaleX, float* pfScaleY, float* pfHalfUselessSize);
+	//~TheOtherSide
 	bool WeaponHasAttachments();
 
 	bool ShowWeaponAccessories(bool enable);
@@ -878,8 +887,8 @@ private:
 	CGameFlashAnimation	m_animHostileProjectileTracker;
 	CGameFlashAnimation	m_animMissionObjective;
 	CGameFlashAnimation	m_animPDA;
-	CGameFlashAnimation	m_animQuickMenu;
-	CGameFlashAnimation	m_animRadarCompassStealth;
+	CGameFlashAnimation	m_animQuickMenu; //Меню быстрого доступа к костюму
+	CGameFlashAnimation	m_animRadarCompassStealth; // Радар и Компас
 	CGameFlashAnimation m_animTacLock;
 	CGameFlashAnimation m_animGamepadConnected;
 	CGameFlashAnimation m_animBuyMenu;
@@ -901,17 +910,17 @@ private:
 	CGameFlashAnimation m_animBattleLog;
 	CGameFlashAnimation m_animSubtitles;
 	CGameFlashAnimation m_animRadioButtons;
-	CGameFlashAnimation m_animPlayerPP;
+	CGameFlashAnimation m_animPlayerPP; //Очки игрока
 	CGameFlashAnimation m_animProgress;
 	CGameFlashAnimation m_animProgressLocking;
 	CGameFlashAnimation m_animTutorial;
 	CGameFlashAnimation m_animDataUpload;
-	CGameFlashAnimation m_animSpectate;
+	CGameFlashAnimation m_animSpectate;	//Интерфейс зрителя
 	CGameFlashAnimation m_animNightVisionBattery;
 	CGameFlashAnimation m_animHUDCornerLeft;
 	CGameFlashAnimation m_animHUDCornerRight;
-	CGameFlashAnimation m_animPlayerStats;
-	CGameFlashAnimation m_animHexIcons;
+	CGameFlashAnimation m_animPlayerStats; //Здоровье, энергия
+	CGameFlashAnimation m_animHexIcons; //Иконки враждебности врага, команды игрока в сетевой игре
 	CGameFlashAnimation m_animKillLog;
 	CGameFlashAnimation m_animOverlayMessages;
 	CGameFlashAnimation m_animBigOverlayMessages;
@@ -1093,10 +1102,10 @@ public:
 	void TOSSetInventoryHUD(IActor* pActor, const char* filePath) const;
 	void TOSShowInventoryOverview(IActor* pActor, const char* curCategory, const char* curItem, bool grenades);
 
-	bool TOSSetEnergyConsumer(CTOSEnergyConsumer* pConsumer);
+	bool TOSSetEnergyConsumer(CTOSEnergyManager* pConsumer);
 
 private:
-	CTOSEnergyConsumer* m_pEnergyConsumer;
+	CTOSEnergyManager* m_pEnergyManager;
 	CTOSHUDCrosshair* m_pHUDCrosshair;
 	//~TheOtherSide
 

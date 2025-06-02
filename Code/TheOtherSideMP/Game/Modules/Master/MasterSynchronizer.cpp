@@ -14,14 +14,6 @@ Copyright (C), AlienKeeper, 2024.
 #include "TheOtherSideMP/Helpers/TOS_AI.h"
 #include "TheOtherSideMP/Helpers/TOS_NET.h"
 
-CTOSMasterSynchronizer::CTOSMasterSynchronizer()
-{
-}
-
-CTOSMasterSynchronizer::~CTOSMasterSynchronizer()
-{
-}
-
 void CTOSMasterSynchronizer::PostInit(IGameObject* pGameObject)
 {
 	CTOSGenericSynchronizer::PostInit(pGameObject);
@@ -106,7 +98,7 @@ IMPLEMENT_RMI(CTOSMasterSynchronizer, SvRequestSetDesiredSlaveCls)
 
 	if (gEnv->bServer)
 	{
-		CryLog("[C++][%s][%s][SvRequestSetDesiredSlaveCls]", TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		CryLog("<C++>[%s][%s][SvRequestSetDesiredSlaveCls]", tos::debug::GetEnv(), tos::debug::GetAct(3));
 		// Указатель на класс уже проверен на этапе перед отправкой RMI
 		const auto pEntity = gEnv->pEntitySystem->GetEntity(params.entityId);
 		assert(pEntity);
@@ -147,8 +139,8 @@ IMPLEMENT_RMI(CTOSMasterSynchronizer, ClMasterClientStartControl)
 
 		const auto localPlayerNick = g_pGame->GetIGameFramework()->GetClientActor()->GetEntity()->GetName();
 
-		CryLog("[C++][%s][%s][ClMasterClientStartControl] localPlayerNick: %s",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), localPlayerNick);
+		CryLog("<C++>[%s][%s][ClMasterClientStartControl] localPlayerNick: %s",
+			tos::debug::GetEnv(), tos::debug::GetAct(3), localPlayerNick);
 	}
 
 	return true;
@@ -183,8 +175,8 @@ IMPLEMENT_RMI(CTOSMasterSynchronizer, SvRequestMasterClientStartControl)
 		// Поэтому мы передаём серверу информацию как о рабе, так и о мастере.
 		g_pTOSGame->GetMasterModule()->SetCurrentSlave(pMasterActor->GetEntity(), pSlaveActor->GetEntity(), params.masterFlags);
 
-		CryLog("[C++][%s][%s][SvRequestMasterClientStartControl]",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		CryLog("<C++>[%s][%s][SvRequestMasterClientStartControl]",
+			tos::debug::GetEnv(), tos::debug::GetAct(3));
 	}
 
 	return true;
@@ -196,8 +188,8 @@ IMPLEMENT_RMI(CTOSMasterSynchronizer, SvRequestMasterClientStopControl)
 
 	if (gEnv->bServer)
 	{
-		CryLog("[C++][%s][%s][SvRequestMasterClientStopControl]",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		CryLog("<C++>[%s][%s][SvRequestMasterClientStopControl]",
+			tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 		const auto pMasterEntity = gEnv->pEntitySystem->GetEntity(params.masterId);
 		assert(pMasterEntity);
@@ -214,8 +206,8 @@ IMPLEMENT_RMI(CTOSMasterSynchronizer, SvRequestDelegateAuthority)
 
 	if (gEnv->bServer)
 	{
-		CryLog("[C++][%s][%s][SvRequestDelegateAuthority] ChannelId: %i, SlaveId: %i",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), params.masterChannelId, params.slaveId);
+		CryLog("<C++>[%s][%s][SvRequestDelegateAuthority] ChannelId: %i, SlaveId: %i",
+			tos::debug::GetEnv(), tos::debug::GetAct(3), params.masterChannelId, params.slaveId);
 
 		const auto pSlaveEntity = gEnv->pEntitySystem->GetEntity(params.slaveId);
 		assert(pSlaveEntity);
@@ -223,7 +215,7 @@ IMPLEMENT_RMI(CTOSMasterSynchronizer, SvRequestDelegateAuthority)
 		const auto pPlayer = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActorByChannelId(params.masterChannelId);
 		assert(pPlayer);
 
-		TOS_NET::DelegateAuthority(pPlayer->GetGameObject(), params.slaveId);
+		tos::net::DelegateAuthority(pPlayer->GetGameObject(), params.slaveId);
 	}
 
 	return true;
@@ -235,8 +227,8 @@ IMPLEMENT_RMI(CTOSMasterSynchronizer, ClMasterClientStopControl)
 
 	if (gEnv->bClient)
 	{
-		CryLog("[C++][%s][%s][ClMasterClientStopControl]",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		CryLog("<C++>[%s][%s][ClMasterClientStopControl]",
+			tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 		g_pTOSGame->GetMasterModule()->GetMasterClient()->StopControl();
 	}
@@ -250,8 +242,8 @@ IMPLEMENT_RMI(CTOSMasterSynchronizer, SvRequestSaveMCParams)
 
 	if (gEnv->bServer)
 	{
-		CryLog("[C++][%s][%s][SvRequestSaveMCParams]",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3));
+		CryLog("<C++>[%s][%s][SvRequestSaveMCParams]",
+			tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 		const auto pMasterEntity = gEnv->pEntitySystem->GetEntity(params.masterId);
 		assert(pMasterEntity);
@@ -294,8 +286,8 @@ IMPLEMENT_RMI(CTOSMasterSynchronizer, SvRequestApplyMCSavedParams)
 //		assert(pEntity);
 //
 //		CryLogAlways(" ");
-//		CryLogAlways("[C++][%s][%s][SvRequestMasterRemove] MasterEntity: %s",
-//			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), pEntity->GetName());
+//		CryLogAlways("<C++>[%s][%s][SvRequestMasterRemove] MasterEntity: %s",
+//			tos::debug::GetEnv(), tos::debug::GetAct(3), pEntity->GetName());
 //		//[RMI RECEIVED][SERVER][SvRequestMasterAdd] NetChannel: lmlicenses.wip4.adobe.com:50632, MasterEntity: Akeeper
 //
 //		g_pTOSGame->GetMasterModule()->MasterRemove(pEntity);

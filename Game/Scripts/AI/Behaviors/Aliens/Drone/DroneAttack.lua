@@ -206,8 +206,8 @@ AIBehaviour.DroneAttack = {
 		end
 		--~TheOtherSide
 
-		entity.AI.random = math.mod( entity.AI.random * 5 + 1, 65536 );
-		return math.abs( math.mod( entity.AI.random, high - low ) ) + low;
+		entity.AI.random = (entity.AI.random * 5 + 1) % 65536;
+		return math.abs((entity.AI.random % (high - low))) + low;
 	end,
 
 	--------------------------------------------------------------------------

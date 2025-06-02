@@ -7,7 +7,7 @@ $DateTime$
 
 -------------------------------------------------------------------------
 History:
-- 11:9:2005   15:00 : Created by MÐ±rcio Martins
+- 11:9:2005   15:00 : Created by Márcio Martins
 
 *************************************************************************/
 // ReSharper disable CppInconsistentNaming
@@ -2843,6 +2843,12 @@ void CSingle::InternalNetShootEx(IEntityClass* spawn_ammo, const Vec3& pos, cons
 	{
 		if (m_fireparams.track_projectiles && gEnv->bServer)
 			pAmmo->SetTracked(true);
+			
+		//TheOtherSide fix ai unreplicated grenades
+		// Force network binding for AI grenades
+		if (NOT_PLAYER_IN_MP(m_pWeapon->GetOwnerActor()) && gEnv->bServer && pAmmo->GetEntity())
+			pAmmo->GetGameObject()->BindToNetwork();
+		//~TheOtherSide
 
 		int hitTypeId = g_pGame->GetGameRules()->GetHitTypeId(m_fireparams.hit_type.c_str());
 		pAmmo->SetParams(m_pWeapon->GetOwnerId(), m_pWeapon->GetHostId(), m_pWeapon->GetEntityId(), m_pWeapon->GetFireModeIdx(GetName()), m_fireparams.damage, hitTypeId);
@@ -2884,8 +2890,10 @@ void CSingle::InternalNetShootEx(IEntityClass* spawn_ammo, const Vec3& pos, cons
 
 	ammoCount--;
 
-	if (m_fireparams.clip_size != -1) //Don't trigger the assert in this case
-		assert(ammoCount>=0);
+	//TheOtherSide
+	//if (m_fireparams.clip_size != -1) //Don't trigger the assert in this case
+	//	assert(ammoCount>=0);
+	//~TheOtherSide
 
 	//Hurricane fire rate fake
 	if (m_fireparams.fake_fire_rate && playerIsShooter)

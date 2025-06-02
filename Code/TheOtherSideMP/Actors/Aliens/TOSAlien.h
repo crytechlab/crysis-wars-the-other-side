@@ -15,7 +15,7 @@ public:
 	CTOSAlien();
 	~CTOSAlien() ;
 	
-	//CTOSActor
+	//CAlien
 	void ProcessEvent(SEntityEvent& event) ;
 	void PrePhysicsUpdate();
 	void     SetHealth(int health) ;
@@ -31,7 +31,7 @@ public:
 	void PostPhysicalize();
 	void Update(SEntityUpdateContext& ctx, int updateSlot) ;
 	bool NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profile, int flags) ;
-	//~CTOSActor
+	//~CAlien
 
 	//ITOSMasterControllable
 	void ApplyMasterMovement(const Vec3& delta) ;

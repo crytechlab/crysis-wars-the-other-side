@@ -606,76 +606,66 @@ local function tankFindAnchorNearBy( entity, vPos )
 
 end
 --------------------------------------------------------------------------
-local function tankRunDownThePlayer( entity )
-
-	local target = System.GetEntity( g_localActor.id ); -- get player's situation
-	if ( target and target.actor and AI.GetTypeOf( target.id ) == AIOBJECT_PLAYER and AI.Hostile( entity.id, target.id ) ) then
-		local vehicleId = target.actor:GetLinkedVehicleId();
-		if ( vehicleId ) then
-		else
-			local length = DistanceVectors( entity:GetPos(), target:GetPos() );
-			if ( length < 50.0 ) then
-
-				local objects = {};
-
-				local numObjects = AI.GetNearestEntitiesOfType( target:GetPos(), AIOBJECT_VEHICLE, 10, objects, AIFAF_INCLUDE_DEVALUED, 50 );
-				if ( numObjects < 2 ) then	
-
-					local inFOV = math.cos( 60.0 * 3.1415 / 180.0 );
-	
-					vDirToTarget = {};
-					CopyVector( vDirToTarget, target:GetPos(), entity:GetPos() );
-					NormalizeVector( vDirToTarget );
-					local dot = dotproduct3d( vDirToTarget, entity:GetDirectionVector(YAxis) );
-	
-					if (  dot > inFOV or dot < -inFOV ) then
-				
-						FastScaleVector( vDirToTarget, vDirToTarget ,0.0 );
-						FastSumVectors( vDirToTarget, vDirToTarget, target:GetPos() );
-
-						local vInput = {};
-						CopyVector( vInput , vDirToTarget );
-
-						local result = tankFindAnchorNearBy( entity, vInput );
-						if ( result == false ) then
-							return false;
-						end
-
-						if ( DistanceVectors( vInput, vDirToTarget ) > 20.0 ) then
-							return false;
-						end
-
-						local vDir = {};
-						local vTargetPos = {};
-						CopyVector( vTargetPos, target:GetPos() );
-						local level = System.GetTerrainElevation( vTargetPos )
-
-						if ( vTargetPos.z - level <1.0 ) then
-							vTargetPos.z = vTargetPos.z + 1.0;
-						end
-
-						SubVectors( vDir, vTargetPos, entity:GetPos() );
-
-						if ( vDir.z > 2.5 and vDir.z < -2.5 ) then
-							return false;
-						end
-
-						local	hits = Physics.RayWorldIntersection(entity:GetPos(),vDir,1,ent_static+ent_rigid+ent_sleeping_rigid,entity.id,target.id,g_HitTable);
-						if( hits == 0 ) then
-							pipename = "tankRunOverThePlayer";
-							tankMakeApproachPipe( entity, vDirToTarget, pipename, 3, true );
-							return true;
-						else
-						end
-					end
-				end
-			end
-		end
-	end
-
-	return false;
-
+--TheOtherSide
+--- метод реализует логику "наезда" танка на цель.
+---@param entity any
+---@return boolean
+local function tankRunOverTheTarget(entity)
+    -- Получаем цель внимания вместо игрока
+    local target = AI.GetAttentionTargetEntity(entity.id, true)
+    
+    if (target and AI.Hostile(entity.id, target.id)) then
+        -- Проверяем дистанцию до цели
+        local length = DistanceVectors(entity:GetPos(), target:GetPos())
+        if (length < 50.0) then
+            local inFOV = math.cos(60.0 * 3.1415 / 180.0)
+            
+            local vDirToTarget = {}
+            CopyVector(vDirToTarget, target:GetPos(), entity:GetPos())
+            NormalizeVector(vDirToTarget)
+            local dot = dotproduct3d(vDirToTarget, entity:GetDirectionVector(YAxis))
+            
+            if (dot > inFOV or dot < -inFOV) then
+                FastScaleVector(vDirToTarget, vDirToTarget, 0.0)
+                FastSumVectors(vDirToTarget, vDirToTarget, target:GetPos())
+                
+                local vInput = {}
+                CopyVector(vInput, vDirToTarget)
+                
+                if (not tankFindAnchorNearBy(entity, vInput)) then
+                    return false
+                end
+                
+                if (DistanceVectors(vInput, vDirToTarget) > 20.0) then
+                    return false
+                end
+                
+                local vDir = {}
+                local vTargetPos = {}
+                CopyVector(vTargetPos, target:GetPos())
+                local level = System.GetTerrainElevation(vTargetPos)
+                
+                if (vTargetPos.z - level < 1.0) then
+                    vTargetPos.z = vTargetPos.z + 1.0
+                end
+                
+                SubVectors(vDir, vTargetPos, entity:GetPos())
+                
+                if (vDir.z > 2.5 and vDir.z < -2.5) then
+                    return false
+                end
+                
+                local hits = Physics.RayWorldIntersection(entity:GetPos(), vDir, 1, ent_static+ent_rigid+ent_sleeping_rigid, entity.id, target.id, g_HitTable)
+                if (hits == 0) then
+                    tankMakeApproachPipe(entity, vDirToTarget, "tankRunOverTheTarget", 3, true)
+                    return true
+                end
+            end
+        end
+    end
+    return false
 end
+--~TheOtherSide
 
 --------------------------------------------------------------------------
 local function tankGetInFov( entity ,vPos )
@@ -914,7 +904,7 @@ end
 
 local function tankMindType1( entity )
 
-	if ( tankRunDownThePlayer( entity ) == true ) then
+	if ( tankRunOverTheTarget( entity ) == true ) then
 		return true;	
 	end
 
@@ -964,7 +954,7 @@ end
 
 local function tankMindType2( entity )
 
-	if ( tankRunDownThePlayer( entity ) == true ) then
+	if ( tankRunOverTheTarget( entity ) == true ) then
 		return true;	
 	end
 
@@ -1071,7 +1061,7 @@ end
 
 local function tankMindType3( entity )
 
-	if ( tankRunDownThePlayer( entity ) == true ) then
+	if ( tankRunOverTheTarget( entity ) == true ) then
 		return true;	
 	end
 
@@ -1678,144 +1668,131 @@ AIBehaviour.TankMove = {
 
 	end,
 	--------------------------------------------
-	TANK_MOVE_START = function( self, entity )
-
-		entity.AI.bBlockSignal = false;
-		entity.AI.bUseMachineGun = AIBehaviour.TANKDEFAULT:tankDoesUseMachineGun( entity );
-		if ( entity.AI.bUseMachineGun == true ) then
-			if ( random(1,2) == 1 ) then
-				request2ndGunnerShoot( entity );
-			end
+	TANK_MOVE_START = function(self, entity)
+		-- Инициализация состояния
+		entity.AI.bBlockSignal = false
+		entity.AI.bUseMachineGun = AIBehaviour.TANKDEFAULT:tankDoesUseMachineGun(entity)
+		
+		-- Проверка использования пулемета
+		if entity.AI.bUseMachineGun and random(1,2) == 1 then
+			request2ndGunnerShoot(entity)
 		end
-
-		local bResult = false;
-		entity:SelectPipe(0,"do_nothing");
-
-		local target = AI.GetAttentionTargetEntity( entity.id );
-		if ( target and AI.Hostile( entity.id, target.id ) ) then
-			entity.AI.noTargetCount = 0;
-			CopyVector( entity.AI.vLastTargetPos, target:GetPos() );
-		else
-			entity.AI.noTargetCount = entity.AI.noTargetCount + 1;
-			if ( entity.AI.noTargetCount == 1 ) then
-				AI.CreateGoalPipe("tank_notarget");
-				AI.PushGoal("tank_notarget","timeout",1,1.5);
-				AI.PushGoal("tank_notarget","firecmd",1,0);
-				AI.PushGoal("tank_notarget","signal",0,1,"TANK_MOVE_START",SIGNALFILTER_SENDER);
-				entity:SelectPipe(0,"tank_notarget");
-			elseif ( entity.AI.noTargetCount == 2 ) then
-				pipename = "tankSeekTarget";
-				tankMakeApproachPipe( entity, entity.AI.vLastTargetPos, pipename, 12.0, false  )
-			else
-				AI.Signal(SIGNALFILTER_SENDER, 1, "TO_TANK_ALERT2", entity.id);
-			end
-			return;
-
-		end
-		
-
-		if ( AI.GetTypeOf( target.id ) == AIOBJECT_PUPPET and target.actor and random(1,3)==1 ) then
-			local vehicleId = target.actor:GetLinkedVehicleId();
-			if ( vehicleId ) then
-			else
-				entity.AI.bFirst	= false;
-			end
-		end
-
-		if ( entity.AI.bFirst	== true and entity.AI.isAPC~=nil and entity.AI.isAPC == true) then
-
-			entity.AI.bFirst = false;
-			bResult = tankExpandFormation( entity );
-			if ( bResult == false ) then
-				AI.Signal(SIGNALFILTER_SENDER, 1, "TANK_MOVE_START", entity.id);
-				return;
-			end
-
-		elseif ( entity.AI.isAAA~=nil and entity.AI.isAAA == true ) then
-		
-			bResult = tankMindTypeAAA( entity );
-		
-		elseif ( entity.AI.mindType == 0 ) then
-		
-			AI.CreateGoalPipe("tank_error");
-			AI.PushGoal("tank_error","timeout",1,0.5);
-			AI.PushGoal("tank_error","signal",0,1,"TANK_MOVE_CHECK_SHOOT",SIGNALFILTER_SENDER);
-			AI.PushGoal("tank_error","timeout",1,0.5);
-			AI.PushGoal("tank_error","signal",0,1,"TANK_MOVE_CHECK_SHOOT",SIGNALFILTER_SENDER);
-			AI.PushGoal("tank_error","timeout",1,0.5);
-			AI.PushGoal("tank_error","signal",0,1,"TANK_MOVE_START",SIGNALFILTER_SENDER);
-			entity:SelectPipe(0,"tank_error");
-		
-		elseif (  entity.AI.mindType == 1 ) then
-
-			bResult = tankMindType1( entity );
-		
-		elseif (  entity.AI.mindType == 2 ) then
-
-			bResult = tankMindType2( entity );
-		
-		elseif (  entity.AI.mindType == 3 ) then
-
-			bResult = tankMindType3( entity );
-
-		elseif (  entity.AI.mindType == 4 ) then
-		
-			bResult = tankMindType4( entity );
-
-		else
-		
-		end
-
-		if ( bResult == false ) then
-
-			local target = AI.GetAttentionTargetEntity( entity.id );
-			if ( target and AI.Hostile( entity.id, target.id ) ) then
-				local vTmp = {};
-				SubVectors( vTmp,	target:GetPos(), entity:GetPos() );
-				local destance = LengthVector( vTmp );
-				if ( destance > 80.0 ) then
-					NormalizeVector( vTmp );
-					FastScaleVector( vTmp, vTmp, 15.0 );
-					FastSumVectors( vTmp, vTmp, entity:GetPos() );
-					pipename = "tankJustApproachTheTarget";
-					tankMakeApproachPipe( entity, vTmp, pipename, 10.0, false  );
-					return;
-				else
-					if ( entity.AI.tr == 0 ) then
-						entity.AI.tr =1;
-						AI.CreateGoalPipe("tank_aggrasive_shoot");
-						AI.PushGoal("tank_aggrasive_shoot","timeout",1,0.5);
-						AI.PushGoal("tank_aggrasive_shoot","signal",0,1,"TANK_MOVE_CHECK_SHOOT",SIGNALFILTER_SENDER);
-						AI.PushGoal("tank_aggrasive_shoot","timeout",1,0.5);
-						AI.PushGoal("tank_aggrasive_shoot","signal",0,1,"TANK_MOVE_CHECK_SHOOT",SIGNALFILTER_SENDER);
-						AI.PushGoal("tank_aggrasive_shoot","timeout",1,0.5);
-						AI.PushGoal("tank_aggrasive_shoot","signal",0,1,"TANK_MOVE_CHECK_SHOOT",SIGNALFILTER_SENDER);
-						AI.PushGoal("tank_aggrasive_shoot","timeout",1,0.5);
-						AI.PushGoal("tank_aggrasive_shoot","signal",0,1,"TANK_MOVE_START",SIGNALFILTER_SENDER);
-						entity:SelectPipe(0,"tank_aggrasive_shoot");
-						return;
 	
+		local bResult = false
+		entity:SelectPipe(0, "do_nothing")
+	
+		-- Проверка наличия цели
+		local target = AI.GetAttentionTargetEntity(entity.id)
+		if target and AI.Hostile(entity.id, target.id) then
+			-- Есть враждебная цель
+			entity.AI.noTargetCount = 0
+			CopyVector(entity.AI.vLastTargetPos, target:GetPos())
+		else
+			-- Цель отсутствует - обработка поиска цели
+			entity.AI.noTargetCount = entity.AI.noTargetCount + 1
+			if entity.AI.noTargetCount == 1 then
+				-- Первая попытка - ожидание
+				AI.CreateGoalPipe("tank_notarget")
+				AI.PushGoal("tank_notarget", "timeout", 1, 1.5)
+				AI.PushGoal("tank_notarget", "firecmd", 1, 0)
+				AI.PushGoal("tank_notarget", "signal", 0, 1, "TANK_MOVE_START", SIGNALFILTER_SENDER)
+				entity:SelectPipe(0, "tank_notarget")
+			elseif entity.AI.noTargetCount == 2 then
+				-- Вторая попытка - поиск в последней известной позиции
+				tankMakeApproachPipe(entity, entity.AI.vLastTargetPos, "tankSeekTarget", 12.0, false)
+			else
+				-- Переход в режим тревоги
+				AI.Signal(SIGNALFILTER_SENDER, 1, "TO_TANK_ALERT2", entity.id)
+			end
+			return
+		end
+	
+		-- Проверка цели на тип пехоты
+		if AI.GetTypeOf(target.id) == AIOBJECT_PUPPET and target.actor and random(1,3) == 1 then
+			if not target.actor:GetLinkedVehicleId() then
+				entity.AI.bFirst = false
+			end
+		end
+	
+		-- Выбор тактики в зависимости от типа танка
+		if entity.AI.bFirst and entity.AI.isAPC then
+			-- Тактика БТР
+			entity.AI.bFirst = false
+			bResult = tankExpandFormation(entity)
+			if not bResult then
+				AI.Signal(SIGNALFILTER_SENDER, 1, "TANK_MOVE_START", entity.id)
+				return
+			end
+		elseif entity.AI.isAAA then
+			-- Тактика ПВО
+			bResult = tankMindTypeAAA(entity)
+		elseif entity.AI.mindType == 0 then
+			-- Обработка ошибочного состояния
+			AI.CreateGoalPipe("tank_error")
+			AI.PushGoal("tank_error", "timeout", 1, 0.5)
+			AI.PushGoal("tank_error", "signal", 0, 1, "TANK_MOVE_CHECK_SHOOT", SIGNALFILTER_SENDER)
+			AI.PushGoal("tank_error", "timeout", 1, 0.5)
+			AI.PushGoal("tank_error", "signal", 0, 1, "TANK_MOVE_CHECK_SHOOT", SIGNALFILTER_SENDER)
+			AI.PushGoal("tank_error", "timeout", 1, 0.5)
+			AI.PushGoal("tank_error", "signal", 0, 1, "TANK_MOVE_START", SIGNALFILTER_SENDER)
+			entity:SelectPipe(0, "tank_error")
+		elseif entity.AI.mindType == 1 then
+			bResult = tankMindType1(entity)
+		elseif entity.AI.mindType == 2 then
+			bResult = tankMindType2(entity)
+		elseif entity.AI.mindType == 3 then
+			bResult = tankMindType3(entity)
+		elseif entity.AI.mindType == 4 then
+			bResult = tankMindType4(entity)
+		end
+	
+		-- Обработка неудачного выполнения тактики
+		if not bResult then
+			target = AI.GetAttentionTargetEntity(entity.id)
+			if target and AI.Hostile(entity.id, target.id) then
+				local vTmp = {}
+				SubVectors(vTmp, target:GetPos(), entity:GetPos())
+				local distance = LengthVector(vTmp)
+				
+				if distance > 80.0 then
+					-- Сближение с целью
+					NormalizeVector(vTmp)
+					FastScaleVector(vTmp, vTmp, 15.0)
+					FastSumVectors(vTmp, vTmp, entity:GetPos())
+					tankMakeApproachPipe(entity, vTmp, "tankJustApproachTheTarget", 10.0, false)
+					return
+				else
+					-- Агрессивная стрельба или отступление
+					if entity.AI.tr == 0 then
+						entity.AI.tr = 1
+						AI.CreateGoalPipe("tank_aggrasive_shoot")
+						AI.PushGoal("tank_aggrasive_shoot", "timeout", 1, 0.5)
+						AI.PushGoal("tank_aggrasive_shoot", "signal", 0, 1, "TANK_MOVE_CHECK_SHOOT", SIGNALFILTER_SENDER)
+						AI.PushGoal("tank_aggrasive_shoot", "timeout", 1, 0.5)
+						AI.PushGoal("tank_aggrasive_shoot", "signal", 0, 1, "TANK_MOVE_CHECK_SHOOT", SIGNALFILTER_SENDER)
+						AI.PushGoal("tank_aggrasive_shoot", "timeout", 1, 0.5)
+						AI.PushGoal("tank_aggrasive_shoot", "signal", 0, 1, "TANK_MOVE_CHECK_SHOOT", SIGNALFILTER_SENDER)
+						AI.PushGoal("tank_aggrasive_shoot", "timeout", 1, 0.5)
+						AI.PushGoal("tank_aggrasive_shoot", "signal", 0, 1, "TANK_MOVE_START", SIGNALFILTER_SENDER)
+						entity:SelectPipe(0, "tank_aggrasive_shoot")
+						return
 					else
-						entity.AI.tr =0;
-						tankGoBack( entity );
-						return;
+						entity.AI.tr = 0
+						tankGoBack(entity)
+						return
 					end
 				end
 			end
 			
-			entity.AI.fireCounter = 0;
-			
-			local vTmp = {};
-			SubVectors( vTmp,	entity:GetPos() , entity.AI.vDefultPos );
-			NormalizeVector( vTmp );
-			FastScaleVector( vTmp, vTmp, 30.0 );
-			FastSumVectors( vTmp, vTmp, entity.AI.vDefultPos );
-			
-			pipename = "tank_retreat";
-			tankMakeApproachPipe( entity, vTmp, pipename, 10.0, false  )
-
+			-- Отступление к исходной позиции
+			entity.AI.fireCounter = 0
+			local vTmp = {}
+			SubVectors(vTmp, entity:GetPos(), entity.AI.vDefultPos)
+			NormalizeVector(vTmp)
+			FastScaleVector(vTmp, vTmp, 30.0)
+			FastSumVectors(vTmp, vTmp, entity.AI.vDefultPos)
+			tankMakeApproachPipe(entity, vTmp, "tank_retreat", 10.0, false)
 		end
-
 	end,
 
 	---------------------------------------------

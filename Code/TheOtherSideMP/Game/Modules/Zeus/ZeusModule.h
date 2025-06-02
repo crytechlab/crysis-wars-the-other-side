@@ -10,19 +10,9 @@ Copyright (C), AlienKeeper, 2024.
 #include <TheOtherSideMP\Actors\Player\TOSPlayer.h>
 #include <TheOtherSideMP\TOSSmartStruct.h>
 
-enum EZeusFlags
-{
-	eZF_CanRotateCamera = BIT(0),
-	eZF_Possessing = BIT(1) // зевс вселился в кого-то
-};
-
-enum EZeusCommands
-{
-	eZC_KillSelected,
-	eZC_RemoveSelected,
-	eZC_CopySelected,
-	eZC_OrderSelected,
-};
+constexpr uint ZEUS_PP_AMOUNT_KEY = 300;
+constexpr auto ZEUS_DEFAULT_MOUSE_ENT_FLAGS = ent_terrain; //ent_living | ent_rigid | ent_static | ent_terrain | ent_sleeping_rigid | ent_independent;
+constexpr auto ZEUS_DRAGGING_MOUSE_ENT_FLAGS = ent_terrain;
 
 /**
  * \brief Модуль для обработки ситуаций режима игры Zeus
@@ -30,9 +20,59 @@ enum EZeusCommands
 class CTOSZeusModule : public CTOSGenericModule, IHardwareMouseEventListener, IFSCommandHandler
 {
 public:
-	struct SOnScreenIcon
+	friend class CHUD;
+	friend class CScriptBind_Zeus;
+
+	enum class ECommand : int
 	{
-		SOnScreenIcon(EntityId _id, int _x, int _y, int _icontype, int _friendly, float _distance, float _size, float _rotation, int _healthValue, int _selected)
+		KillSelected,
+		RemoveSelected,
+		CopySelected,
+		OrderSelected,
+	};
+
+	enum class EFlag : int
+	{
+		CanRotateCamera = BIT(0),
+		Possessing = BIT(1), // зевс вселился в кого-то
+		CanUseMouse = BIT(2), // можно ли использовать мышь для манипуляций с сущностями
+		Zeusing = BIT(3), // зевс активирован
+	};
+
+	enum class EIconColor
+	{
+		Grey = 1,
+		Blue,
+		Red,
+		Yellow,
+	};
+
+	enum class EIcon
+	{
+		Base = 1,
+		Car,
+		Helicopter,
+		Tank,
+		Boat,
+		Flag,
+		Flash,
+		Unit,
+		Star,
+		Circle,
+		AlienTrooper,
+		AlienScout,
+		Ammo,
+		Rifle,
+		Antenn,
+		DOT,
+		Turret,
+		BrokenWall,
+	};
+
+
+	struct SUnitIcon
+	{
+		SUnitIcon(EntityId _id, int _x, int _y, int _icontype, int _friendly, float _distance, float _size, float _rotation, int _healthValue, int _selected)
 			: id(_id),
 			x(_x),
 			y(_y),
@@ -56,11 +96,26 @@ public:
 		int healthValue;
 		int selected;
 
-		bool operator ==(const CHUD::SOnScreenIcon& compare) const
+		bool operator ==(const SUnitIcon& compare) const
 		{
 			return id == compare.id;
 		}
 
+	};
+
+	struct SOrderIcon
+	{
+		SOrderIcon(int _x, int _y, float _size)
+			: x(_x),
+			y(_y),
+			size(_size)
+		{
+
+		}
+
+		int x;
+		int y;
+		float size;
 	};
 
 	struct SOBBWorldPos : public STOSSmartStruct
@@ -82,167 +137,353 @@ public:
 		Vec3 wPos;
 	};
 
+	struct SItem
+	{
+		string strName;
+		string strDesc;
+		string strClass;
+		string strCategory;
+		int uniqueLoadoutGroup;
+		int uniqueLoadoutCount;
+		int iPrice;
+		int isUnique;
+		int iCount;
+		int iMaxCount;
+		int iInventoryID;
+		float level;
+		bool isWeapon;
+		bool bAmmoType;
+		bool bVehicleType;
+		bool loadout;
+		bool special;
+	};
+
+	struct STab
+	{
+		STab()
+			: iIndex(0),
+			strName("")
+		{
+
+		}		
+		
+		STab(int _index)
+			: iIndex(_index),
+			strName("")
+		{
+
+		}
+
+		bool operator > (const STab& other) const
+		{
+			return this->iIndex > other.iIndex;
+		}
+
+		bool operator >= (const STab& other) const
+		{
+			return this->iIndex >= other.iIndex;
+		}
+
+		bool operator < (const STab& other) const
+		{
+			return this->iIndex < other.iIndex;
+		}
+
+		bool operator <= (const STab& other) const
+		{
+			return this->iIndex <= other.iIndex;
+		}
+
+		bool operator == (const STab& other) const
+		{
+			return this->iIndex == other.iIndex;
+		}
+
+		bool operator != (const STab& other) const
+		{
+			return this->iIndex != other.iIndex;
+		}
+
+		string strName;
+		int iIndex;
+	};
+
+	//enum EOrderType
+	//{
+	//	E_ORDER_ENTER_VEHICLE,
+	//	E_ORDER_PICKUP_ITEM,
+	//	E_ORDER_USE_OBJECT,
+	//	E_ORDER_PURSUIT_AND_KILL_TARGET,
+	//	E_ORDER_GOTO,
+	//};
+
+	struct SOrder
+	{
+		Vec3 pos;
+		EntityId targetId;
+		//EOrderType type;
+	};
+
+	struct ClientServer
+	{
+		friend class CTOSZeusSynchronizer;
+		friend class CTOSZeusClientServer;
+		friend class CTOSZeusModule;
+
+		ClientServer::ClientServer()
+			:
+			pParent(nullptr)
+		{}		
+		
+		ClientServer::ClientServer(CTOSZeusModule* _pParent)
+			:
+			pParent(_pParent)
+		{}
+
+		void SetPP(int amount);
+		int  GetPP();
+		void ServerOnEntitySpawned(EntityId id, const Vec3& pos, int clientChannelId);
+		void ServerOnEntityCopied(EntityId id, const Vec3& pos, int clientChannelId, EntityId originalId);
+
+		static bool DispatchMakeZeus(IActor* pPlayer, bool bMake, const char* desiredTeam = nullptr);
+		static bool DispatchEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
+
+	private:
+		static bool ServerMakeZeus(int playerChannelId, bool make, const char* desiredTeam = nullptr);
+        static bool ClientMakeZeus(bool make, bool bfromInit = false);
+
+        static bool ServerEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
+		static bool ClientEnterVehicle(IActor* pActor, IVehicle* pVehicle, bool fast);
+
+	public:
+		CTOSZeusModule* pParent;
+	};
+
+	struct Local
+	{
+		friend class CTOSZeusSynchronizer;
+		friend class CTOSZeusClientServer;
+		friend class CTOSZeusModule;
+		friend class CScriptBind_Zeus;
+
+		Local::Local(CTOSZeusModule* _pParent);
+		bool GetFlag(EFlag flag) const;
+
+    private:
+		void ShowMouse(bool show);
+		void SetFlag(EFlag flag, bool value);
+		void Reset();
+
+		// Фильтр на сущности. True - сущность можно выбрать, false - нельзя
+		void SaveEntitiesStartPositions();
+		bool SelectionFilter(EntityId id) const;
+		void UpdateUnitIcons(IActor* pClientActor);
+		void UpdateOrderIcons(); 
+		void CreateOrderIcon(EntityId executorId, const SOrder& info);
+		void StopOrder(EntityId executorId);
+		void RemoveOrder(EntityId executorId);
+
+		/// @brief Проекция координат мыши в мир от камеры
+		/// @param ray - структура луча
+		/// @param mouseWorldPos - мировые координаты мыши, которые будут спроецированы на некоторое расстояние от камеры
+		/// @param boxDistanceAdjustment true - максимальное расстояние будет равно расстоянию до кликнутой сущности, false - максимально далеко
+		/// @return 0 - попаданий не было, > 0 - есть попадания
+		int	MouseProjectToWorld(ray_hit& ray, const Vec3& mouseWorldPos, uint entityFlags, bool boxDistanceAdjustment);
+
+		/// @brief Обновляет позицию перетаскиваемого объекта.
+		/// @param id Идентификатор перетаскиваемого объекта.
+		/// @param pClickedEntity Указатель на объект, на который щелкнули.
+		/// @param pZeusPhys Указатель на физический объект Зевса.
+		/// @param container Карта, содержащая позиции всех перетаскиваемых объектов.
+		/// @param heightAutoCalc Флаг, указывающий, нужно ли автоматически вычислять высоту перетаскиваемого объекта.
+		/// @return true, если обновление прошло успешно, иначе false.
+		bool UpdateDraggedEntity(EntityId id, const IEntity* pClickedEntity, IPhysicalEntity* pZeusPhys, std::map<EntityId, _smart_ptr<SOBBWorldPos>>& container, bool heightAutoCalc);
+		void UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec);
+
+		void OnEntityIconPressed(IEntity* pEntity);
+		EntityId GetMouseEntityId() const;
+
+		/// @brief Получить сущности, находящиеся в границах выделенной через мышь области 
+		void GetSelectedEntities();
+
+		/// Можно ли выбрать сущности выделением нескольких сразу?
+		bool CanSelectMultiplyWithBox() const;
+
+		void DeselectEntities();
+		std::set<EntityId>::iterator DeselectEntity(EntityId id);
+		void SelectEntity(EntityId id);
+		void ClickEntity(EntityId id, const Vec3& clickPos);
+		bool IsSelectedEntity(EntityId id);
+
+		bool IsMouseDisplayed() const;
+
+		/// @brief Обрабатывает однократный выбор сущности.
+		/// @param id Идентификатор выбранной сущности.
+		void HandleOnceSelection(EntityId id);
+
+		//Выполнить команду всем выделенным сущностям
+		bool ExecuteCommand(ECommand command);
+
+	private:
+		float m_draggingMoveStartTimer; /// Таймер начала перемещения сущностей после включения перетаскивания
+		float m_mouseDownDurationSec; /// используется для включения режима выделения нескольких объектов одновременно
+
+		bool m_mouseDisplayed;
+		bool m_copying; // true - идет копирование сущностей
+		bool m_select; // true - идет выделение сущностей
+		bool m_dragging; // true - идет перетаскивание сущностей
+		bool m_doubleClick; // true - идет двойной клик
+		bool m_ctrlModifier;
+		bool m_shiftModifier;
+		bool m_altModifier;
+		bool m_debugZModifier;
+		bool m_spaceFreeCam; // true - свободное движение камеры
+
+		uint m_mouseRayEntityFlags;
+		uint m_zeusFlags;
+
+		Vec3 m_worldProjectedMousePos; // проекция от камеры до курсора умноженное на некоторое расстояние
+		Vec3 m_clickedSelectStartPos; // позиция кликнутой сущности во время её выделения
+		Vec3 m_worldMousePos;
+		Vec3 m_draggingDelta; // смещение перетаскиваемой сущности
+		Vec3 m_orderPos; 
+		Vec2 m_selectStartPos; // позиция начала выделения
+		Vec2 m_selectStopPos; // позиция конца выделения
+		Vec2 m_anchoredMousePos; // используется при остановке движения мыши, когда вертится камера
+		Vec2i m_mouseIPos; // позиция мыши в пикселях
+
+		SmartScriptTable m_orderInfo;
+		SmartScriptTable m_executorInfo;
+
+		std::set<EntityId> m_doubleClickLastSelectedEntities; // последние выбранные сущности при двойном клике
+		std::set<EntityId> m_selectedEntities; /// выделенные сущности
+
+		std::map<EntityId, Vec3> m_selectStartEntitiesPositions; // позиции сущностей в момент начала выделения
+		std::map<EntityId, Vec3> m_storedEntitiesPositions;
+		std::map<EntityId, _smart_ptr<SOBBWorldPos>> m_boxes; /// боксы выделенных сущностей
+		std::map<EntityId, SOrder> m_orders;
+
+		EntityId m_mouseOveredEntityId; // сущность под курсором
+		EntityId m_curClickedEntityId; // текущая сущность, на которую нажали
+		EntityId m_lastClickedEntityId; // последняя сущность, на которую нажали
+		EntityId m_dragTargetId; // Сущность на которую перетаскивают
+		EntityId m_orderTargetId;
+
+		ray_hit m_mouseRay; 
+	public:
+		CTOSZeusModule* pParent;
+	};
+
+	struct HUD
+	{
+		friend class CTOSZeusSynchronizer;
+		friend class CTOSZeusClientServer;
+		friend class CTOSZeusModule;
+		friend class CHUD;
+
+		HUD::HUD(CTOSZeusModule* _pParent);
+
+		// возвращает true, если модальное окно Зевса активно
+		bool IsModalZeusMenu() const;
+
+		// возвращает true, если модальное окно Зевса активно или нет других модальных окон
+		bool IsModalZeusMenuOnlyOrNot() const;
+
+	private:
+		void Reset();
+
+		/// @brief Обновляет иконку бойца на экране.
+		/// @param objective идентификатор бойца
+		/// @param friendly 0 - серый, 1 - синий, 2 - красный
+		/// @param iconType - номер иконки
+		/// @param localOffset - локальное смещение иконки
+		void CreateUnitIcon(EntityId objective, int friendly, int iconType, const Vec3 localOffset);
+		void CreateOrderIcon(const Vec3& worldPos);
+		void CreateOrderLine(EntityId executor, const Vec3& orderWorldPos);
+		void FlashUpdateUnitIcons();
+		void FlashUpdateOrderIcons();
+		void Init();
+		void InGamePostUpdate(float frametime);
+		bool IsShowZeusMenu() const;
+		void UnloadSimpleAssets(bool unload);
+		void ShowPlayerHUD(bool show);
+		void UpdateZeusMenuItemList(const char* szPageIdx);
+		bool ShowZeusMenu(bool show);
+		/// @brief Считать xml и записать все item'ы в массив
+		bool MenuLoadItems();
+
+	public:
+		CTOSZeusModule* pParent;
+	private:
+		CGameFlashAnimation m_animZeusUnitIcons;
+		CGameFlashAnimation m_animZeusOrderIcons;
+		CGameFlashAnimation m_animZeusMenu;
+
+		std::vector<SUnitIcon> m_unitIcons;
+		std::vector<SOrderIcon> m_orderIcons;
+		std::map<STab, std::vector<SItem>> m_menuItems;
+
+		bool m_menuShow;
+		bool m_menuSpawnHandling; /// true - сущность из меню заспавнена, но не поставлена на карту
+		string m_menuFilename;
+		uint m_menuCurrentPage;
+	};
+
 	CTOSZeusModule();
 	virtual ~CTOSZeusModule();
+	void Reset();
 
 	//ITOSGameModule
-	bool        OnInputEvent(const SInputEvent& event);
-	bool        OnInputEventUI(const SInputEvent& event)
-	{
-		return false;
-	};
-	void        OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event);
-	void        GetMemoryStatistics(ICrySizer* s);
-	const char* GetName()
-	{
-		return "ModuleZeus";
-	};
-	void        Init();
-	void        Update(float frametime);
-	void UpdateOnScreenIcons(IActor* pClientActor);
-	void        Serialize(TSerialize ser);
-	int GetDebugLog()
-	{
-		return m_debugLogMode;
-	}
-
-	void InitCVars(IConsole* pConsole);
-	void InitCCommands(IConsole* pConsole);
-	void ReleaseCVars();
-	void ReleaseCCommands();
+    bool 		OnInputEvent(const SInputEvent &event) override;
+    bool        OnInputEventUI(const SInputEvent& event) override;
+	void        OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event) override;
+	void        GetMemoryStatistics(ICrySizer* s) override;
+	const char* GetName() const override;
+	void        Init() override;
+	void        Update(float frametime) override;
+	void        Serialize(TSerialize ser) override;
+	int			GetDebugLog() const override;
+	CScriptableBase* GetScriptBind() override;
+	void		InitCVars(IConsole* pConsole) override;
+	void		InitCCommands(IConsole* pConsole) override;
+	void		InitScriptBinds() override;
+	void		ReleaseCVars() override;
+	void		ReleaseCCommands() override;
+	void		ReleaseScriptBinds() override;
 	//~ITOSGameModule
-
-	void SaveEntitiesStartPositions();
-
-	// Фильтр на сущности. True - сущность можно выбрать, false - нельзя
-	bool SelectionFilter(EntityId id) const;
 
 	//IHardwareMouseEventListener
 	void OnHardwareMouseEvent(int iX, int iY, EHARDWAREMOUSEEVENT eHardwareMouseEvent);
 	//~IHardwareMouseEventListener
-
+	
 	//IFSCommandHandler
 	void HandleFSCommand(const char* pCommand, const char* pArgs);
 	//~IFSCommandHandler
 
-	void NetMakePlayerZeus(IActor* pPlayer);
-	void ShowHUD(bool show);
+	//Console Commands
+	static void CmdReloadMenuItems(IConsoleCmdArgs* pArgs);
+	static void CmdBecomeZeus(IConsoleCmdArgs* pArgs);
+	//~Console Commands
 
-	void SetZeusFlag(uint flag, bool value);
-	bool GetZeusFlag(uint flag) const;
-	void Reset();
+	bool IsPhysicsAllowed(const IEntity* pEntity);
+	// Получить локального игрока
+	CTOSPlayer* GetPlayer() const; 
+	ClientServer& GetClientServer();
+	Local& GetLocal();
+	HUD& GetHUD();
 
-	//void OnAction(const ActionId& action, int activationMode, float value);
-protected:
-	//bool OnActionAttack2(const CTOSActor* pActor, const ActionId& actionId, int activationMode, float value, float pressedDur = 0);
-
-private:
-	void UpdateDebug(bool zeusMoving, const Vec3& zeusDynVec);
-
-	/// @brief Проекция координат мыши в мир от камеры
-	/// @param ray - структура луча
-	/// @param mouseWorldPos - мировые координаты мыши, которые будут спроецированы на некоторое расстояние от камеры
-	/// @param boxDistanceAdjustment true - максимальное расстояние будет равно расстоянию до кликнутой сущности, false - максимально далеко
-	/// @return 0 - попаданий не было, > 0 - есть попадания
-	int	MouseProjectToWorld(ray_hit& ray, const Vec3& mouseWorldPos, uint entityFlags, bool boxDistanceAdjustment);
-
-	/// @brief Обновляет позицию перетаскиваемого объекта.
-	/// @param id Идентификатор перетаскиваемого объекта.
-	/// @param pClickedEntity Указатель на объект, на который щелкнули.
-	/// @param pZeusPhys Указатель на физический объект Зевса.
-	/// @param container Карта, содержащая позиции всех перетаскиваемых объектов.
-	/// @param heightAutoCalc Флаг, указывающий, нужно ли автоматически вычислять высоту перетаскиваемого объекта.
-	/// @return true, если обновление прошло успешно, иначе false.
-	bool UpdateDraggedEntity(EntityId id, const IEntity* pClickedEntity, IPhysicalEntity* pZeusPhys, std::map<EntityId, _smart_ptr<SOBBWorldPos>>& container, bool heightAutoCalc);
-
-	/// Можно ли выбрать сущности выделением нескольких сразу?
-	bool CanSelectMultiplyWithBox() const;
-
-	void OnEntityIconPressed(IEntity* pEntity);
-
-	/// @brief Получить сущности, находящиеся в границах выделенной через мышь области 
-	void GetSelectedEntities();
-	EntityId GetMouseEntityId();
-
-	void DeselectEntities();
-
-	std::set<EntityId>::iterator DeselectEntity(EntityId id);
-	void SelectEntity(EntityId id);
-
-	/// @brief Обрабатывает однократный выбор сущности.
-	/// @param id Идентификатор выбранной сущности.
-	void HandleOnceSelection(EntityId id);
-	void ShowMouse(bool show);
-
-	void ApplyZeusProperties(IActor* pPlayer);
-
-	//Выполнить команду всем выделенным сущностям
-	bool ExecuteCommand(EZeusCommands command);
-
-	/// @brief Обновляет иконку бойца на экране.
-	/// 
-	/// @param objective идентификатор бойца
-	/// @param friendly 0 - серый, 1 - синий, 2 - красный
-	/// @param iconType - номер иконки
-	/// @param localOffset - локальное смещение иконки
-	/// @param distance 
-	/// @param size 
-	void HUDUpdateOnScreenIcon(EntityId objective, int friendly, int iconType, const Vec3 localOffset);
-	void HUDUpdateAllZeusUnitIcons();
-	void HUDInit();
-	void HUDInGamePostUpdate(float frametime);
-	void HUDUnloadSimpleAssets(bool unload);
-
-public:
-	static std::map<string, string> s_classToConsoleVar;
+	void DumpModuleInfo() override;
 
 private:
-	CTOSPlayer* m_zeus;
-	uint m_zeusFlags;
-	ray_hit m_mouseRay;
-	uint m_mouseRayEntityFlags;
-	Vec2 m_anchoredMousePos; // используется при остановке движения мыши, когда вертится камера
-	Vec3 m_worldMousePos;
-	Vec3 m_worldProjectedMousePos; // проекция от камеры до курсора умноженное на некоторое расстояние
-	Vec2i m_mouseIPos;
-	Vec2 m_selectStartPos;
-	Vec3 m_clickedSelectStartPos; // позиция кликнутой сущности во время её выделения
-	Vec2 m_selectStopPos;
-	Vec3 m_draggingDelta;
-	Vec3 m_orderPos;
-	SmartScriptTable m_orderInfo;
-	SmartScriptTable m_executorInfo;
+	Local m_local;
+	ClientServer m_clientserver;
+	HUD m_hud;
+
+	CScriptBind_Zeus* m_pZeusScriptBind;
+	IPersistantDebug* m_pPersistantDebug;
 
 	// std::set<EntityId> m_copiedEntities; /// скопированные сущности
 	// std::map<EntityId, SOBBWorldPos*> m_copiedBoxes; /// боксы скопированных сущностей
-
-	std::set<EntityId> m_doubleClickLastSelectedEntities;
-	std::set<EntityId> m_selectedEntities; /// выделенные сущности
-	std::map<EntityId, _smart_ptr<SOBBWorldPos>> m_boxes; /// боксы выделенных сущностей
-	std::map<EntityId, Vec3> m_selectStartEntitiesPositions;
-	std::map<EntityId, Vec3> m_storedEntitiesPositions;
-
-	std::vector<SOnScreenIcon> m_onScreenIcons;
-	EntityId m_mouseOveredEntityId;
-	EntityId m_curClickedEntityId;
-	EntityId m_lastClickedEntityId;
-	EntityId m_dragTargetId; // Сущность на которую перетаскивают
-	EntityId m_orderTargetId;
-
-	float m_updateIconOnScreenTimer;
-	float m_draggingMoveStartTimer; /// Таймер начала перемещения сущностей после включения перетаскивания
-	float m_mouseDownDurationSec; /// используется для включения режима выделения нескольких объектов одновременно
-	bool m_doubleClick;
-	bool m_copying;
-	bool m_select;
-	bool m_dragging;
-	bool m_ctrlModifier;
-	bool m_shiftModifier;
-	bool m_altModifier;
-	bool m_debugZModifier;
-
-	//HUD
-	CGameFlashAnimation m_animZeusScreenIcons;
 
 	// Консольные значения
 	float tos_sv_zeus_mass_selection_hold_sec;
@@ -259,9 +500,7 @@ private:
 	int tos_sv_zeus_on_screen_far_distance;
 	int tos_sv_zeus_on_screen_offsetX;
 	int tos_sv_zeus_on_screen_offsetY;
-	float tos_sv_zeus_on_screen_update_delay;
 
-	int tos_sv_zeus_dragging_move_boxes_separately;
 	int tos_sv_zeus_selection_ignore_default;
 	int tos_sv_zeus_selection_ignore_basic_entity;
 	int tos_sv_zeus_selection_ignore_rigid_body;
@@ -274,5 +513,9 @@ private:
 	int tos_sv_zeus_selection_ignore_interactive_entity;
 	int tos_sv_zeus_selection_ignore_vehicle_part_detached;
 
+	int tos_sv_zeus_update;
 	int tos_cl_zeus_dragging_draw_debug;
+
+public:
+	static std::map<string, string> s_classToConsoleVar;
 };

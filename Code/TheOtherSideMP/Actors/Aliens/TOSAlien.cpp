@@ -11,6 +11,7 @@ Copyright (C), AlienKeeper, 2024.
 
 #include "TheOtherSideMP/Game/Modules/Master/MasterClient.h"
 #include "TheOtherSideMP/Helpers/TOS_NET.h"
+#include <Coop/Utilities/DedicatedServerHackScope.h>
 
 CTOSAlien::CTOSAlien()
 {
@@ -54,6 +55,8 @@ void CTOSAlien::PostPhysicalize()
 void CTOSAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
 {
 	CAlien::Update(ctx, updateSlot);
+
+
 }
 
 // ReSharper disable once CppParameterMayBeConst
@@ -62,81 +65,55 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 	if (!CAlien::NetSerialize(ser,aspect,profile,flags))
 		return false;
 
-	if (aspect == TOS_NET::SERVER_ASPECT_STATIC)
+	if (aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
 		ser.Value("health", m_health);
 		ser.Value("maxHealth", m_maxHealth);
 	}
 
-	if (aspect == TOS_NET::CLIENT_ASPECT_DYNAMIC || aspect == TOS_NET::SERVER_ASPECT_DYNAMIC)
+	if (aspect == tos::net::CLIENT_ASPECT_DYNAMIC || aspect == tos::net::SERVER_ASPECT_DYNAMIC)
 	{
-		m_netBodyInfo.Serialize(GetEntity(), ser);// ок
+		m_netBodyInfo.Serialize(GetEntity(), ser);
 
 		if (ser.IsReading())
 		{
-
-			// Скопировано из CCoopAlien::UpdateMovementState()
 			CMovementRequest request;
+		
+			request.SetMoveTarget(GetEntity()->GetPos() + m_netBodyInfo.moveTarget);
+			request.SetLookTarget(m_netBodyInfo.lookTarget);
+			request.SetBodyTarget(m_netBodyInfo.bodyTarget);
+			request.SetFireTarget(m_netBodyInfo.fireTarget);
+			request.AddDeltaMovement(m_netBodyInfo.deltaMov);
 
-			const auto pTrooper = static_cast<CTOSTrooper*>(this);
-			if (pTrooper)
-			{
-				request.AddDeltaMovement(m_netBodyInfo.deltaMov);// ок
-				//request.SetBodyTarget(m_netBodyInfo.lookTarget); // вообще пришельцами не используется
-				request.SetLookTarget(m_netBodyInfo.lookTarget);// ок
-				//request.SetAimTarget(m_netBodyInfo.aimTarget);
-				//request.SetFireTarget(m_netBodyInfo.fireTarget);// не нужен вроде
+			request.SetDesiredSpeed(m_netBodyInfo.desiredSpeed);
+			m_stats.speed = m_netBodyInfo.desiredSpeed;
+			m_stats.fireDir = Vec3(ZERO);
 
-				//Заставляет тушу двигаться самостоятельно
-				//request.SetMoveTarget(m_netBodyInfo.moveTarget);
-
-				request.SetStance(static_cast<EStance>(m_netBodyInfo.stance));// не проверено
-			}
+			request.SetStance(static_cast<EStance>(m_netBodyInfo.stance));
+			
+			if (m_netBodyInfo.hasAimTarget)
+				request.SetAimTarget(m_netBodyInfo.aimTarget);
 			else
-			{
-				request.SetMoveTarget(GetEntity()->GetPos() + m_netBodyInfo.moveTarget); // не проверено
-				request.SetLookTarget(m_netBodyInfo.lookTarget);// не проверено
-				request.SetBodyTarget(GetEntity()->GetWorldRotation() * Vec3(0, 1, 0));// не проверено
-				request.SetFireTarget(m_netBodyInfo.fireTarget);// не проверено
-
-				request.SetDesiredSpeed(m_netBodyInfo.desiredSpeed);// не проверено
-				m_stats.speed = m_netBodyInfo.desiredSpeed;// не проверено
-				m_stats.fireDir = Vec3(ZERO);// не проверено
-
-				request.SetStance(static_cast<EStance>(m_netBodyInfo.stance));// не проверено
-			}
+				request.ClearAimTarget();
 
 			GetMovementController()->RequestMovement(request);
-		}
 
-		//if (m_stats.inAir > 0.01)
-		//{
-			//float z = m_netBodyInfo.worldPos.z;
-			//Vec3 orig_pos = GetEntity()->GetWorldPos();
-			//orig_pos.z = z;
-			//GetEntity()->SetWorldTM(Matrix34::CreateTranslationMat(orig_pos));
-		//}
+			// Update view matrices
+			Vec3 viewDir = (m_netBodyInfo.lookTarget - GetEntity()->GetWorldPos()).GetNormalized();
+			Vec3 bodyDir = (m_netBodyInfo.bodyTarget - GetEntity()->GetWorldPos()).GetNormalized();
+			Vec3 aimDir = (m_netBodyInfo.aimTarget - GetEntity()->GetWorldPos()).GetNormalized();
 
-		/*
-		if (ser.IsWriting())
-		{
-			CryLogAlways("[%s] WRITE INPUT:", GetEntity()->GetName());
-			CryLogAlways("	m_netBodyInfo.deltaMov = (%1.f, %1.f, %1.f)", m_netBodyInfo.deltaMov.x, m_netBodyInfo.deltaMov.y, m_netBodyInfo.deltaMov.z);
-			CryLogAlways("	m_netBodyInfo.lookTarget = (%1.f, %1.f, %1.f)", m_netBodyInfo.lookTarget.x, m_netBodyInfo.lookTarget.y, m_netBodyInfo.lookTarget.z);
+			if (viewDir.len2() > 0.001f)
+				m_viewMtx.SetRotationVDir(viewDir);
+			if (bodyDir.len2() > 0.001f)
+				m_baseMtx.SetRotationVDir(bodyDir);
+			if (aimDir.len2() > 0.001f)
+				m_eyeMtx.SetRotationVDir(aimDir);
 		}
-		else
-		{
-			CryLogAlways("[%s] READ INPUT:", GetEntity()->GetName());
-			CryLogAlways("	m_netBodyInfo.deltaMov = (%1.f, %1.f, %1.f)", m_netBodyInfo.deltaMov.x, m_netBodyInfo.deltaMov.y, m_netBodyInfo.deltaMov.z);
-			CryLogAlways("	m_netBodyInfo.lookTarget = (%1.f, %1.f, %1.f)", m_netBodyInfo.lookTarget.x, m_netBodyInfo.lookTarget.y, m_netBodyInfo.lookTarget.z);
-		}
-		*/
 	}
 
-	if (aspect == TOS_NET::CLIENT_ASPECT_STATIC)
+	if (aspect == tos::net::CLIENT_ASPECT_STATIC)
 	{
-		//Блок скопирован из CPlayer::NetSerialize()
-
 		const bool writing = ser.IsWriting();
 		bool	   hasWeapon = false;
 
@@ -148,21 +125,7 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 
 		if (!writing && hasWeapon && NetGetCurrentItem() == 0)
 			ser.FlagPartialRead();
-
-		/*
-		if (writing)
-		{
-			CryLogAlways("[%s] WRITE INPUT:", GetEntity()->GetName());
-			CryLogAlways("	hasWeapon = %i", hasWeapon);
-		}
-		else
-		{
-			CryLogAlways("[%s] READ INPUT:", GetEntity()->GetName());
-			CryLogAlways("	hasWeapon = %i", hasWeapon);
-		}
-		*/
 	}
-
 
 	return true;
 }
@@ -175,113 +138,50 @@ void CTOSAlien::ProcessEvent(SEntityEvent& event)
 void CTOSAlien::PrePhysicsUpdate()
 {
 	CAlien::PrePhysicsUpdate();
-	// если раскомментировать, то сервер будет только считывать
-	// если оставить как есть, то сервер будет и считывать и записывать (отрицательно не влияет на геймплей)
-	//if (!gEnv->bClient)
-	//	return;
 
-	const SMovementState currentState = static_cast<CCompatibilityAlienMovementController*>(GetMovementController())->GetCurrentMovementState();
+	const SMovementState currentState = static_cast<CTOSAlienMovementController*>(GetMovementController())->GetCurrentMovementState();
 
-	const auto pTrooper = static_cast<CTOSTrooper*>(this);
-	if (pTrooper)
+	m_netBodyInfo.moveTarget = GetEntity()->GetWorldPos() + currentState.movementDirection;
+	// m_netBodyInfo.aimTarget = currentState.eyePosition + currentState.aimDirection;
+	// m_netBodyInfo.lookTarget = currentState.eyePosition + currentState.eyeDirection;
+	// m_netBodyInfo.bodyTarget = currentState.eyePosition + currentState.bodyDirection;
+	m_netBodyInfo.fireTarget = currentState.fireTarget;
+	m_netBodyInfo.deltaMov = m_input.deltaMovement;
+
+	// Float
+	m_netBodyInfo.desiredSpeed = m_moveRequest.velocity.GetLength();
+
+	// Int
+	m_netBodyInfo.stance = static_cast<int>(currentState.stance);
+
+	// Bool
+	m_netBodyInfo.hasAimTarget = currentState.isAiming;
+
+	// View direction sync
+	m_netBodyInfo.lookTarget = GetEntity()->GetWorldPos() + m_viewMtx.GetColumn(1) * 10.0f;
+	m_netBodyInfo.bodyTarget = GetEntity()->GetWorldPos() + m_baseMtx.GetColumn(1) * 10.0f;
+	m_netBodyInfo.aimTarget = GetEntity()->GetWorldPos() + m_eyeMtx.GetColumn(1) * 10.0f;
+
+	if (gEnv->bClient)
 	{
-		// Взято наглядно из CAlien::GetActorInfo()
-		// 10/18/2023, 18:36 мне удалось достичь очень плавного перемещения трупера у других клиентов.
-		// Практически неотличимо от локального управления.
-		// Единственное что меня волнует это прыжок.
-		// Чуть дольше чем момент начала прыжка трупер у других клиентов немного дёргается.
-		const Vec3 eyePos = GetEntity()->GetSlotWorldTM(0) * m_eyeOffset; // ок
-		const Vec3 weaponPos = GetEntity()->GetSlotWorldTM(0) * m_weaponOffset; // ок
-
-		// Принцип работы: m_viewMtx.GetColumn1() на владеющем клиенте ->
-		// serialize направление вперед(forward) (от владеющего к другим клиентам и серверу) ->
-		// m_viewMtx.SetRotationVDir()
-		const Vec3 eyeDir = m_viewMtx.GetColumn1(); // ок
-
-		m_netBodyInfo.lookTarget = eyePos + eyeDir * 10.0f;
-		m_netBodyInfo.fireTarget = weaponPos + eyeDir * 10.0f;
-
-		m_netBodyInfo.deltaMov = m_input.deltaMovement;
-
-		//m_netBodyInfo.aimTarget = currentState.eyePosition + currentState.eyeDirection; //ура я нашёл //currentState.aimDirection;
-		//m_netBodyInfo.lookTarget = currentState.eyePosition + currentState.eyeDirection * 10.0f;
-
-		/* не работает
-		m_netBodyInfo.lookTarget = currentState.eyePosition + currentState.bodyDirection;
-		m_netBodyInfo.aimTarget = currentState.eyePosition + currentState.aimDirection;
-		m_netBodyInfo.fireTarget = currentState.eyePosition + currentState.weaponPosition;
-		m_netBodyInfo.bodyTarget = currentState.eyePosition + currentState.bodyDirection;
-		*/
-
-		/* не работает
-		m_netBodyInfo.moveTarget = GetEntity()->GetWorldPos() + currentState.movementDirection;
-		m_netBodyInfo.aimTarget = currentState.eyePosition + currentState.aimDirection;
-		m_netBodyInfo.lookTarget = currentState.eyePosition + currentState.bodyDirection;
-		*/
-
-		//m_netBodyInfo.fireTarget = currentState.fireTarget;
-
-		//m_netBodyInfo.desiredSpeed = m_moveRequest.velocity.GetLength();
-
-		m_netBodyInfo.stance = static_cast<int>(currentState.stance); // не проверено
-
-		// Bool
-		//m_netBodyInfo.hasAimTarget = currentState.isAiming;
-
-		//IPersistantDebug* pPD = gEnv->pGame->GetIGameFramework()->GetIPersistantDebug();
-		//const Vec3 wp(GetEntity()->GetWorldPos() + Vec3(0, 0, 1));
-
-		//pPD->Begin(string("master_input_pre_physics_") + GetEntity()->GetName(), true);
-		//pPD->AddSphere(m_netBodyInfo.lookTarget, 0.5f, ColorF(1, 0, 1, 1), 1.0f);
-		//pPD->AddSphere(m_netBodyInfo.aimTarget, 0.5f, ColorF(1, 1, 1, 1), 1.0f);
-		//pPD->AddSphere(m_netBodyInfo.fireTarget, 0.5f, ColorF(1, 0, 0, 1), 1.0f);
-
-		//pPD->AddDirection(wp, 1.5f, m_input.deltaMovement, ColorF(1, 0, 0, 1), 1.0f);
-		//pPD->AddDirection(wp, 1.5f, currentState.aimDirection, ColorF(0, 1, 0, 1), 1.0f);
+		m_netBodyInfo.worldPos = GetEntity()->GetWorldPos();
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
 	}
 	else
 	{
-		//Vec3
-		m_netBodyInfo.moveTarget = GetEntity()->GetWorldPos() + currentState.movementDirection; // не проверено
-		m_netBodyInfo.aimTarget = currentState.eyePosition + currentState.aimDirection; // не проверено
-		m_netBodyInfo.lookTarget = currentState.eyePosition + currentState.eyeDirection; // не проверено
-		m_netBodyInfo.fireTarget = currentState.fireTarget; // не проверено
-
-		// Float
-		m_netBodyInfo.desiredSpeed = m_moveRequest.velocity.GetLength(); // не проверено
-
-		// Int
-		m_netBodyInfo.stance = static_cast<int>(currentState.stance); // не проверено
-
-		// Bool
-		//m_netBodyInfo.hasAimTarget = currentState.isAiming;
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
 	}
 
-	if (gEnv->bClient)
-		m_netBodyInfo.worldPos = GetEntity()->GetWorldPos();
-
-	//TheOtherSide
-	//if (gEnv->bClient)
-	//{
-	GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_DYNAMIC);
-	//}
-	//else
-	//{
-	//	GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_AI_INPUT);
-	//}
-	//~TheOtherSide
-
-	//ICharacterInstance* pCharacter = GetEntity() ? GetEntity()->GetCharacter(0) : NULL;
-	//if (pCharacter)
-	//{
-	//	if (IsLocalSlave() || (IsSlave() && gEnv->bServer))
-	//		pCharacter->GetISkeletonPose()->SetForceSkeletonUpdate(4);
-	//}
-	
-	//float frameTime = gEnv->pTimer->GetFrameTime();
-
-	//if (m_pMovementController)
-	//	m_pMovementController->PostUpdate(frameTime);
+	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
+	{
+		// Only update on dedicated server.
+		if (gEnv->bServer && !gEnv->bClient)
+		{
+			CDedicatedServerHackScope::Enter();
+			pGraphState->Update();
+			CDedicatedServerHackScope::Exit();
+		}
+	}
 }
 
 void CTOSAlien::SetHealth(const int health)
@@ -290,7 +190,7 @@ void CTOSAlien::SetHealth(const int health)
 
 	if (gEnv->bServer)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 }
 

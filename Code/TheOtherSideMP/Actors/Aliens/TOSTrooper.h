@@ -23,6 +23,7 @@ public:
 	void ProcessMovement(float frameTime) ;
 	void ProcessJumpFlyControl(const Vec3& move, float frameTime);
 	void UpdateStats(float frameTime);
+	void PrePhysicsUpdate();
 	//~CTrooper
 
 	//ITOSMasterControllable

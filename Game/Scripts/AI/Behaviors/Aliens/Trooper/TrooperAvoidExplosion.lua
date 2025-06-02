@@ -179,7 +179,10 @@ AIBehaviour.TrooperAvoidExplosion = {
 
 	--------------------------------------------------
 	IS_PLAYER_ENGAGED = function(self,entity,sender)
-		if(AI.GetAttentionTargetEntity(entity.id)==g_localActor) then 
+		--TheOtherSide
+		local target = AI.GetAttentionTargetEntity(entity.id)
+		if(target.actor and target.actor:IsPlayer()) then 
+		--~TheOtherSide
 			if(AI.GetGroupOf(entity.id) ~= AI.GetGroupOf(sender.id)) then 
 				AI.Signal(SIGNALFILTER_GROUPONLY, 0,"PLAYER_ENGAGED",sender.id);
 			end

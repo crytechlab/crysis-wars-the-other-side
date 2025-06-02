@@ -9,11 +9,12 @@ Copyright (C), AlienKeeper, 2024.
 #include "GameUtils.h"
 #include "NetInputChainDebug.h"
 
-#include "TheOtherSideMP/Extensions/EnergyСonsumer.h"
+#include "TheOtherSideMP/Extensions/EnergyManager.h"
 #include "TheOtherSideMP/Helpers/TOS_Console.h"
 #include <TheOtherSideMP/Helpers/TOS_NET.h>
 #include <CompatibilityAlienMovementController.h>
 #include <utility>
+#include "TOSAlienMovementController.h"
 
 CTOSTrooper::CTOSTrooper() {};
 
@@ -24,13 +25,13 @@ void CTOSTrooper::PostInit(IGameObject* pGameObject)
 	CTrooper::PostInit(pGameObject);
 	m_chargingJump = true;
 
-	if (m_pEnergyConsumer)
+	if (m_pEnergyManager)
 	{
-		m_pEnergyConsumer->SetRegenStartDelayMP(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_mp"));
-		m_pEnergyConsumer->SetRegenStartDelaySP(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_sp"));
-		m_pEnergyConsumer->SetRegenStartDelay20Boundary(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_20boundary"));
-		m_pEnergyConsumer->SetRechargeTimeSP(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_sp"));
-		m_pEnergyConsumer->SetRechargeTimeMP(TOS_Console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_mp"));
+		m_pEnergyManager->SetRegenStartDelayMP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_mp"));
+		m_pEnergyManager->SetRegenStartDelaySP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_sp"));
+		m_pEnergyManager->SetRegenStartDelay20Boundary(tos::console::GetSafeFloatVar("tos_tr_regen_energy_start_delay_20boundary"));
+		m_pEnergyManager->SetRechargeTimeSP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_sp"));
+		m_pEnergyManager->SetRechargeTimeMP(tos::console::GetSafeFloatVar("tos_tr_regen_energy_recharge_time_mp"));
 	}
 
 }
@@ -52,7 +53,7 @@ void CTOSTrooper::PostPhysicalize()
 
 void CTOSTrooper::Update(SEntityUpdateContext& ctx, const int updateSlot)
 {
-	const float regenStartDelay = m_pEnergyConsumer->GetRegenStartDelay();
+	const float regenStartDelay = m_pEnergyManager->GetRegenStartDelay();
 
 	NETINPUT_TRACE(GetEntityId(), regenStartDelay);
 	NETINPUT_TRACE(GetEntityId(), m_input.deltaMovement);
@@ -127,10 +128,39 @@ void CTOSTrooper::Update(SEntityUpdateContext& ctx, const int updateSlot)
 	//~TheOtherSide
 }
 
-bool CTOSTrooper::NetSerialize(const TSerialize ser, const EEntityAspects aspect, const uint8 profile, const int flags)
+bool CTOSTrooper::NetSerialize(TSerialize ser, const EEntityAspects aspect, const uint8 profile, const int flags)
 {
-	if (!CTrooper::NetSerialize(ser, aspect, profile, flags))
+	if (!CAlien::NetSerialize(ser, aspect, profile, flags))
 		return false;
+
+	if (aspect == tos::net::SERVER_ASPECT_STATIC)
+	{
+		ser.Value("health", m_health);
+		ser.Value("maxHealth", m_maxHealth);
+	}
+
+	if (aspect == tos::net::CLIENT_ASPECT_DYNAMIC || aspect == tos::net::SERVER_ASPECT_DYNAMIC)
+	{
+		m_netBodyInfo.Serialize(GetEntity(), ser);// ок
+
+		if (ser.IsReading())
+		{
+			// Скопировано из CCoopAlien::UpdateMovementState()
+			CMovementRequest request;
+			request.AddDeltaMovement(m_netBodyInfo.deltaMov);// ок
+			//request.SetBodyTarget(m_netBodyInfo.lookTarget); // вообще пришельцами не используется
+			request.SetLookTarget(m_netBodyInfo.lookTarget);// ок
+			request.SetAimTarget(m_netBodyInfo.aimTarget);
+			//request.SetFireTarget(m_netBodyInfo.fireTarget);// не нужен вроде
+
+			//Заставляет тушу двигаться самостоятельно
+			//request.SetMoveTarget(m_netBodyInfo.moveTarget);
+
+			request.SetStance(static_cast<EStance>(m_netBodyInfo.stance));// не проверено
+
+			GetMovementController()->RequestMovement(request);
+		}
+	}
 
 	return true;
 }
@@ -139,7 +169,7 @@ void CTOSTrooper::ProcessMovement(const float frameTime)
 {
 	//TheOtherSide
 	// Обработка прыжка
-	const auto pMovementController = static_cast<CCompatibilityAlienMovementController*>(GetMovementController());
+	const auto pMovementController = static_cast<CTOSAlienMovementController*>(GetMovementController());
 	auto& currentRequest = pMovementController->GetCurrentMovementRequest();
 	if (currentRequest.ShouldJump())
 	{
@@ -156,14 +186,14 @@ void CTOSTrooper::ProcessMovement(const float frameTime)
 			m_jumpParams.duration = 0.4f; // подбиралось эмпирически. Через 0.4 сек переход из flying в approach landing
 			
 			const float	jumpPressDur = pSlaveStats->chargingJumpPressDur;
-			const float	jumpHeight = TOS_Console::GetSafeFloatVar("tos_tr_jump_height", 3);
-			//const float	jumpForceAdd = TOS_Console::GetSafeFloatVar("tos_tr_double_jump_force", 4.0f);
-			const float chargingTime = TOS_Console::GetSafeFloatVar("tos_tr_charging_jump_input_time", 0.20f);
-			const float chargingMul = TOS_Console::GetSafeFloatVar("tos_tr_charged_jump_mul", 2);
+			const float	jumpHeight = tos::console::GetSafeFloatVar("tos_tr_jump_height", 3);
+			//const float	jumpForceAdd = tos::console::GetSafeFloatVar("tos_tr_double_jump_force", 4.0f);
+			const float chargingTime = tos::console::GetSafeFloatVar("tos_tr_charging_jump_input_time", 0.20f);
+			const float chargingMul = tos::console::GetSafeFloatVar("tos_tr_charged_jump_mul", 2);
 			//const float	finalOnceJumpForce = jumpPressDur > chargingTime ? jumpForce + jumpForceAdd : jumpForce;
 			const float	mult = jumpPressDur > chargingTime ? chargingMul : 1.0f;
 
-			const float doubleJumpCost = TOS_Console::GetSafeFloatVar("tos_tr_double_jump_energy_cost");
+			const float doubleJumpCost = tos::console::GetSafeFloatVar("tos_tr_double_jump_energy_cost");
 			const float energy = TOS_SAFE_GET_ENERGY(this);
 
 			Vec3 jumpVec(0, 0, 0);
@@ -342,6 +372,40 @@ void CTOSTrooper::UpdateStats(float frameTime)
 	}
 }
 
+void CTOSTrooper::PrePhysicsUpdate()
+{
+	CTOSAlien::PrePhysicsUpdate();
+
+	const SMovementState currentState = static_cast<CCompatibilityAlienMovementController*>(GetMovementController())->GetCurrentMovementState();
+
+	// Взято наглядно из CAlien::GetActorInfo()
+	// 10/18/2023, 18:36 мне удалось достичь очень плавного перемещения трупера у других клиентов.
+	// Практически неотличимо от локального управления.
+	// Единственное что меня волнует это прыжок.
+	// Чуть дольше чем момент начала прыжка трупер у других клиентов немного дёргается.
+	const Vec3 eyePos = GetEntity()->GetSlotWorldTM(0) * m_eyeOffset; // ок
+	const Vec3 weaponPos = GetEntity()->GetSlotWorldTM(0) * m_weaponOffset; // ок
+
+	// Принцип работы: m_viewMtx.GetColumn1() на владеющем клиенте ->
+	// serialize направление вперед(forward) (от владеющего к другим клиентам и серверу) ->
+	// m_viewMtx.SetRotationVDir()
+	const Vec3 eyeDir = m_viewMtx.GetColumn1(); // ок
+
+	m_netBodyInfo.lookTarget = eyePos + eyeDir * 10.0f;
+	m_netBodyInfo.fireTarget = weaponPos + eyeDir * 10.0f;
+	m_netBodyInfo.deltaMov = m_input.deltaMovement;
+	m_netBodyInfo.stance = static_cast<int>(currentState.stance); // не проверено
+
+	if (gEnv->bClient)
+	{
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
+	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
+	}
+}
+
 void CTOSTrooper::UpdateMasterView(SViewParams& viewParams, Vec3& offsetX, Vec3& offsetY, Vec3& offsetZ, Vec3& target, Vec3& current, float& currentFov)
 {
 	//CTrooper::UpdateMasterView(viewParams, offsetY, target, currentFov);
@@ -398,9 +462,9 @@ bool CTOSTrooper::ApplyActions(int actions)
 //		const float     onGround  = pActorStats->onGround;
 //		const float		jumpPressDur = pSlaveStats->chargingJumpPressDur;
 //		const float		jumpForce = 6.0f;
-//		const float		finalOnceJumpForce = jumpPressDur > TOS_Console::GetSafeFloatVar("tos_tr_charging_jump_input_time") ? jumpForce + 4.0f : jumpForce;
+//		const float		finalOnceJumpForce = jumpPressDur > tos::console::GetSafeFloatVar("tos_tr_charging_jump_input_time") ? jumpForce + 4.0f : jumpForce;
 //
-//		const float doubleJumpCost = TOS_Console::GetSafeFloatVar("tos_tr_double_jump_energy_cost");
+//		const float doubleJumpCost = tos::console::GetSafeFloatVar("tos_tr_double_jump_energy_cost");
 //		const float energy = TOS_SAFE_GET_ENERGY(this);
 //
 //		// Одиночный прыжок

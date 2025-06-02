@@ -811,43 +811,9 @@ void CAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
 				m_pGroundEffect->Update();
 			}
 
-			if (m_pTrailAttachment)
-			{
-				const auto pEffectAttachment = static_cast<CEffectAttachment*>(m_pTrailAttachment->GetIAttachmentObject());
-				if (pEffectAttachment)
-				{
-					const float goalspeed = max(0.f, m_stats.speed - m_params.trailEffectMinSpeed);
-					Interpolate(m_trailSpeedScale, goalspeed, 3.f, frameTime);
-
-					SpawnParams sp;
-					if (m_params.trailEffectMaxSpeedSize != 0.f)
-						sp.fSizeScale = min(1.f, max(0.01f, m_trailSpeedScale / m_params.trailEffectMaxSpeedSize));
-
-					if (m_params.trailEffectMaxSpeedCount != 0.f)
-						sp.fCountScale = min(1.f, m_trailSpeedScale / m_params.trailEffectMaxSpeedCount);
-
-					pEffectAttachment->SetSpawnParams(sp);
-				}
-			}
-
-			if (m_pHealthTrailAttachment)
-			{
-				auto* pEffectAttachment = static_cast<CEffectAttachment*>(m_pHealthTrailAttachment->GetIAttachmentObject());
-				if (pEffectAttachment)
-				{
-					const float goal = 1.0f - static_cast<float>(GetHealth()) / static_cast<float>(max(1, GetMaxHealth()));
-					Interpolate(m_healthTrailScale, goal, 2.f, frameTime);
-
-					SpawnParams sp;
-					if (m_params.healthTrailEffectMaxSize != 0.f)
-						sp.fSizeScale = min(1.f, max(0.01f, m_healthTrailScale / m_params.healthTrailEffectMaxSize));
-
-					if (m_params.healthTrailEffectMaxCount != 0.f)
-						sp.fCountScale = 1.0f; // min(1.f, m_healthTrailScale / m_params.healthTrailEffectMaxCount);
-
-					pEffectAttachment->SetSpawnParams(sp);
-				}
-			}
+			//TheOtherSide
+			UpdateEffects(frameTime);
+			//~TheOtherSide
 
 			if (m_searchbeam.active)
 				UpdateSearchBeam(frameTime);
@@ -879,6 +845,93 @@ void CAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
 	m_charLocalMtx.SetTranslation(m_modelOffset + m_modelOffsetAdd);
 
 	GetAnimatedCharacter()->SetExtraAnimationOffset(m_charLocalMtx);
+}
+
+bool CAlien::CreatedTrailAttachments()
+{
+	if (GetHealth() <= 0)
+		return false;
+
+	if (!m_pTrailAttachment && m_params.trailEffect[0] && gEnv->p3DEngine->FindParticleEffect(m_params.trailEffect))
+	{
+		if (ICharacterInstance* pCharInstance = GetEntity()->GetCharacter(0))
+		{
+			IAttachmentManager* pAttachmentManager = pCharInstance->GetIAttachmentManager();
+			if (IAttachment* pAttachment = pAttachmentManager->GetInterfaceByName("trail_attachment"))
+			{
+				pAttachment->ClearBinding();
+				CEffectAttachment* pEffectAttachment = new CEffectAttachment(m_params.trailEffect, Vec3(0, 0, 0), m_params.trailEffectDir.GetNormalized(), 1);
+				pEffectAttachment->CreateEffect();
+				pAttachment->AddBinding(pEffectAttachment);
+
+				m_pTrailAttachment = pEffectAttachment;
+
+				//CryLogAlways("[%s] Saving m_pTrailAttachment as %p", GetEntity()->GetName(), static_cast<const void*>(m_pTrailAttachment));
+
+				m_trailSpeedScale = 0.f;
+			}
+			else
+				CryLog("[CAlien::Revive] %s: 'trail_attachment' not found.", GetEntity()->GetName());
+		}
+	}
+
+	if (!m_pHealthTrailAttachment && m_params.healthTrailEffect[0] && gEnv->p3DEngine->FindParticleEffect(m_params.healthTrailEffect))
+	{
+		if (ICharacterInstance* pCharInstance = GetEntity()->GetCharacter(0))
+		{
+			IAttachmentManager* pAttachmentManager = pCharInstance->GetIAttachmentManager();
+			if (IAttachment* pAttachment = pAttachmentManager->GetInterfaceByName("health_trail_attachment"))
+			{
+				pAttachment->ClearBinding();
+				CEffectAttachment* pEffectAttachment = new CEffectAttachment(m_params.healthTrailEffect, Vec3(0, 0, 0), m_params.healthTrailEffectDir.GetNormalized(), 1);
+				pEffectAttachment->CreateEffect();
+				pAttachment->AddBinding(pEffectAttachment);
+
+				m_pHealthTrailAttachment = pEffectAttachment;
+				m_healthTrailScale = 0.f;
+			}
+			else
+				CryLog("[CAlien::Revive] %s: 'health_trail_attachment' not found.", GetEntity()->GetName());
+		}
+	}
+
+	return true;
+}
+
+void CAlien::UpdateEffects(const float frameTime)
+{
+	if (!CreatedTrailAttachments())
+		return;
+
+	if (m_pTrailAttachment)
+	{
+		const float goalspeed = max(0.f, m_stats.speed - m_params.trailEffectMinSpeed);
+		Interpolate(m_trailSpeedScale, goalspeed, 3.f, frameTime);
+
+		SpawnParams sp;
+		if (m_params.trailEffectMaxSpeedSize != 0.f)
+			sp.fSizeScale = min(1.f, max(0.01f, m_trailSpeedScale / m_params.trailEffectMaxSpeedSize));
+
+		if (m_params.trailEffectMaxSpeedCount != 0.f)
+			sp.fCountScale = min(1.f, m_trailSpeedScale / m_params.trailEffectMaxSpeedCount);
+
+		m_pTrailAttachment->SetSpawnParams(sp);
+	}
+
+	if (m_pHealthTrailAttachment)
+	{
+		const float goal = 1.0f - static_cast<float>(GetHealth()) / static_cast<float>(max(1, GetMaxHealth()));
+		Interpolate(m_healthTrailScale, goal, 2.f, frameTime);
+
+		SpawnParams sp;
+		if (m_params.healthTrailEffectMaxSize != 0.f)
+			sp.fSizeScale = min(1.f, max(0.01f, m_healthTrailScale / m_params.healthTrailEffectMaxSize));
+
+		if (m_params.healthTrailEffectMaxCount != 0.f)
+			sp.fCountScale = 1.0f; // min(1.f, m_healthTrailScale / m_params.healthTrailEffectMaxCount);
+
+		m_pHealthTrailAttachment->SetSpawnParams(sp);
+	}
 }
 
 void CAlien::UpdateView(SViewParams& viewParams)
@@ -989,7 +1042,11 @@ void CAlien::UpdateStats(float frameTime)
 	m_stats.gravity = simPar.gravity;
 	m_stats.velocity = m_stats.velocityUnconstrained = dynStat.v;
 	m_stats.angVelocity = dynStat.w;
-	m_stats.speed = m_stats.speedFlat = m_stats.velocity.len();
+
+	// Crysis Co-op :: stops the client from overriding server value
+	if (!gEnv->bClient && gEnv->bServer)
+		m_stats.speed = m_stats.speedFlat = m_stats.velocity.len();
+	// ~Crysis Co-op
 
 	// [Mikko] The velocity from the physics in some weird cases have been #INF because of the player
 	// Zero-G movement calculations. If this asserts triggers, the alien might have just collided with
@@ -1716,8 +1773,11 @@ void CAlien::Kill()
 	if (m_pBeamEffect)
 		m_pBeamEffect->Stop();
 
-	if (m_pTrailAttachment)
-		m_pTrailAttachment->ClearBinding();
+	//if (m_pTrailAttachment)
+	//	m_pTrailAttachment->ClearBinding();
+
+	m_pTrailAttachment = nullptr;
+	m_pHealthTrailAttachment = nullptr;
 
 	if (m_pTurnSound)
 	{
@@ -1785,38 +1845,6 @@ void CAlien::Revive(const bool fromInit)
 				m_pGroundEffect->Stop(true);
 		}
 	}
-
-	if (!m_pTrailAttachment && m_params.trailEffect[0] && gEnv->p3DEngine->FindParticleEffect(m_params.trailEffect))
-		if (ICharacterInstance* pCharInstance = GetEntity()->GetCharacter(0))
-		{
-			IAttachmentManager* pAttachmentManager = pCharInstance->GetIAttachmentManager();
-			if (IAttachment* pAttachment = pAttachmentManager->GetInterfaceByName("trail_attachment"))
-			{
-				pAttachment->ClearBinding();
-				auto* pEffectAttachment = new CEffectAttachment(m_params.trailEffect, Vec3(0, 0, 0), m_params.trailEffectDir.GetNormalized(), 1);
-				pEffectAttachment->CreateEffect();
-				pAttachment->AddBinding(pEffectAttachment);
-				m_pTrailAttachment = pAttachment;
-				m_trailSpeedScale = 0.f;
-			}
-			else { CryLog("[CAlien::Revive] %s: 'trail_attachment' not found.", GetEntity()->GetName()); }
-		}
-
-	if (m_params.healthTrailEffect[0] && gEnv->p3DEngine->FindParticleEffect(m_params.healthTrailEffect))
-		if (ICharacterInstance* pCharInstance = GetEntity()->GetCharacter(0))
-		{
-			IAttachmentManager* pAttachmentManager = pCharInstance->GetIAttachmentManager();
-			if (IAttachment* pAttachment = pAttachmentManager->GetInterfaceByName("health_trail_attachment"))
-			{
-				pAttachment->ClearBinding();
-				auto* pEffectAttachment = new CEffectAttachment(m_params.healthTrailEffect, Vec3(0, 0, 0), m_params.healthTrailEffectDir.GetNormalized(), 1);
-				pEffectAttachment->CreateEffect();
-				pAttachment->AddBinding(pEffectAttachment);
-				m_pHealthTrailAttachment = pAttachment;
-				m_healthTrailScale = 0.f;
-			}
-			else { CryLog("[CAlien::Revive] %s: 'health_trail_attachment' not found.", GetEntity()->GetName()); }
-		}
 
 	if (m_pAnimatedCharacter)
 	{

@@ -24,6 +24,14 @@ History:
 #include <VectorMap.h>
 
 #include "Item.h"
+//TheOtherSide
+/**
+* \brief Актёр не является реальным игроков в сетевой игре
+* \param pOwner - указатель на проверяемого актёра
+   \return True, если актёр не игрок (т.е ИИ или управляемый раб)
+*/
+#define NOT_PLAYER_IN_MP(pOwner) (pOwner) && !(pOwner)->IsPlayer() && gEnv->bMultiplayer
+//~TheOtherSide
 
 const float WEAPON_FADECROSSHAIR_SELECT	= 0.250f;
 const float WEAPON_FADECROSSHAIR_ZOOM	= 0.200f;

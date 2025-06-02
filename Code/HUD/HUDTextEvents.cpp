@@ -1188,6 +1188,7 @@ void CHUD::HandleWarningAnswer(const char* warning /* = NULL */)
 			CGameRules* pRules = g_pGame->GetGameRules();
 			if(pRules->GetTeamCount() > 1)
 			{
+				// TODO: убрать захардкоженные команды
 				const char* command = "team black";
 				if(pRules->GetTeamId("black") == pRules->GetTeam(pPlayer->GetEntityId()))
 					command = "team tan";
@@ -1423,6 +1424,12 @@ void CHUD::DisplayAmmoPickup(const char* ammoName, int ammoAmount)
 {
 	if(!m_bShow || m_quietMode)
 		return;
+
+	//TheOtherSide: Зевс не должен видеть свой инвентарь
+	CTOSActor* pTOSActor = static_cast<CTOSActor*>(g_pGame->GetIGameFramework()->GetClientActor());
+	if (pTOSActor && pTOSActor->IsZeus())
+		return;
+	//~TheOtherSide
 
 	int type = stl::find_in_map(m_hudAmmunition, ammoName, 0);
 	if(!type)

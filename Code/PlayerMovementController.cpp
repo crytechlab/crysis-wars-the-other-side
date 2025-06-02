@@ -100,7 +100,7 @@ void CPlayerMovementController::Reset()
 
 bool CPlayerMovementController::RequestMovement( CMovementRequest& request )
 {
-	// Проверка, является ли сущность игроком
+	// Проверка, не является ли сущность игроком
 	if (!m_pPlayer->IsPlayer())
 	{
 		// Получение связанного транспортного средства
@@ -115,7 +115,7 @@ bool CPlayerMovementController::RequestMovement( CMovementRequest& request )
 				IVehicleSeat* pSeat = pVehicle->GetSeatForPassenger(m_pPlayer->GetEntityId());
 				//TheOtherSide
 				//if (!pSeat->IsDriver
-				if (pSeat && !pSeat->IsDriver() || (gEnv->bClient && gEnv->bMultiplayer))
+				if (pSeat && !pSeat->IsDriver() /*|| (gEnv->bClient && gEnv->bMultiplayer)*/)
 				{
 					// Запрос на движение
 					pController->RequestMovement(request);
@@ -1197,7 +1197,10 @@ bool CPlayerMovementController::UpdateNormal( float frameTime, SActorFrameMoveme
 
 		float maxDeltaAngleRate = maxDeltaAngleRateNormal;
 
-		if (gEnv->bMultiplayer)
+		// Crysis Co-op :: We still want the SP approach for AI
+		//if (gEnv->bMultiplayer)
+		if (gEnv->bMultiplayer && this->m_pPlayer->IsPlayer())
+			// ~Crysis Co-op
 		{
 			maxDeltaAngleRate = maxDeltaAngleMultiplayer;
 		}

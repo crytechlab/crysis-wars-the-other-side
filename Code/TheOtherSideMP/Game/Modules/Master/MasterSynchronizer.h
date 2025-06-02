@@ -117,9 +117,6 @@ typedef NetMasterStopControlParams NetMasterIdParams;
 class CTOSMasterSynchronizer  : public CTOSGenericSynchronizer  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	CTOSMasterSynchronizer();
-	~CTOSMasterSynchronizer() ;
-
 	// IGameObjectExtension
 	void PostInit(IGameObject* pGameObject) ;
 	void Release() ;
@@ -150,7 +147,6 @@ public:
 	DECLARE_CLIENT_RMI_NOATTACH(ClMasterClientStopControl, NetGenericNoParams, eNRT_ReliableOrdered);
 	DECLARE_SERVER_RMI_NOATTACH(SvRequestMasterClientStopControl, NetMasterStopControlParams, eNRT_ReliableOrdered);
 
-	//TODO: 10/11/2023, 09:25 Создать модуль для ИИ, когда наберется достаточно функций.
 	DECLARE_SERVER_RMI_NOATTACH(SvRequestSaveMCParams, NetMasterIdParams, eNRT_ReliableOrdered);
 	DECLARE_SERVER_RMI_NOATTACH(SvRequestApplyMCSavedParams, NetMasterIdParams, eNRT_ReliableOrdered);
 

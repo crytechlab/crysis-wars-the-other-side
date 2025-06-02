@@ -1,0 +1,54 @@
+[
+  {
+    "Name": "Editor",
+    "Projects": [
+      {
+        "Path": "Helpers\\LaunchEditor\\LaunchEditor.vcxproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "Server + Client x2",
+    "Projects": [
+      {
+        "Path": "Helpers\\LaunchServer\\LaunchServer.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Helpers\\LaunchClient\\LaunchClient.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Helpers\\LaunchClient2\\LaunchClient2.vcxproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "Server + Client",
+    "Projects": [
+      {
+        "Path": "Helpers\\LaunchServer\\LaunchServer.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Helpers\\LaunchClient\\LaunchClient.vcxproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "Client as Server + Client ",
+    "Projects": [
+      {
+        "Path": "Helpers\\LaunchClient\\LaunchClient.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Helpers\\LaunchClientAsServer\\LaunchClientAsServer.vcxproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

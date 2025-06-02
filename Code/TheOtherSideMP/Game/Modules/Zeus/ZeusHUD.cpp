@@ -4,64 +4,497 @@ Copyright (C), AlienKeeper, 2024.
 **************************************************************************/
 
 #include "StdAfx.h"
+#include "IFlashPlayer.h"
+
 #include "ZeusModule.h"
+#include "ZeusSynchronizer.h"
 #include "HUD/HUD.h"
 #include <TheOtherSideMP\Helpers\TOS_Console.h>
 #include <TheOtherSideMP\Helpers\TOS_Entity.h>
+#include <TheOtherSideMP\Helpers\TOS_Screen.h>
+#include <TheOtherSideMP\Helpers\TOS_STL.h>
+#include <GameActions.h>
 
-void CTOSZeusModule::HUDInit()
+void CTOSZeusModule::HUD::Init()
 {
-	m_animZeusScreenIcons.Load("Libs/UI/HUD_Zeus_Icon.swf", eFD_Center, eFAF_Visible);
-	m_animZeusScreenIcons.GetFlashPlayer()->SetFSCommandHandler(this);
+	m_animZeusUnitIcons.Load("Libs/UI/HUD_Zeus_Unit_Icon.swf", eFD_Center, eFAF_Visible);
+	m_animZeusUnitIcons.GetFlashPlayer()->SetFSCommandHandler(pParent);
+
+	m_animZeusOrderIcons.Load("Libs/UI/HUD_Zeus_Order_Icon.swf", eFD_Center, eFAF_Visible);
+	m_animZeusOrderIcons.GetFlashPlayer()->SetFSCommandHandler(pParent);
+
+	m_animZeusMenu.Load("Libs/UI/HUD_Zeus_Menu.swf", eFD_Right, eFAF_Visible);
+	m_animZeusMenu.GetFlashPlayer()->SetFSCommandHandler(pParent);
 }
 
 void CTOSZeusModule::HandleFSCommand(const char* pCommand, const char* pArgs)
 {
+	auto pHUD = g_pGame->GetHUD();
+	if (!pHUD)
+		return;
+
 	string sCommand = pCommand;
 	string sArgs = pArgs;
+
+	//Zeus on screen icon
 	if (sCommand == "MousePressOnUnit")
 	{
 		auto pEntity = TOS_GET_ENTITY(atoi(sArgs));
 		if (pEntity)
 		{
-			OnEntityIconPressed(pEntity);
+			m_local.OnEntityIconPressed(pEntity);
 		}
 	}
 	else if (sCommand == "MouseOverUnit")
 	{
-		m_mouseOveredEntityId = atoi(sArgs);
+		m_local.m_mouseOveredEntityId = atoi(sArgs);
 	}
 	else if (sCommand == "MouseOutUnit")
 	{
-		m_mouseOveredEntityId = 0;
+		m_local.m_mouseOveredEntityId = 0;
 	}
-	else if (sCommand == "Debug")
+	else if (sCommand == "CryLogAlways")
 	{
 		CryLogAlways("[Flash] %s", sArgs);
 	}
+
+	//Zeus menu
+	else if (sCommand == "UpdateBuyList")
+	{
+		m_hud.m_menuCurrentPage = atoi(sArgs);
+		m_hud.UpdateZeusMenuItemList(sArgs);
+	}
+	else if (sCommand == "PDATabChanged")
+	{
+		pHUD->PlaySound(ESound_TabChanged);
+	}
+	else if (sCommand == "PDA")
+	{
+		if (sArgs == "TabChanged")
+		{
+			pHUD->PlaySound(ESound_TabChanged);
+		}
+		else if (sArgs == "SelfClose")
+		{
+			m_hud.ShowZeusMenu(false);
+		}
+		//else if (sArgs == "OverMenu")
+		//{
+		//	pHUD->SetModalHUD(&m_animZeusMenu);
+		//	SetZeusFlag(eZF_CanUseMouse, false);
+		//}
+		//else if (sArgs == "OutMenu")
+		//{
+		//	pHUD->SetModalHUD(nullptr);
+		//	SetZeusFlag(eZF_CanUseMouse, true);
+		//}
+	}
+	else if (sCommand == "Spawn")
+	{
+		auto pSync = static_cast<CTOSZeusSynchronizer*>(GetSynchronizer());
+		assert(pSync != nullptr);
+
+		// Получаем координаты вперед от камеры
+		const Vec3 pos = gEnv->pSystem->GetViewCamera().GetPosition();
+		const Vec3 dir = gEnv->pSystem->GetViewCamera().GetViewdir();
+		const float maxDistance = 300.0f;
+
+		// Только вращение по Z
+		Vec3 spawnPos = pos + (dir * maxDistance);
+
+		const int rayFlags = rwi_stop_at_pierceable | rwi_colltype_any;
+		const unsigned entityFlags = ent_all;
+
+		auto pPhys = GetPlayer()->GetEntity()->GetPhysics();
+		ray_hit rayHit;
+
+		const int hitted = gEnv->pPhysicalWorld->RayWorldIntersection(pos, dir * maxDistance, entityFlags, rayFlags, &rayHit, 1, pPhys);
+		if (hitted)
+			spawnPos = rayHit.pt;
+
+		CTOSZeusSynchronizer::NetSpawnParams netParams;
+		netParams.className = sArgs;
+		netParams.spawnedName = string("zeus_") + sArgs;
+		netParams.pos = spawnPos;
+		netParams.playerChannelId = GetPlayer()->GetChannelId();
+		pSync->GetGameObject()->InvokeRMI(
+			CTOSZeusSynchronizer::SvRequestSpawnEntity(), 
+			netParams, 
+			eRMI_ToServer);
+	}
 }
 
-void CTOSZeusModule::HUDInGamePostUpdate(float frametime)
+void CTOSZeusModule::HUD::InGamePostUpdate(float frametime)
 {
-	HUDUpdateAllZeusUnitIcons();
+	FlashUpdateUnitIcons();
+	FlashUpdateOrderIcons();
 }
 
-void CTOSZeusModule::HUDUnloadSimpleAssets(bool unload)
+void CTOSZeusModule::HUD::CreateOrderIcon(const Vec3& worldPos)
+{
+	const auto pHUD = g_pGame->GetHUD();
+	if (!pHUD)
+		return;
+
+	if (pHUD->GetModalHUD() == &pHUD->m_animScoreBoard)
+		return;
+
+	auto pAnim = &m_animZeusOrderIcons;
+
+	//const int	iMinDist = tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_near_distance", 10);
+	//const int	iMaxDist = tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_far_distance", 500);
+	//const float	fMinSize = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_near_size", 1.4f);
+	//const float	fMaxSize = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_far_size", 0.7f);
+
+	//const auto pPlayerActor = static_cast<CTOSActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
+	//const float fDist = (worldPos - pPlayerActor->GetEntity()->GetWorldPos()).len();
+	float fSize = 1.0f;
+
+	//if (fDist <= iMinDist)
+	//{
+	//	fSize = fMinSize;
+	//}
+	//else if (fDist >= iMaxDist)
+	//{
+	//	fSize = fMaxSize;
+	//}
+	//else if (iMaxDist > iMinDist)
+	//{
+	//	const float fA = ((float)iMaxDist - fDist);
+	//	const float fB = (float)(iMaxDist - iMinDist);
+	//	const float fC = (fMinSize - fMaxSize);
+	//	fSize = ((fA / fB) * fC) + fMaxSize;
+	//}
+
+	Vec3 orderScreenPos(ZERO);
+	gEnv->pRenderer->ProjectToScreen(worldPos.x, worldPos.y, worldPos.z, &orderScreenPos.x, &orderScreenPos.y, &orderScreenPos.z);
+
+	float fScaleX = 0.0f;
+	float fScaleY = 0.0f;
+	float fHalfUselessSize = 0.0f;
+	pHUD->GetProjectionScale(pAnim, &fScaleX, &fScaleY, &fHalfUselessSize);
+
+	const float offsetX = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetX", 0.0f);
+	const float offsetY = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetY", 0.0f);
+
+	const float transX = orderScreenPos.x * fScaleX + fHalfUselessSize + offsetX;
+	const float transY = orderScreenPos.y * fScaleY + offsetY;
+
+	m_orderIcons.push_back(SOrderIcon(transX, transY, fSize));
+}
+
+void CTOSZeusModule::HUD::CreateOrderLine(EntityId executor, const Vec3& orderWorldPos)
+{
+	auto pExecutor = gEnv->pEntitySystem->GetEntity(executor);
+	if (!pExecutor)
+		return;
+
+	AABB bounds;
+	pExecutor->GetWorldBounds(bounds);
+
+	const Vec3 startPos = bounds.GetCenter();
+	const Vec3 endPos = orderWorldPos;
+	const ColorB color = ColorB(167, 167, 167);
+
+	gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(startPos, color, endPos, color);
+}
+
+void CTOSZeusModule::HUD::UnloadSimpleAssets(bool unload)
 {
 	if (!unload)
 	{
-		m_animZeusScreenIcons.Reload();
-		m_animZeusScreenIcons.GetFlashPlayer()->SetFSCommandHandler(this);
+		m_animZeusUnitIcons.Reload();
+		m_animZeusUnitIcons.GetFlashPlayer()->SetFSCommandHandler(pParent);
+
+		m_animZeusOrderIcons.Reload();
+		m_animZeusOrderIcons.GetFlashPlayer()->SetFSCommandHandler(pParent);
+
+		m_animZeusMenu.Reload();
+		m_animZeusMenu.GetFlashPlayer()->SetFSCommandHandler(pParent);
 	}
 	else
 	{
-		m_animZeusScreenIcons.Unload();
+		m_animZeusUnitIcons.Unload();
+		m_animZeusOrderIcons.Unload();
+		m_animZeusMenu.Unload();
 	}
 }
 
-void CTOSZeusModule::HUDUpdateOnScreenIcon(EntityId objective, int friendly, int iconType, const Vec3 localOffset)
+void CTOSZeusModule::HUD::UpdateZeusMenuItemList(const char* szPageIdx)
 {
-	const auto pAnim = &m_animZeusScreenIcons;
+	if (!g_pGame->GetIGameFramework()->GetClientActor())
+		return;
+
+	IFlashPlayer* pFlashPlayer = m_animZeusMenu.GetFlashPlayer();
+
+	const int iPage = atoi(szPageIdx);
+	string strPageName;
+
+	if (m_menuItems.empty())
+		MenuLoadItems();
+
+	auto pTabBegin = m_menuItems.cbegin();
+	auto pTabEnd = m_menuItems.cend();
+	for (; pTabBegin != pTabEnd; pTabBegin++)
+	{
+		if (pTabBegin->first.iIndex == iPage)
+		{
+			strPageName = pTabBegin->first.strName;
+
+			const std::vector<SItem>* pItemsList = &pTabBegin->second;
+			std::vector<string> itemArray;
+
+			char tempBuf[256];
+
+			for (auto iter = pItemsList->cbegin(); iter != pItemsList->cend(); ++iter)
+			{
+				SItem item = (*iter);
+				const char* sReason = "ready";
+
+				itemArray.push_back(item.strName.c_str());
+				itemArray.push_back(item.strDesc.c_str());
+
+				_snprintf(tempBuf, sizeof(tempBuf), "%d", item.iPrice);
+				tempBuf[sizeof(tempBuf) - 1] = '\0';
+				itemArray.push_back(tempBuf);
+
+				itemArray.push_back(sReason);
+
+				_snprintf(tempBuf, sizeof(tempBuf), "%d", item.iInventoryID);
+				tempBuf[sizeof(tempBuf) - 1] = '\0';
+				itemArray.push_back(tempBuf);
+				if (!item.strCategory.empty())
+				{
+					itemArray.push_back(item.strCategory);
+				}
+				else
+				{
+					itemArray.push_back("");
+				}
+
+				_snprintf(tempBuf, sizeof(tempBuf), "%d", item.iCount);
+				tempBuf[sizeof(tempBuf) - 1] = '\0';
+				itemArray.push_back(tempBuf);
+
+				_snprintf(tempBuf, sizeof(tempBuf), "%d", item.iMaxCount);
+				tempBuf[sizeof(tempBuf) - 1] = '\0';
+				itemArray.push_back(tempBuf);
+
+				itemArray.push_back(item.strClass.c_str());
+			}
+
+			int size = itemArray.size();
+			if (size)
+			{
+				std::vector<const char*> pushArray;
+				pushArray.reserve(size);
+				for (int i(0); i < size; ++i)
+				{
+					pushArray.push_back(itemArray[i].c_str());
+				}
+
+				pFlashPlayer->SetVariableArray(FVAT_ConstStrPtr, "m_allValues", 0, &pushArray[0], size);
+			}
+			break;
+		}
+	}
+
+
+	pFlashPlayer->Invoke0("updateList");
+
+	pTabBegin = m_menuItems.cbegin();
+	pTabEnd = m_menuItems.cend();
+	for (; pTabBegin != pTabEnd; pTabBegin++)
+	{
+		SFlashVarValue setTabNameArgs[2] = { pTabBegin->first.iIndex, pTabBegin->first.strName };
+		pFlashPlayer->Invoke("setTabName", setTabNameArgs, 2);
+
+		SFlashVarValue activateTabArgs[2] = { pTabBegin->first.iIndex, true };
+		pFlashPlayer->Invoke("activateTab", activateTabArgs, 2);
+	}
+}
+
+bool CTOSZeusModule::HUD::ShowZeusMenu(bool show)
+{
+	auto pHUD = g_pGame->GetHUD();
+	if (!pHUD)
+		return false;
+
+	if (show && gEnv->pGame->GetIGameFramework()->GetIViewSystem()->IsPlayingCutScene())
+		return false;
+
+	m_menuShow = show;
+	m_animZeusMenu.Invoke(m_menuShow ? "showPDA" : "hidePDA");
+
+	if (show)
+	{
+		pHUD->ShowPDA(false, false);
+		pHUD->SwitchToModalHUD(&m_animZeusMenu, true);
+	}
+	else
+	{
+		if (pHUD->GetModalHUD() == &m_animZeusMenu)
+			pHUD->SwitchToModalHUD(nullptr, true);
+	}
+}
+
+bool CTOSZeusModule::HUD::IsShowZeusMenu() const
+{
+	return m_menuShow;
+}
+
+bool CTOSZeusModule::HUD::MenuLoadItems()
+{
+	XmlNodeRef rootNode = GetISystem()->LoadXmlFile(m_menuFilename.c_str());
+	if (!rootNode)
+	{
+		CryLogError("[Zeus] Failed to open menu XML file '%s'.", m_menuFilename.c_str());
+		return false;
+	}
+
+	CryLog("Parsing Zeus menu XML file '%s'", m_menuFilename);
+	CryLog("---------------------------");
+
+	m_menuItems.clear();
+
+	const float scale = g_pGameCVars->g_pp_scale_price;
+
+	const char* szRootName = rootNode->getTag();
+	if (!stricmp(szRootName, "Root"))
+	{
+		const int32 tabsCount = rootNode->getChildCount();
+		for (int32 tabIdx = 0; tabIdx < tabsCount; ++tabIdx)
+		{
+			// <tab name="Characters">
+			const XmlNodeRef tabNode = rootNode->getChild(tabIdx);
+			XmlString tabName;
+
+			if (!tabNode->getAttr("name", tabName) || tabName.empty())
+			{
+				CryLogError("[Zeus] Missing or empty 'name' attribute for '%s' tag in file '%s' at line %d...", tabNode->getTag(), m_menuFilename.c_str(), tabNode->getLine());
+				return false;
+			}
+
+			// нумерация tab начинается с 1
+			STab tab;
+			tab.strName = tabName;
+			tab.iIndex = tabIdx + 1;
+
+			// item - в данном случае элемент меню, а не оружие.
+			const int itemsCount = tabNode->getChildCount();
+			for (int32 itemIdx = 0; itemIdx < itemsCount; ++itemIdx)
+			{
+				// <Item category="@zeus_catUSA" name="SMG Soldier" class="Grunt" price="1000"/>
+				const XmlNodeRef itemNode = tabNode->getChild(itemIdx);
+				XmlString itemCategory;
+				XmlString itemName;
+				XmlString itemClass;
+				XmlString itemPrice;
+				XmlString itemAmount; // опционально
+
+				if (!itemNode->getAttr("category", itemCategory) || itemCategory.empty())
+				{
+					CryLogError("[Zeus] Missing or empty 'category' attribute for '%s' tag in file '%s' at line %d...", itemNode->getTag(), m_menuFilename.c_str(), itemNode->getLine());
+					return false;
+				}
+
+				if (!itemNode->getAttr("name", itemName) || itemName.empty())
+				{
+					CryLogError("[Zeus] Missing or empty 'name' attribute for '%s' tag in file '%s' at line %d...", itemNode->getTag(), m_menuFilename.c_str(), itemNode->getLine());
+					return false;
+				}
+
+				if (!itemNode->getAttr("class", itemClass) || itemClass.empty())
+				{
+					CryLogError("[Zeus] Missing or empty 'class' attribute for '%s' tag in file '%s' at line %d...", itemNode->getTag(), m_menuFilename.c_str(), itemNode->getLine());
+					return false;
+				}
+
+				if (!itemNode->getAttr("price", itemPrice) || itemPrice.empty())
+				{
+					CryLogError("[Zeus] Missing or empty 'price' attribute for '%s' tag in file '%s' at line %d...", itemNode->getTag(), m_menuFilename.c_str(), itemNode->getLine());
+					return false;
+				}
+
+				itemNode->getAttr("amount", itemAmount);
+
+				int iItemPrice = 0;
+				int iItemAmount = 1;
+
+				if (!itemPrice.empty())
+					iItemPrice = atoi(itemPrice);
+				if (!itemAmount.empty())
+					iItemAmount = atoi(itemAmount);
+
+				SItem item;
+				// Не используется здесь
+				item.level = 0.0f;
+				item.isUnique = 0;
+				item.iMaxCount = 1;
+				item.uniqueLoadoutGroup = 0;
+				item.uniqueLoadoutCount = 0;
+				item.iInventoryID = 0;
+				item.bVehicleType = false;
+				item.bAmmoType = false;
+				item.loadout = false;
+				item.special = false;
+				item.isWeapon = false;
+
+				// Используется здесь
+				item.iCount = iItemAmount;
+				item.iPrice = int(iItemPrice * scale);
+				item.strCategory = itemCategory;
+				item.strClass = itemClass;
+				item.strName = itemName;
+
+				m_menuItems[tab].push_back(item);
+				CryLog("[Zeus] Item '%s' reading successfully!", item.strName);
+			}
+		}
+	}
+	else
+	{
+		CryLogError("[Zeus] Unexpected tag '%s' in file '%s' at line %d...", szRootName, m_menuFilename.c_str(), rootNode->getLine());
+		return false;
+	}
+
+	return true;
+}
+
+CTOSZeusModule::HUD::HUD(CTOSZeusModule* _pParent)
+	:
+	pParent(_pParent),
+	m_menuFilename("Scripts/Zeus/ZeusMenu.xml"),
+	m_menuCurrentPage(1),
+	m_menuSpawnHandling(false),
+	m_menuShow(false)
+{
+}
+
+bool CTOSZeusModule::HUD::IsModalZeusMenu() const
+{
+	return g_pGame->GetHUD()->IsHaveModalHUD() && g_pGame->GetHUD()->GetModalHUD() == &m_animZeusMenu;
+}
+
+bool CTOSZeusModule::HUD::IsModalZeusMenuOnlyOrNot() const
+{
+	return IsModalZeusMenu() || g_pGame->GetHUD()->IsHaveModalHUD() == false;
+}
+
+void CTOSZeusModule::HUD::Reset()
+{
+	m_menuCurrentPage = 1;
+	m_menuSpawnHandling = false;
+	m_menuShow = false;
+
+	m_unitIcons.clear();
+	m_orderIcons.clear();
+	m_menuItems.clear();
+}
+
+void CTOSZeusModule::HUD::CreateUnitIcon(EntityId unitEntityId, int friendly, int iconType, const Vec3 localOffset)
+{
+	const auto pAnim = &m_animZeusUnitIcons;
 
 	const auto pHUD = g_pGame->GetHUD();
 	if (!pHUD)
@@ -70,16 +503,16 @@ void CTOSZeusModule::HUDUpdateOnScreenIcon(EntityId objective, int friendly, int
 	if (pHUD->GetModalHUD() == &pHUD->m_animScoreBoard)
 		return;
 
-	const IEntity* pObjectiveEntity = GetISystem()->GetIEntitySystem()->GetEntity(objective);
+	const IEntity* pObjectiveEntity = GetISystem()->GetIEntitySystem()->GetEntity(unitEntityId);
 	if (!pObjectiveEntity)
 		return;
 
 	Vec3 vWorldPos = pObjectiveEntity->GetWorldPos();
 	// При перетаскивании бокса, иконка должна отображаться по координатам бокса
-	if (m_dragging)
+	if (pParent->GetLocal().m_dragging)
 	{
-		auto it = m_boxes.find(pObjectiveEntity->GetId());
-		if (it != m_boxes.end())
+		auto it = pParent->GetLocal().m_boxes.find(pObjectiveEntity->GetId());
+		if (it != pParent->GetLocal().m_boxes.end())
 			vWorldPos = it->second->wPos;
 	}
 
@@ -93,10 +526,10 @@ void CTOSZeusModule::HUDUpdateOnScreenIcon(EntityId objective, int friendly, int
 	float fHalfUselessSize = 0.0f;
 	pHUD->GetProjectionScale(pAnim, &fScaleX, &fScaleY, &fHalfUselessSize);
 
-	const int	iMinDist = TOS_Console::GetSafeIntVar("tos_sv_zeus_on_screen_near_distance", 10);
-	const int	iMaxDist = TOS_Console::GetSafeIntVar("tos_sv_zeus_on_screen_far_distance", 500);
-	const float	fMinSize = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_near_size", 1.4f);
-	const float	fMaxSize = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_far_size", 0.7f);
+	const int	iMinDist = tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_near_distance", 10);
+	const int	iMaxDist = tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_far_distance", 500);
+	const float	fMinSize = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_near_size", 1.4f);
+	const float	fMaxSize = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_far_size", 0.7f);
 
 	const auto pPlayerActor = static_cast<CTOSActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
 	const float fDist = (vWorldPos - pPlayerActor->GetEntity()->GetWorldPos()).len();
@@ -118,8 +551,8 @@ void CTOSZeusModule::HUDUpdateOnScreenIcon(EntityId objective, int friendly, int
 		fSize = ((fA / fB) * fC) + fMaxSize;
 	}
 
-	const float offsetX = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetX", 0.0f);
-	const float offsetY = TOS_Console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetY", 0.0f);
+	const float offsetX = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetX", 0.0f);
+	const float offsetY = tos::console::GetSafeFloatVar("tos_sv_zeus_on_screen_offsetY", 0.0f);
 
 	const float transX = vEntityScreenSpace.x * fScaleX + fHalfUselessSize + offsetX;
 	const float transY = vEntityScreenSpace.y * fScaleY + offsetY;
@@ -127,27 +560,28 @@ void CTOSZeusModule::HUDUpdateOnScreenIcon(EntityId objective, int friendly, int
 	const float rotation = 0.0f;
 	const int healthValue = 100;
 
-	const auto iter = stl::binary_find(m_selectedEntities.cbegin(), m_selectedEntities.cend(), objective);
-	bool selected = iter != m_selectedEntities.cend();
-	if (!selected && m_dragTargetId > 0)
-		selected = objective == m_dragTargetId;
+	const auto iter = stl::binary_find(pParent->GetLocal().m_selectedEntities.cbegin(), pParent->GetLocal().m_selectedEntities.cend(), unitEntityId);
+	bool selected = iter != pParent->GetLocal().m_selectedEntities.cend();
+	if (!selected && pParent->GetLocal().m_dragTargetId > 0)
+		selected = unitEntityId == pParent->GetLocal().m_dragTargetId;
 
-	SOnScreenIcon icon(objective, transX, transY, (int)iconType, friendly, fDist, fSize * fSize, -rotation, healthValue, (int)selected);
+	SUnitIcon icon(unitEntityId, transX, transY, (int)iconType, friendly, fDist, fSize * fSize, -rotation, healthValue, (int)selected);
 
 	static const wchar_t* localizedText = L"";
 	localizedText = pHUD->LocalizeWithParams(pObjectiveEntity->GetName(), true);
 	icon.text.append(localizedText);
 
-	m_onScreenIcons.push_back(icon);
+	m_unitIcons.push_back(icon);
 }
-void CTOSZeusModule::HUDUpdateAllZeusUnitIcons()
+
+void CTOSZeusModule::HUD::FlashUpdateUnitIcons()
 {
-	auto pAnim = &m_animZeusScreenIcons;
-	auto icons = &m_onScreenIcons;
+	auto pAnim = &m_animZeusUnitIcons;
+	auto icons = &m_unitIcons;
 
 	//const auto pClient = static_cast<CTOSActor*>(g_pGame->GetIGameFramework()->GetClientActor());
 	//const bool isZeus = pClient && pClient->IsZeus();
-	//const bool visible = isZeus && TOS_Console::GetSafeIntVar("tos_sv_zeus_on_screen_force_show", 1);
+	//const bool visible = isZeus && tos::console::GetSafeIntVar("tos_sv_zeus_on_screen_force_show", 1);
 	if (icons->size())
 	{
 		pAnim->SetVisible(true);
@@ -161,7 +595,7 @@ void CTOSZeusModule::HUDUpdateAllZeusUnitIcons()
 		auto it = icons->begin();
 		for (; it != icons->end(); ++it)
 		{
-			SOnScreenIcon icon = (*it);
+			SUnitIcon icon = (*it);
 
 			_snprintf(tempBuf, sizeof(tempBuf), "%d", (int)icon.id);
 			tempBuf[sizeof(tempBuf) - 1] = '\0';
@@ -223,7 +657,7 @@ void CTOSZeusModule::HUDUpdateAllZeusUnitIcons()
 
 		for (auto it = icons->begin(); it != icons->end(); ++it)
 		{
-			SOnScreenIcon icon = (*it);
+			SUnitIcon icon = (*it);
 			iconListWString.push_back(icon.text);
 		}
 
@@ -261,3 +695,93 @@ void CTOSZeusModule::HUDUpdateAllZeusUnitIcons()
 	icons->clear();
 }
 
+void CTOSZeusModule::HUD::FlashUpdateOrderIcons()
+{
+	auto pAnim = &m_animZeusOrderIcons;
+	auto icons = &m_orderIcons;
+
+	if (icons->size())
+	{
+		pAnim->SetVisible(true);
+		const int parametersCount = 3;
+
+		//CW original code
+		std::vector< CryFixedStringT<128> > iconList;
+		iconList.reserve(parametersCount * icons->size());
+
+		char tempBuf[128];
+		auto it = icons->begin();
+		for (; it != icons->end(); ++it)
+		{
+			SOrderIcon icon = (*it);
+
+			_snprintf(tempBuf, sizeof(tempBuf), "%d", icon.x);
+			tempBuf[sizeof(tempBuf) - 1] = '\0';
+			iconList.push_back(tempBuf);
+
+			_snprintf(tempBuf, sizeof(tempBuf), "%d", icon.y);
+			tempBuf[sizeof(tempBuf) - 1] = '\0';
+			iconList.push_back(tempBuf);
+
+			_snprintf(tempBuf, sizeof(tempBuf), "%f", icon.size);
+			tempBuf[sizeof(tempBuf) - 1] = '\0';
+			iconList.push_back(tempBuf);
+		}
+
+		int size = iconList.size();
+		if (size)
+		{
+			std::vector<const char*> pushArray;
+			pushArray.reserve(size);
+			for (int i(0); i < size; ++i)
+			{
+				pushArray.push_back(iconList[i].c_str());
+			}
+
+			pAnim->GetFlashPlayer()->SetVariableArray(FVAT_ConstStrPtr, "m_allValues", 0, &pushArray[0], pushArray.size());
+		}
+
+		//std::vector< CryFixedWStringT<64> > iconListWString;
+		//iconList.reserve(icons->size());
+
+		//for (auto it = icons->begin(); it != icons->end(); ++it)
+		//{
+		//	SOrderIcon icon = (*it);
+		//	iconListWString.push_back(icon.text);
+		//}
+
+		//size = iconListWString.size();
+		//if (size)
+		//{
+		//	std::vector<const wchar_t*> pushArray;
+		//	pushArray.reserve(size);
+		//	for (int i(0); i < size; ++i)
+		//	{
+		//		pushArray.push_back(iconListWString[i].c_str());
+		//	}
+
+		//	pAnim->GetFlashPlayer()->SetVariableArray(FVAT_ConstWstrPtr, "m_allNames", 0, &pushArray[0], pushArray.size());
+		//}
+
+		pAnim->Invoke("updateIcons");
+	}
+	else if (pAnim->GetVisible())
+	{
+		pAnim->SetVisible(false);
+	}
+
+	icons->clear();
+}
+
+void CTOSZeusModule::HUD::ShowPlayerHUD(bool show)
+{
+	const auto pHUD = g_pGame->GetHUD();
+	if (pHUD)
+	{
+		// HP
+		pHUD->ShowPlayerStats(show);
+
+		pHUD->ShowRadar(show);
+		pHUD->ShowCrosshair(show);
+	}
+}

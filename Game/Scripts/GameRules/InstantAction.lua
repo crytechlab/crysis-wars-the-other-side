@@ -402,40 +402,47 @@ end
 
 ----------------------------------------------------------------------------------------------------
 function InstantAction.Client:OnActorAction(player, action, activation, value)
+	--TheOtherSide
+	local canReqTarget = (
+		(player:IsDead() and self.game:GetTeamCount() > 1) or 
+		(player.actor:GetSpectatorMode() == ASM_FOLLOW)
+	) and player.actor:GetSpectatorMode() ~= ASM_ZEUS;
+	--~TheOtherSide
+	
 	if ((action == "attack1") and (activation == "press")) then
-		if ((player:IsDead() and player.actor:GetSpectatorMode()==0) or player.actor:GetSpectatorMode()==3) then
+		if ((player:IsDead() and player.actor:GetSpectatorMode()==0) or player.actor:GetSpectatorMode()==ASM_FOLLOW) then
 			self.server:RequestRevive(player.id);
 
 			return false;
 		end
 	elseif((action == "next_spectator_target") and (activation == "press")) then
-		if((player:IsDead() and self.game:GetTeamCount() > 1) or player.actor:GetSpectatorMode() == 3) then
+		if canReqTarget then
 			self.server:RequestSpectatorTarget(player.id, 1);
 		end
 	elseif((action == "prev_spectator_target") and (activation == "press")) then
-		if((player:IsDead() and self.game:GetTeamCount() > 1) or player.actor:GetSpectatorMode() == 3) then
+		if canReqTarget then
 			self.server:RequestSpectatorTarget(player.id, -1);
 		end
 	elseif((action == "cycle_spectator_mode") and (activation == "press")) then
-		-- disallow changing mode if map or scoreboard open
+		-- disallow changing mode if map or scoreboard open or player is zeus
 		if(self.game:CanChangeSpectatorMode(player.id)) then
 			-- if not on a team, can cycle through modes
 			-- if on a team and dead, only 3rd person mode for friendlies (to prevent cheating viewing other team)
-			if(self.game:GetTeam(player.id) ~= 0 and player.actor:GetSpectatorMode() == 3) then
+			if(self.game:GetTeam(player.id) ~= 0 and player.actor:GetSpectatorMode() == ASM_FOLLOW) then
 				self.server:RequestSpectatorTarget(player.id, 1);
 			else
 				local mode = player.actor:GetSpectatorMode();
-				local target = 0;
 				if(mode ~= 0) then
-					mode = mode + 1;
-					if(mode > 3) then
-						mode = 1;
+					mode = mode + 1
+					if(mode > ASM_FOLLOW) then
+						mode = ASM_FIXED;
 					end
-					if(mode == 3) then
+					if(mode == ASM_FOLLOW) then
 						self.server:RequestSpectatorTarget(player.id, 1);
 					else
 						self.game:ChangeSpectatorMode(player.id, mode, NULL_ENTITY);
 					end
+					LogAlways("<lua> [InstantAction.Client:OnActorAction] mode = %s", tostring(mode));
 				end
 			end
 		end
@@ -534,33 +541,43 @@ function InstantAction.Server:OnChangeSpectatorMode(playerId, mode, targetId, re
 	if (not player) then
 		return;
 	end
-		
+
+	LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] player = %s, mode = %s, targetId = %s, resetAll = %s, norevive = %s", 
+		tostring(System.GetEntity(playerId)), tostring(mode), tostring(targetId), tostring(resetAll), tostring(norevive));
+
 	if (mode>0) then
 		if(resetAll) then
 			player.death_time=nil;
 			player.inventory:Destroy();	
-			if(mode==1 or mode==2) then
-				self.game:SetTeam(0, playerId);
-			end
+
+			--TheOtherSide: убрать проверку на режимы
+			--if(mode==ASM_FOLLOW or mode==ASM_FIXED or mode==ASM_ZEUS) then
+			self.game:SetTeam(0, playerId);
+			--LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] set team %s", tostring(0));
+			--end
+			--~TheOtherSide
 		end
 		
-		if(mode == 3) then
+		if(mode == ASM_FOLLOW) then
 			if(targetId and targetId~=0) then
-				local player = System.GetEntity(playerId);
-				player.actor:SetSpectatorMode(3, targetId);
+				player = System.GetEntity(playerId);
+				player.actor:SetSpectatorMode(ASM_FOLLOW, targetId);
 			else
 				local newTargetId = self.game:GetNextSpectatorTarget(playerId, 1);
 				if(newTargetId and newTargetId~=0) then
-					local player = System.GetEntity(playerId);
-					player.actor:SetSpectatorMode(3, newTargetId);
+					player = System.GetEntity(playerId);
+					player.actor:SetSpectatorMode(ASM_FOLLOW, newTargetId);
 				else
-					mode = 1;
+					mode = ASM_FIXED;
 					self.game:SetTeam(0, playerId);
 				end
 			end
 		end
 		
-		if(mode == 1 or mode == 2) then
+		--TheOtherSide: добавляем проверку на режимы ASM_ZEUS
+		if(mode == ASM_FIXED or mode == ASM_FREE or mode == ASM_ZEUS) then
+		--~TheOtherSide
+
 			local pos=g_Vectors.temp_v1;
 			local angles=g_Vectors.temp_v2;	
 			
@@ -577,11 +594,13 @@ function InstantAction.Server:OnChangeSpectatorMode(playerId, mode, targetId, re
 			end
 		end			
 	elseif (not norevive) then
+		--TheOtherSide
+
 		if (self:CanRevive(playerId)) then	
 			player.actor:SetSpectatorMode(0, NULL_ENTITY);
-
 			self:RevivePlayer(player.actor:GetChannel(), player);
 		end
+		--~TheOtherSide
 	end
 	
 	if (resetAll) then
@@ -828,6 +847,9 @@ end
 ----------------------------------------------------------------------------------------------------
 function InstantAction:RevivePlayer(channelId, player, keepEquip)
 
+	LogAlways("<lua> [InstantAction:RevivePlayer] playerName = %s, channelId = %s, keepEquip = %s",
+		tostring(player:GetName()), tostring(channelId), tostring(keepEquip));
+
 	local result=false;
 	local groupId=player.spawnGroupId;
 
@@ -841,7 +863,7 @@ function InstantAction:RevivePlayer(channelId, player, keepEquip)
 		keepEquip=false;
 	end
 
-	Log("<lua> Revive player: '"..playerName.."' team: "..teamName.." teamId: "..teamId)
+	Log("<lua> Revive player: '"..playerName.."' team: "..tostring(teamName).." teamId: "..teamId)
 	
 	player.lastExitedVehicleId = nil;
 	player.lastExitedVehicleTime = nil;
@@ -933,8 +955,9 @@ function InstantAction:RevivePlayer(channelId, player, keepEquip)
 		local isControllingSlave = player.actor:GetSlaveId() ~= nil
 		local willControlSlave = (teamId == 3) and not isControllingSlave
 
+		-- Когда игрок не контролирует ни одного раба и не будет контролировать раба
 		if not (isControllingSlave or willControlSlave) then
-			
+
 			if (not keepEquip) then
 				local additionalEquip;
 				if (groupId) then

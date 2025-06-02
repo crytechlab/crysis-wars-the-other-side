@@ -8,7 +8,7 @@ Description: Throw Fire Mode Implementation
 
 -------------------------------------------------------------------------
 History:
-- 261:10:2005   15:45 : Created by Márcio Martins
+- 261:10:2005   15:45 : Created by MÐ±rcio Martins
 
 *************************************************************************/
 #ifndef __THROW_H__
@@ -120,10 +120,14 @@ public:
 	void SetSpeedScale(float speedScale) { m_speed_scale = speedScale; }
 	void ThrowingGrenade(bool throwing) { m_usingGrenade = throwing; }
 
+	//Crysis Co-op
+	virtual void DoThrow();
+	//~Crysis Co-op
+
 protected:
 
 	virtual void CheckAmmo();
-	virtual void DoThrow();
+	//virtual void DoThrow();
 	virtual void DoDrop();
 
 private:

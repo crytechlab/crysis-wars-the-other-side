@@ -12,18 +12,16 @@ Copyright (C), AlienKeeper, 2024.
 
 void CTOSEntitySpawnModule::InitCVars(IConsole* pConsole)
 {
-	CTOSGenericModule::InitCVars(pConsole);
+
 }
 
 void CTOSEntitySpawnModule::ReleaseCVars()
 {
-	CTOSGenericModule::ReleaseCVars();
+
 }
 
 void CTOSEntitySpawnModule::InitCCommands(IConsole* pConsole)
 {
-	CTOSGenericModule::InitCCommands(pConsole);
-
 	pConsole->AddCommand("spawnentity", CmdSpawnEntity);
 	pConsole->AddCommand("removeentity", CmdRemoveEntity);
 	pConsole->AddCommand("removeentityforced", CmdRemoveEntityForced);
@@ -33,8 +31,6 @@ void CTOSEntitySpawnModule::InitCCommands(IConsole* pConsole)
 
 void CTOSEntitySpawnModule::ReleaseCCommands()
 {
-	CTOSGenericModule::ReleaseCCommands();
-
 	const auto pConsole = gEnv->pConsole;
 
 	pConsole->RemoveCommand("spawnentity");
@@ -75,10 +71,10 @@ void CTOSEntitySpawnModule::CmdSpawnEntity(IConsoleCmdArgs* pArgs)
 	}
 
 	STOSEntitySpawnParams params;
-	params.authorityPlayerName = plName;
+	params.authorityName = plName;
 	params.vanilla.bStaticEntityId = true;
 	params.vanilla.pClass = pClass;
-	params.savedName = newEntName.c_str();
+	params.name = newEntName.c_str();
 	params.vanilla.vPosition = pPlayerEntity->GetWorldPos();
 	params.vanilla.qRotation = pPlayerEntity->GetWorldRotation();
 	params.tosFlags |= ENTITY_MUST_RECREATED;
@@ -118,8 +114,8 @@ void CTOSEntitySpawnModule::CmdDumpSpawned(IConsoleCmdArgs* pArgs)
 	TMapTOSParams::const_iterator end = pModule->m_savedSpawnParams.end();
 	for (; it != end; ++it)
 	{
-		const string& savedName = it->second->savedName;
-		const string& savedAuthPlayer = it->second->authorityPlayerName;
+		const string& savedName = it->second->name;
+		const string& savedAuthPlayer = it->second->authorityName;
 		const bool savedWillBeControlled = it->second->forceStartControl;
 
 		CryLogAlways("		--- name: %s, authName: %s, willBeControlled: %i",

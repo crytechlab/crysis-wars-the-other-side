@@ -563,8 +563,13 @@ protected:
 
 	//effects and such
 	IGroundEffect *m_pGroundEffect;  
-  IAttachment* m_pTrailAttachment;
-	IAttachment* m_pHealthTrailAttachment;
+	//IAttachment* m_pTrailAttachment;
+	//IAttachment* m_pHealthTrailAttachment;
+	//TheOtherSide
+	CEffectAttachment* m_pTrailAttachment = nullptr;
+	CEffectAttachment* m_pHealthTrailAttachment = nullptr;
+	//~TheOtherSide
+
   float m_trailSpeedScale;
 	float m_healthTrailScale;
   SSearchBeamStats m_searchbeam;
@@ -577,6 +582,13 @@ protected:
 	IDebugHistoryManager* m_pDebugHistoryManager;
 public:
 	void DebugGraph_AddValue(const char* id, float value) const;
+
+	//TheOtherSide
+protected:
+	void UpdateEffects(const float frameTime);
+	bool CreatedTrailAttachments();
+
+	//~TheOtherSide
 
 };
 

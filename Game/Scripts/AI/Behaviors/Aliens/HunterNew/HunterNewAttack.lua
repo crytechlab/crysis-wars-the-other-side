@@ -166,11 +166,13 @@ AIBehaviour.HunterNewAttack = {
 		if (entity.AI.ignoreSignals == true) then
 			return;
 		end
+		local target = AI.GetAttentionTargetEntity(entity.id);
 		--~TheOtherSide
 		System.LogAlways("HunterAttack: OnEnemyDamage")
 
+
 		-- first send him OnSeenByEnemy signal
-		AI.Signal(SIGNALFILTER_SUPERGROUP, 1, "OnSeenByEnemy", g_localActor.id);
+		AI.Signal(SIGNALFILTER_SUPERGROUP, 1, "OnSeenByEnemy", target.id);
 
 		-- Drop beacon and let the other know here's something to fight for.
 		entity:TriggerEvent(AIEVENT_DROPBEACON);
@@ -205,7 +207,7 @@ AIBehaviour.HunterNewAttack = {
 			entity:GrabObject(nearestVehicle,nil);	
 			entity:DropObject( true, targetPos, 2 );
 			
-			System.LogAlways("HunterAttack: SetGrabbingScheme")
+			--System.LogAlways("HunterAttack: SetGrabbingScheme")
 		end
 	end,	
 }

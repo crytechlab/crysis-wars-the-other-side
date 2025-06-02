@@ -1,5 +1,5 @@
-/*************************************************************************
-Crytek Source File.
+﻿/*************************************************************************
+Crytek Surce File.
 Copyright (C), Crytek Studios, 2001-2005.
 -------------------------------------------------------------------------
 $Id$
@@ -74,9 +74,11 @@ History:
 
 //TheOtherSide
 #include "TheOtherSideMP/Actors/Player/TOSPlayer.h"
+#include "TheOtherSideMP/Actors/TOSActor.h"
 #include "TheOtherSideMP/Helpers/TOS_HUD.h"
 #include "TheOtherSideMP/HUD/TOSCrosshair.h"
 #include <TheOtherSideMP/Game/TOSGameEventRecorder.h>
+#include <TheOtherSideMP/Game/Modules/Zeus/ZeusModule.h>
 //~TheOtherSide
 
 static const float NIGHT_VISION_ENERGY = 30.0f;
@@ -179,11 +181,11 @@ void CHUD::TOSUpdateHealth()
 
 void CHUD::TOSUpdateEnergy()
 {
-	//assert(m_pEnergyConsumer);
-	if (!m_pEnergyConsumer)
+	//assert(m_pEnergyManager);
+	if (!m_pEnergyManager)
 		return;
 
-	const int energy = m_pEnergyConsumer->GetEnergy() / m_pEnergyConsumer->GetMaxEnergy() * 100 + 1;
+	const int energy = m_pEnergyManager->GetEnergy() / m_pEnergyManager->GetMaxEnergy() * 100 + 1;
 
 	if (m_fSuitEnergy < energy || m_fSuitEnergy > energy || m_bFirstFrame)
 	{
@@ -213,7 +215,7 @@ void CHUD::TOSSetAmmoHealthHUD(IActor* pActor, const char* filePath)
 		if (pNewActor->IsZeus())
 			m_animPlayerStats.SetVisible(false);
 
-		energy = pNewActor->GetEnergyConsumer()->GetEnergy() / pNewActor->GetEnergyConsumer()->GetMaxEnergy() * 100 + 1;
+		energy = pNewActor->GetEnergyManager()->GetEnergy() / pNewActor->GetEnergyManager()->GetMaxEnergy() * 100 + 1;
 	}
 
 	m_animPlayerStats.Invoke("setHealth", health);
@@ -229,7 +231,7 @@ void CHUD::TOSSetInventoryHUD(IActor* pActor, const char* filePath) const
 	pHUD->m_animWeaponSelection.Unload();
 	pHUD->m_animWeaponSelection.Load(filePath, eFD_Right, eFAF_Visible | eFAF_ThisHandler);
 
-	TOS_HUD::ShowInventory(pActor, "null", "null");
+	tos::hud::ShowInventory(pActor, "null", "null");
 }
 
 void CHUD::TOSShowInventoryOverview(IActor* pActor, const char* curCategory, const char* curItem, bool grenades)
@@ -248,6 +250,11 @@ void CHUD::TOSShowInventoryOverview(IActor* pActor, const char* curCategory, con
 		return;
 
 	HideInventoryOverview();
+
+	// Зевс не должен видеть свой инвентарь
+	if (CTOSActor* pTOSActor = static_cast<CTOSActor*>(pActor))
+		if (pTOSActor->IsZeus())
+			return;
 
 	std::vector<IEntityClass*> classes;
 
@@ -299,14 +306,14 @@ void CHUD::TOSShowInventoryOverview(IActor* pActor, const char* curCategory, con
 	}
 }
 
-bool CHUD::TOSSetEnergyConsumer(CTOSEnergyConsumer* pConsumer)
+bool CHUD::TOSSetEnergyConsumer(CTOSEnergyManager* pConsumer)
 {
 	assert(pConsumer);
 	if (!pConsumer)
 		return false;
 
-	m_pEnergyConsumer = pConsumer;
-	m_fSuitEnergy = m_pEnergyConsumer->GetEnergy();
+	m_pEnergyManager = pConsumer;
+	m_fSuitEnergy = m_pEnergyManager->GetEnergy();
 
 	return true;
 }
@@ -490,7 +497,7 @@ CHUD::CHUD()
 	gEnv->pGame->GetIGameFramework()->RegisterListener(this, "hud", FRAMEWORKLISTENERPRIORITY_HUD);
 
 	//TheOtherSide
-	m_pEnergyConsumer = nullptr;
+	m_pEnergyManager = nullptr;
 	//~TheOtherSide
 }
 
@@ -551,13 +558,13 @@ CHUD::~CHUD()
 	}
 
 	// call OnHUDDestroyed on hud objects. we own them, so delete afterwards
-	std::for_each(m_hudObjectsList.begin(), m_hudObjectsList.end(), std::mem_fun(&CHUDObject::OnHUDToBeDestroyed));
+	std::for_each(m_hudObjectsList.begin(), m_hudObjectsList.end(), std::mem_fn(&CHUDObject::OnHUDToBeDestroyed));
 	// now delete them
 	std::for_each(m_hudObjectsList.begin(), m_hudObjectsList.end(), stl::container_object_deleter());
 	m_hudObjectsList.clear();
 
 	// call OnHUDDestroyed on external hud objects. we don't own them, so don't delete
-	std::for_each(m_externalHUDObjectList.begin(), m_externalHUDObjectList.end(), std::mem_fun(&CHUDObject::OnHUDToBeDestroyed));
+	std::for_each(m_externalHUDObjectList.begin(), m_externalHUDObjectList.end(), std::mem_fn(&CHUDObject::OnHUDToBeDestroyed));
 
 	PlayerIdSet(0);	//unregister from game / player
 
@@ -997,9 +1004,9 @@ void CHUD::PlayerIdSet(EntityId playerId)
 
 		if (m_pNanoSuit)
 		{
-			//m_fSuitEnergy = m_pEnergyConsumer->GetEnergy();
+			//m_fSuitEnergy = m_pEnergyManager->GetEnergy();
 
-			TOSSetEnergyConsumer(pPlayer->GetEnergyConsumer());
+			TOSSetEnergyConsumer(pPlayer->GetEnergyManager());
 
 			//~TheOtherSide
 
@@ -1054,6 +1061,10 @@ void CHUD::GameRulesSet(const char* name)
 			gameRules = EHUD_TEAMACTION;
 		else if (!stricmp(name, "TeamInstantAction"))
 			gameRules = EHUD_TEAMINSTANTACTION;
+		//Crysis Co-op
+		else if (!stricmp(name, "Coop"))
+			gameRules = EHUD_COOP;
+		//~Crysis Co-op
 	}
 
 	if (m_currentGameRules != gameRules)//unload stuff
@@ -2022,55 +2033,73 @@ void CHUD::HandleFSCommand(const char* szCommand, const char* szArgs)
 		ChangeBuyMenuLayer(SBuyMenuKeyLog::eBMKL_NoInput);
 	}
 	//multiplayer map functions
-	if (gEnv->bMultiplayer)
+	//Crysis Co-op
+	if (m_currentGameRules != EHUD_COOP)
 	{
-		if (!strcmp(szCommand, "MPMap_SelectObjective"))
+	//~Crysis Co-op
+		if (gEnv->bMultiplayer)
 		{
-			EntityId id = 0;
-			if (szArgs)
-				id = EntityId(atoi(szArgs));
-			SetOnScreenObjective(id);
-		}
-		else if (!strcmp(szCommand, "MPMap_SelectSpawnPoint"))
-		{
-			EntityId id = 0;
-			if (szArgs)
-				id = EntityId(atoi(szArgs));
-
-			CActor* pActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
-
-			CGameRules* pGameRules = (CGameRules*)(gEnv->pGame->GetIGameFramework()->GetIGameRulesSystem()->GetCurrentGameRules());
-			EntityId iCurrentSpawnPoint = 0;
-			if (pGameRules)
-				iCurrentSpawnPoint = pGameRules->GetPlayerSpawnGroup(pActor);
-
-			if (iCurrentSpawnPoint && iCurrentSpawnPoint == id)
+			if (!strcmp(szCommand, "MPMap_SelectObjective"))
 			{
+				EntityId id = 0;
+				if (szArgs)
+					id = EntityId(atoi(szArgs));
 				SetOnScreenObjective(id);
 			}
-			else if (pGameRules)
+			else if (!strcmp(szCommand, "MPMap_SelectSpawnPoint"))
 			{
-				pGameRules->RequestSpawnGroup(id);
-				m_changedSpawnGroup = true;
+				EntityId id = 0;
+				if (szArgs)
+					id = EntityId(atoi(szArgs));
+
+				CActor* pActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
+
+				CGameRules* pGameRules = (CGameRules*)(gEnv->pGame->GetIGameFramework()->GetIGameRulesSystem()->GetCurrentGameRules());
+				EntityId iCurrentSpawnPoint = 0;
+				if (pGameRules)
+					iCurrentSpawnPoint = pGameRules->GetPlayerSpawnGroup(pActor);
+
+				if (iCurrentSpawnPoint && iCurrentSpawnPoint == id)
+				{
+					SetOnScreenObjective(id);
+				}
+				else if (pGameRules)
+				{
+					pGameRules->RequestSpawnGroup(id);
+					m_changedSpawnGroup = true;
+				}
 			}
-		}
-		else if (!strcmp(szCommand, "HoverBuyItem"))
-		{
-			if (szArgs)
+			else if (!strcmp(szCommand, "HoverBuyItem"))
 			{
-				HUD_CALL_LISTENERS(OnBuyMenuItemHover(szArgs));
+				if (szArgs)
+				{
+					HUD_CALL_LISTENERS(OnBuyMenuItemHover(szArgs));
+				}
 			}
-		}
-		else if (!strcmp(szCommand, "RequestNewLoadoutName"))
-		{
-			if (m_pModalHUD == &m_animBuyMenu)
+			else if (!strcmp(szCommand, "RequestNewLoadoutName"))
 			{
-				string name;
-				m_pHUDPowerStruggle->RequestNewLoadoutName(name, "");
-				m_animBuyMenu.SetVariable("_root.POPUP.POPUP_NewPackage.m_modifyPackageName", SFlashVarValue(name));
+				if (m_pModalHUD == &m_animBuyMenu)
+				{
+					string name;
+					m_pHUDPowerStruggle->RequestNewLoadoutName(name, "");
+					m_animBuyMenu.SetVariable("_root.POPUP.POPUP_NewPackage.m_modifyPackageName", SFlashVarValue(name));
+				}
 			}
 		}
 	}
+
+	//TheOtherSide
+	if (!strcmp(szCommand, "BecomeZeus"))
+	{
+		auto pPlayer = static_cast<CTOSPlayer*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
+		if (!pPlayer->IsZeus())
+		{
+			CTOSZeusModule::ClientServer::DispatchMakeZeus(pPlayer, true, nullptr);
+		}
+		else
+			tos::hud::DisplayOverlayMessage("You have already become ZEUS", ColorF(1, 0, 0, 1));
+	}
+	//~TheOtherSide
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -2514,10 +2543,13 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 		}
 	}
 
-	if (action == rGameActions.buylastpurchase)
+	//TheOtherSide fix
+	// if (action == rGameActions.buylastpurchase)
+	if (m_pHUDPowerStruggle != nullptr && action == rGameActions.buylastpurchase)
 	{
 		m_pHUDPowerStruggle->BuyPackage(-1);
 	}
+	//~TheOtherSide
 
 	if (action == rGameActions.hud_buy_weapons)
 	{
@@ -2544,31 +2576,42 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 		}
 		else if (IsModalHUDAvailable())
 		{
+			// Получаем указатель на актора-клиента
 			CActor* pActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
-			if (pActor && (pActor->GetHealth() > 0) && !pActor->GetSpectatorMode())
+			
+			// Проверяем что актор жив и не в режиме наблюдателя
+			if (pActor && pActor->GetHealth() > 0 && !pActor->GetSpectatorMode())
 			{
 				CPlayer* pPlayer = static_cast<CPlayer*>(pActor);
+				
+				// Проверяем что у игрока есть активный нанокостюм
 				if (pPlayer && pPlayer->GetNanoSuit() && !pPlayer->GetNanoSuit()->IsActive())
 					return false;
-				/*				if(!m_animQuickMenu.IsLoaded())
-									m_animQuickMenu.Reload();*/
+
+				// Показываем быстрое меню
 				m_animQuickMenu.Invoke("showQuickMenu");
 				m_animQuickMenu.SetVariable("_alpha", 100);
 
 				if (pPlayer)
 				{
+					// Привязываем меню к текущему режиму костюма
 					QuickMenuSnapToMode(pPlayer->GetNanoSuit()->GetMode());
 					pPlayer->GetPlayerInput()->DisableXI(true);
 				}
+
+				// Настраиваем интерфейс
 				PlaySound(ESound_SuitMenuAppear);
 				pPlayer->GetPlayerInput()->DisableXI(true);
 				g_pGameActions->FilterSuitMenu()->Enable(true);
 				g_pGameActions->FilterInVehicleSuitMenu()->Enable(true);
 				m_bAutosnap = true;
 				UpdateCrosshairVisibility();
+				
+				// Переключаемся на модальное меню
 				SwitchToModalHUD(&m_animQuickMenu, false);
 				m_animQuickMenu.CheckedInvoke("destroy", m_iBreakHUD);
 			}
+			
 			filterOut = false;
 		}
 		else if (m_pModalHUD == &m_animWeaponAccessories)
@@ -2663,8 +2706,10 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 	}
 	else if (action == rGameActions.hud_show_multiplayer_scoreboard && activationMode == eIS_Pressed)
 	{
-		if (gEnv->bMultiplayer)
+		// Crysis Co-op
+		if (gEnv->bMultiplayer && m_currentGameRules != EHUD_COOP)
 		{
+			// ~Crysis Co-op
 			if (m_animScoreBoard.IsLoaded() && m_pHUDScore && !m_pHUDScore->m_bShow && GetModalHUD() != &m_animWarningMessages)
 			{
 				g_pGame->GetGameRules()->ShowScores(true);
@@ -2699,8 +2744,10 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 			 ((action == rGameActions.hud_show_multiplayer_scoreboard && activationMode == eIS_Released) ||
 			 action == rGameActions.hud_hide_multiplayer_scoreboard))
 	{
-		if (gEnv->bMultiplayer)
+		// Crysis Co-op
+		if (gEnv->bMultiplayer && m_currentGameRules != EHUD_COOP)
 		{
+			//~Crysis Co-op
 			if (m_animScoreBoard.IsLoaded() && m_pHUDScore && m_pHUDScore->m_bShow)
 			{
 				g_pGame->GetGameRules()->ShowScores(false);
@@ -2973,8 +3020,18 @@ void CHUD::ShowObjectives(bool bShow)
 		m_animBattleLog.SetVisible(!bShow);
 	}
 
-	if (!gEnv->bMultiplayer)
+	//Crysis Co-op
+
+	/*if(!gEnv->bMultiplayer)
+		ShowPDA(bShow, false);*/
+
+	// Если в не мультиплеере или в режиме Crysis Co-op, то показываем PDA
+	if (!gEnv->bMultiplayer || m_currentGameRules == EHUD_COOP)
+	{
 		ShowPDA(bShow, false);
+	}
+
+	//~Crysis Co-op
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -3025,38 +3082,49 @@ bool CHUD::ShowPDA(bool show, bool buyMenu)
 				if (pWeapon->IsZoomed())
 					pWeapon->StopZoom(pActor->GetEntityId());
 
-	if (gEnv->bMultiplayer && pGameRules->GetTeamCount() > 1)
+	//TheOtherSide
+	auto& hud = g_pTOSGame->GetZeusModule()->GetHUD();
+	if (show && hud.IsShowZeusMenu())
+		hud.ShowZeusMenu(false);
+	//~TheOtherSide
+
+	//Crysis Co-op
+	if (m_currentGameRules != EHUD_COOP)
 	{
-		if (pGameRules->GetTeam(pActor->GetEntityId()) == 0) //show team selection
+		//~Crysis Co-op
+		if (gEnv->bMultiplayer && pGameRules->GetTeamCount() > 1)
 		{
-			if (buyMenu)
+			if (pGameRules->GetTeam(pActor->GetEntityId()) == 0) //show team selection
+			{
+				if (buyMenu)
+					return false;
+
+				if (show && (!GetModalHUD() || GetModalHUD() != &m_animTeamSelection))
+				{
+					m_animTeamSelection.GetFlashPlayer()->SetVisible(true);
+					SwitchToModalHUD(&m_animTeamSelection, true);
+					m_spawnWarningTimer = 2.0f;
+				}
+				else if (GetModalHUD() == &m_animTeamSelection)
+				{
+					m_animTeamSelection.SetVisible(false);
+					SwitchToModalHUD(NULL, false);
+				}
+
 				return false;
-
-			if (show && (!GetModalHUD() || GetModalHUD() != &m_animTeamSelection))
-			{
-				m_animTeamSelection.GetFlashPlayer()->SetVisible(true);
-				SwitchToModalHUD(&m_animTeamSelection, true);
-				m_spawnWarningTimer = 2.0f;
-			}
-			else if (GetModalHUD() == &m_animTeamSelection)
-			{
-				m_animTeamSelection.SetVisible(false);
-				SwitchToModalHUD(NULL, false);
 			}
 
-			return false;
-		}
-
-		if (m_currentGameRules == EHUD_POWERSTRUGGLE ||
-			m_currentGameRules == EHUD_TEAMINSTANTACTION)
-		{
-			if (!buyMenu && show && m_pModalHUD == NULL)
+			if (m_currentGameRules == EHUD_POWERSTRUGGLE ||
+				m_currentGameRules == EHUD_TEAMINSTANTACTION)
 			{
-				if (!pActor || pGameRules->GetTeam(pActor->GetEntityId()) != 0)
-					ShowObjectives(true);
+				if (!buyMenu && show && m_pModalHUD == NULL)
+				{
+					if (!pActor || pGameRules->GetTeam(pActor->GetEntityId()) != 0)
+						ShowObjectives(true);
+				}
+				else if (!show)
+					ShowObjectives(false);
 			}
-			else if (!show)
-				ShowObjectives(false);
 		}
 	}
 
@@ -3097,10 +3165,15 @@ bool CHUD::ShowPDA(bool show, bool buyMenu)
 
 	if (show && m_pModalHUD == NULL)
 	{
-		if (gEnv->bMultiplayer && m_animRadioButtons.GetVisible())
+		//Crysis Co-op
+		if (m_currentGameRules != EHUD_COOP)
 		{
-			pGameRules->GetRadio()->CancelRadio();
-			SetRadioButtons(false);
+			//~Crysis Co-op
+			if (gEnv->bMultiplayer && m_animRadioButtons.GetVisible())
+			{
+				pGameRules->GetRadio()->CancelRadio();
+				SetRadioButtons(false);
+			}
 		}
 
 		if (m_pHUDPowerStruggle)
@@ -3140,7 +3213,9 @@ bool CHUD::ShowPDA(bool show, bool buyMenu)
 		}
 
 		SetFlashColor(anim);
-		anim->Invoke("showPDA", gEnv->bMultiplayer);
+		//Crysis Co-op: показываем PDA если в мультиплеере и не в режиме Crysis Co-op
+		anim->Invoke("showPDA", gEnv->bMultiplayer && m_currentGameRules != EHUD_COOP);
+		//~Crysis Co-op
 		if (buyMenu)
 		{
 			anim->GetFlashPlayer()->Advance(0.1f);
@@ -3837,114 +3912,124 @@ void CHUD::OnPostUpdate(float frameTime)
 		}
 
 		CGameRules* pGameRules = g_pGame->GetGameRules();
-		if (gEnv->bMultiplayer && pPlayer->GetSpectatorMode() /*|| (pGameRules && pGameRules->GetTeamCount() > 1 && pGameRules->GetTeam(pPlayer->GetEntityId()) == 0))*/) //SPECTATOR Mode
+		uint8 specMode = pPlayer->GetSpectatorMode();
+
+		// Проверяем что игрок в мультиплеере и в режиме наблюдателя
+
+		//TheOtherSide
+		if (gEnv->bMultiplayer && specMode != CActor::eASM_None && specMode != CActor::eASM_Zeus)
+		//~TheOtherSide
 		{
+			// Загружаем интерфейс наблюдателя если еще не загружен
 			if (!m_animSpectate.IsLoaded())
 			{
 				m_animSpectate.Load("Libs/UI/HUD_Spectate.gfx", eFD_Center, eFAF_Visible | eFAF_ManualRender);
 				FadeCinematicBars(3);
-
-				// SNH: moved text setting to further down (with player name display)
-				//	as text changes based on current spectator mode.
 			}
 
-			if (pPlayer)
+			// Проверяем что режим наблюдателя валидный для мультиплеера
+			if (specMode >= CActor::eASM_FirstMPMode && specMode <= CActor::eASM_LastMPMode)
 			{
-				uint8 specMode = pPlayer->GetSpectatorMode();
-				if (specMode >= CActor::eASM_FirstMPMode && specMode <= CActor::eASM_LastMPMode)
+				// Обновляем и рендерим основные элементы интерфейса
+				m_animSpectate.GetFlashPlayer()->Advance(frameTime);
+				m_animSpectate.GetFlashPlayer()->Render();
+
+				m_animNetworkConnection.GetFlashPlayer()->Advance(frameTime);
+				m_animNetworkConnection.GetFlashPlayer()->Render();
+
+				m_animKillLog.GetFlashPlayer()->Advance(frameTime);
+				m_animKillLog.GetFlashPlayer()->Render();
+
+				// Обновляем информацию если что-то изменилось
+				bool needUpdate = m_prevSpectatorMode != specMode || 
+					m_prevSpectatorTarget != pPlayer->GetSpectatorTarget() ||
+					m_prevSpectatorHealth != pPlayer->GetSpectatorHealth() ||
+					m_prevSpectatorTeam != pGameRules->GetTeam(pPlayer->GetEntityId());
+
+				if (needUpdate)
 				{
-					m_animSpectate.GetFlashPlayer()->Advance(frameTime);
-					m_animSpectate.GetFlashPlayer()->Render();
+					// Сохраняем текущее состояние
+					m_prevSpectatorMode = specMode;
+					m_prevSpectatorTarget = pPlayer->GetSpectatorTarget();
+					m_prevSpectatorHealth = pPlayer->GetSpectatorHealth(); 
+					m_prevSpectatorTeam = pGameRules->GetTeam(pPlayer->GetEntityId());
 
-					m_animNetworkConnection.GetFlashPlayer()->Advance(frameTime);
-					m_animNetworkConnection.GetFlashPlayer()->Render();
+					bool blink = false;
+					wstring mapText, functionalityText;
 
-					m_animKillLog.GetFlashPlayer()->Advance(frameTime);
-					m_animKillLog.GetFlashPlayer()->Render();
-
-					if (m_prevSpectatorMode != specMode || m_prevSpectatorTarget != pPlayer->GetSpectatorTarget() || m_prevSpectatorHealth != pPlayer->GetSpectatorHealth() || m_prevSpectatorTeam != pGameRules->GetTeam(pPlayer->GetEntityId()))
+					// Настраиваем текст подсказок в зависимости от состояния игрока
+					if (!pGameRules->IsPlayerActivelyPlaying(pPlayer->GetEntityId()))
 					{
-						m_prevSpectatorMode = specMode;
-						m_prevSpectatorTarget = pPlayer->GetSpectatorTarget();
-						m_prevSpectatorHealth = pPlayer->GetSpectatorHealth();
-						m_prevSpectatorTeam = pGameRules->GetTeam(pPlayer->GetEntityId());
-						bool blink = false;
-						wstring mapText, functionalityText;
-						// don't want the 'press m to...' text if waiting to respawn
-						if (!pGameRules->IsPlayerActivelyPlaying(pPlayer->GetEntityId()))
-						{
-							blink = true;
-							if (m_currentGameRules != EHUD_INSTANTACTION)
-							{
-								mapText = LocalizeWithParams("@ui_open_map");
-							}
-							else
-							{
-								mapText = LocalizeWithParams("@ui_open_map_dm");
-							}
+						blink = true;
+						mapText = (m_currentGameRules != EHUD_INSTANTACTION) ? 
+							LocalizeWithParams("@ui_open_map") :
+							LocalizeWithParams("@ui_open_map_dm");
 
-							// second line of text depends on current spectator mode
-							if (pPlayer->GetSpectatorMode() == CActor::eASM_Follow)
-							{
-								functionalityText = LocalizeWithParams("@ui_spectate_functionality_tp");
-							}
-							else
-							{
-								functionalityText = LocalizeWithParams("@ui_spectate_functionality");
-							}
-						}
-						else
+						functionalityText = (pPlayer->GetSpectatorMode() == CActor::eASM_Follow) ?
+							LocalizeWithParams("@ui_spectate_functionality_tp") :
+							LocalizeWithParams("@ui_spectate_functionality");
+					}
+					else
+					{
+						// Скрываем меню выбора команды если открыто
+						if (GetModalHUD() == &m_animTeamSelection)
 						{
-							if (GetModalHUD() == &m_animTeamSelection)
-							{
-								m_animTeamSelection.SetVisible(false);
-								SwitchToModalHUD(NULL, false);
-							}
-							// waiting to respawn - must be in 3rd person mode. Just show 'press left/right to switch player'
-							mapText = L"";
-							functionalityText = LocalizeWithParams("@ui_spectate_functionality_dead");
+							m_animTeamSelection.SetVisible(false);
+							SwitchToModalHUD(NULL, false);
 						}
-						SFlashVarValue textArgs[3] = {mapText.c_str(), functionalityText.c_str(), blink};
-						m_animSpectate.Invoke("setText", textArgs, 3);
+						
+						mapText = L"";
+						functionalityText = LocalizeWithParams("@ui_spectate_functionality_dead");
+					}
 
-						if (specMode == CActor::eASM_Follow && pPlayer->GetSpectatorTarget() != 0)
+					// Обновляем текст в интерфейсе
+					SFlashVarValue textArgs[3] = {mapText.c_str(), functionalityText.c_str(), blink};
+					m_animSpectate.Invoke("setText", textArgs, 3);
+
+					// Обновляем информацию о наблюдаемом игроке
+					if (specMode == CActor::eASM_Follow && pPlayer->GetSpectatorTarget() != 0)
+					{
+						IActor* pTarget = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pPlayer->GetSpectatorTarget());
+						if (pTarget)
 						{
-							IActor* pTarget = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pPlayer->GetSpectatorTarget());
-							if (pTarget)
-							{
-								CryFixedStringT<128> text = pTarget->GetEntity()->GetName();
-								text += " (%d)";
-								int health = max(0, pPlayer->GetSpectatorHealth());
-								text.Format(text.c_str(), health);
-								SFlashVarValue args[2] = {text.c_str(),pGameRules ? pGameRules->GetTeam(pTarget->GetEntityId()) : 0};
-								m_animSpectate.Invoke("setPlayer", args, 2);
-							}
-						}
-						else
-						{
-							// reset player name / flag when going back to free camera / fixed camera
-							SFlashVarValue args[2] = {"", 0};
+							CryFixedStringT<128> text;
+							text.Format("%s (%d)", pTarget->GetEntity()->GetName(), max(0, pPlayer->GetSpectatorHealth()));
+							
+							SFlashVarValue args[2] = {
+								text.c_str(),
+								pGameRules ? pGameRules->GetTeam(pTarget->GetEntityId()) : 0
+							};
 							m_animSpectate.Invoke("setPlayer", args, 2);
 						}
+					}
+					else
+					{
+						// Сбрасываем имя игрока при переходе в свободную камеру
+						SFlashVarValue args[2] = {"", 0};
+						m_animSpectate.Invoke("setPlayer", args, 2);
 					}
 				}
 			}
 
+			// Обновляем дополнительные элементы интерфейса если они видимы
 			if (m_animPDA.GetVisible())
 			{
 				m_animPDA.GetFlashPlayer()->Advance(frameTime);
 				m_animPDA.GetFlashPlayer()->Render();
 			}
+			
 			if (m_animChat.GetVisible())
 			{
 				m_animChat.GetFlashPlayer()->Advance(frameTime);
 				m_animChat.GetFlashPlayer()->Render();
 			}
+			
 			if (m_animScoreBoard.GetVisible())
 			{
 				m_animScoreBoard.GetFlashPlayer()->Advance(frameTime);
 				m_animScoreBoard.GetFlashPlayer()->Render();
 			}
+			
 			if (m_animBuyMenu.GetVisible())
 			{
 				m_animBuyMenu.GetFlashPlayer()->Advance(frameTime);
@@ -3964,11 +4049,13 @@ void CHUD::OnPostUpdate(float frameTime)
 				FadeCinematicBars(0);
 			}
 
-			if (GetModalHUD() == &m_animTeamSelection)
+			// TheOtherSide: скрываем меню выбора команды если игрок не в режиме зевса
+			if (!(specMode == CActor::eASM_Zeus) && GetModalHUD() == &m_animTeamSelection)
 			{
 				m_animTeamSelection.SetVisible(false);
 				SwitchToModalHUD(NULL, false);
 			}
+			//~TheOtherSide
 
 			CreateInterference();
 
@@ -4125,13 +4212,13 @@ void CHUD::OnPostUpdate(float frameTime)
 	{
 		//TheOtherSide
 		//EnergyChanged(m_pNanoSuit->GetSuitEnergy());
-		//EnergyChanged(m_pEnergyConsumer->GetEnergy());
+		//EnergyChanged(m_pEnergyManager->GetEnergy());
 		TOSUpdateEnergy();
 
 
 		m_bFirstFrame = false;
 	}
-	//m_fSuitEnergy = m_pEnergyConsumer->GetEnergy();
+	//m_fSuitEnergy = m_pEnergyManager->GetEnergy();
 	//~TheOtherSide
 
 	m_iVoiceMode = g_pGameCVars->hud_voicemode;
@@ -4256,6 +4343,16 @@ void CHUD::SetTeamDisplay(const char* team)
 {
 	if (m_animHexIcons.IsLoaded())
 	{
+		//TheOtherSide
+		CPlayer* pPlayer = static_cast<CPlayer*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
+		if (pPlayer && pPlayer->IsZeus())
+		{
+			m_animHexIcons.Invoke("setBackground", "");
+			m_animHexIcons.Invoke("setFlagIcon", "");
+			return;
+		}
+		//~TheOtherSide
+
 		if (m_currentGameRules == EHUD_POWERSTRUGGLE)
 		{
 			m_animHexIcons.Invoke("setBackground", team);
@@ -4303,6 +4400,21 @@ bool CHUD::UpdateTimers(float frameTime)
 
 	CTimeValue now = gEnv->pTimer->GetFrameStartTime();
 	CPlayer* pPlayer = static_cast<CPlayer*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
+
+	// Crysis Co-op
+	// TheOtherSide TODO: ХЗ зачем тут m_bDead
+	//if (gEnv->bMultiplayer && m_currentGameRules == EHUD_COOP && pPlayer->GetHealth() <= 0.f)
+	//{
+	//	DisplayOverlayFlashMessage("Waiting for Revive.", ColorF(0, 1.0, 0), false);
+	//	m_bDead = true;
+	//}
+	//else if (m_bDead)
+	//{
+	//	m_bDead = false;
+	//	DisplayOverlayFlashMessage("");
+	//}
+	// ~Crysis Co-op
+
 
 	if (m_fPlayerDeathTime && m_animWarningMessages.IsLoaded())
 	{
@@ -4507,8 +4619,8 @@ bool CHUD::UpdateTimers(float frameTime)
 	//TheOtherSide
 	// FIXME: this should be moved to ::EnergyChanged
 	//if(m_fSuitEnergy > (NANOSUIT_ENERGY*0.25f) && m_pNanoSuit->GetSuitEnergy() < (NANOSUIT_ENERGY*0.25f))
-	const float energy = m_pEnergyConsumer->GetEnergy();
-	const float maxEnergy = m_pEnergyConsumer->GetMaxEnergy();
+	const float energy = m_pEnergyManager->GetEnergy();
+	const float maxEnergy = m_pEnergyManager->GetMaxEnergy();
 
 	if (m_fSuitEnergy > (maxEnergy * 0.25f) && energy < (maxEnergy * 0.25f))
 	{
@@ -4644,7 +4756,6 @@ void CHUD::WeaponAccessoriesInterface(bool visible, bool force)
 			CPlayer* pPlayer = static_cast<CPlayer*>(gEnv->pGame->GetIGameFramework()->GetClientActor());
 			if (pPlayer && pPlayer->GetPlayerInput())
 				pPlayer->GetPlayerInput()->DisableXI(false);
-
 			m_animWeaponAccessories.Invoke("hideWeaponAccessories");
 			m_animWeaponAccessories.SetVisible(false);
 		}
@@ -4900,7 +5011,7 @@ void CHUD::TextMessage(const char* message)
 		m_pNanoSuit->ResetEnergy();
 
 		//TheOtherSide
-		m_pEnergyConsumer->Reset();
+		m_pEnergyManager->Reset();
 		//~TheOtherSide
 
 		return;
@@ -4995,7 +5106,12 @@ void CHUD::UpdateObjective(CHUDMissionObjective* pObjective)
 		m_pHUDRadar->UpdateMissionObjective(pObjective->GetTrackedEntity(), active, pObjective->GetMapLabel(), pObjective->IsSecondary());
 	}
 
-	if (!gEnv->bMultiplayer || m_currentGameRules == EHUD_POWERSTRUGGLE) //in multiplayer the objectives are set in the miniMap only
+	// Crysis Co-op
+	//if(!gEnv->bMultiplayer || m_currentGameRules == EHUD_POWERSTRUGGLE) //in multiplayer the objectives are set in the miniMap only
+	if (!gEnv->bMultiplayer 
+		|| m_currentGameRules == EHUD_POWERSTRUGGLE 
+		|| m_currentGameRules == EHUD_COOP) //in multiplayer the objectives are set in the miniMap only
+		//~Crysis Co-op
 	{
 		m_animObjectivesTab.Invoke("resetObjectives");
 		THUDObjectiveList::iterator it = m_hudObjectivesList.begin();
@@ -5608,6 +5724,50 @@ void CHUD::LoadGameRulesHUD(bool load)
 				m_animObjectivesTab.Unload();
 			}
 			break;
+		//Crysis Co-op
+		case EHUD_COOP:
+			if (load)
+			{
+				if (!m_animObjectivesTab.IsLoaded())
+				{
+					m_animObjectivesTab.Load("Libs/UI/HUD_MissionObjectives.gfx", eFD_Left, eFAF_Visible);
+					m_animObjectivesTab.Invoke("showObjectives", "noAnim");
+					m_animObjectivesTab.SetVisible(false);
+				}
+
+				if (!m_animMessages.IsLoaded())
+					m_animMessages.Load("Libs/UI/HUD_Messages.gfx");
+
+				if (m_animHexIcons.IsLoaded())
+					m_animHexIcons.Unload();
+
+				if (!m_animHexIcons.IsLoaded())
+					m_animHexIcons.Load("Libs/UI/HUD_SP_HexIcons.gfx", eFD_Left, eFAF_Visible);
+
+				if (!m_animChat.IsLoaded())
+				{
+					m_animChat.Load("Libs/UI/HUD_ChatSystem.gfx", eFD_Left);
+					if (m_pHUDTextChat)
+						m_pHUDTextChat->Init(&m_animChat);
+				}
+
+				if (!m_animVoiceChat.IsLoaded())
+					m_animVoiceChat.Load("Libs/UI/HUD_MultiPlayer_VoiceChat.gfx", eFD_Right, eFAF_ThisHandler);
+				if (!m_animBattleLog.IsLoaded())
+					m_animBattleLog.Load("Libs/UI/HUD_MP_Log.gfx", eFD_Left);
+			}
+			else
+			{
+				m_animObjectivesTab.Unload();
+				m_animMessages.Unload();
+				if (m_pHUDTextChat)
+					m_pHUDTextChat->Init(0);
+				m_animChat.Unload();
+				m_animVoiceChat.Unload();
+				m_animBattleLog.Unload();
+			}
+			break;
+			//~Crysis Co-op
 	}
 }
 
@@ -6069,3 +6229,4 @@ void CHUD::GameOver(int localWinner, int winnerTeam, EntityId id)
 }
 
 //-----------------------------------------------------------------------------------------------------
+

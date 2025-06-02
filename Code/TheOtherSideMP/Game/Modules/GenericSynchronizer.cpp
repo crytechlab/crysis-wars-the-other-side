@@ -45,7 +45,7 @@ void CTOSGenericSynchronizer::PostInit(IGameObject* pGameObject)
 	//stl::push_back_unique(s_synchronizers, GetEntityId());
 	s_synchronizers[GetEntity()->GetName()] = GetEntityId();
 
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_SynchronizerCreated, "", true));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnSynchronizerCreated, "", true));
 
 }
 
@@ -61,7 +61,7 @@ void CTOSGenericSynchronizer::PostInitClient(int channelId)
 
 void CTOSGenericSynchronizer::Release()
 {
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_SynchronizerDestroyed, "", true));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnSynchronizerDestroyed, "", true));
 
 	delete this;
 }
@@ -133,8 +133,8 @@ IMPLEMENT_RMI(CTOSGenericSynchronizer, SvRequestPintest)
 
 	if (gEnv->bServer)
 	{
-		CryLogAlways("[C++][%s][%s][SvRequestPintest] Game channel = %i, from %s",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), channelId, params.commentary.c_str());
+		CryLogAlways("<C++>[%s][%s][SvRequestPintest] Game channel = %i, from %s",
+			tos::debug::GetEnv(), tos::debug::GetAct(3), channelId, params.commentary.c_str());
 	}
 
 	auto pActor = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActorByChannelId(channelId);
@@ -149,8 +149,8 @@ IMPLEMENT_RMI(CTOSGenericSynchronizer, ClPintest)
 
 	if (gEnv->bClient)
 	{
-		CryLogAlways("[C++][%s][%s][ClPintest] Game channel = %i, from %s",
-			TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), channelId, params.commentary.c_str());
+		CryLogAlways("<C++>[%s][%s][ClPintest] Game channel = %i, from %s",
+			tos::debug::GetEnv(), tos::debug::GetAct(3), channelId, params.commentary.c_str());
 	}
 
 	return true;

@@ -94,9 +94,9 @@ AIBehaviour.FollowerNPCIdle = {
 
 	---------------------------------------------
 	OnFriendlyDamage = function ( self, entity, sender, data)
-
-		if(data.id == g_localActor.id) then 
-		
+		--TheOtherSide
+		if(not AI.Hostile(entity.id, data.id)) then 
+			--~TheOtherSide
 			local health = entity.actor:GetHealth();
 			local maxHealth = entity.actor:GetMaxHealth();
 		

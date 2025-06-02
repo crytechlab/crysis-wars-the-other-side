@@ -8,7 +8,7 @@ Description: Crosshair HUD object (refactored from old HUD code)
 
 -------------------------------------------------------------------------
 History:
-- 15:05:2007  11:00 : Created by Jan Mьller
+- 15:05:2007  11:00 : Created by Jan M�ller
 
 *************************************************************************/
 
@@ -83,12 +83,13 @@ void CHUDCrosshair::Update(const float fDeltaTime)
 
 	//TheOtherSide
 	//IActor*   pClientActor = g_pGame->GetIGameFramework()->GetClientActor();
-	const auto	pClientActor = g_pTOSGame->GetActualClientActor();
+	CTOSActor* pClientActor = static_cast<CTOSActor*>(g_pTOSGame->GetActualClientActor());
+	if (!pClientActor || pClientActor && pClientActor->IsZeus())
+		return;
 	//~TheOtherSide
 
 	const IItemSystem* pItemSystem  = g_pGame->GetIGameFramework()->GetIItemSystem();
-
-	if (!pClientActor || !pItemSystem)
+	if (!pItemSystem)
 		return;
 
 	const IInventory* pInventory = pClientActor->GetInventory();
@@ -136,7 +137,7 @@ void CHUDCrosshair::Update(const float fDeltaTime)
 				m_spread += pSlaveFireMode->GetSpread();
 			}
 
-		const auto pPlayer = static_cast<CTOSPlayer*>(pClientActor);
+		const CTOSPlayer* pPlayer = static_cast<CTOSPlayer*>(pClientActor);
 		if (pPlayer && pPlayer->GetNanoSuit() && pPlayer->GetNanoSuit()->GetMode() == NANOMODE_STRENGTH)
 			m_spread *= 0.5;
 

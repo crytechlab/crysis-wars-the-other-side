@@ -16,7 +16,7 @@ Copyright (C), AlienKeeper, 2024.
 #include "GameRules.h"
 #include "NetInputChainDebug.h"
 
-#include "TheOtherSideMP/Extensions/EnergyСonsumer.h"
+#include "TheOtherSideMP/Extensions/EnergyManager.h"
 #include "TheOtherSideMP/Game/TOSGameEventRecorder.h"
 #include "TheOtherSideMP/Game/Modules/Master/MasterClient.h"
 #include "TheOtherSideMP/Game/Modules/Master/MasterModule.h"
@@ -28,20 +28,21 @@ Copyright (C), AlienKeeper, 2024.
 #include "HUD/HUDTagNames.h"
 
 #include "TheOtherSideMP/Control/ControlSystem.h"
-#include "DummyTargetPointVerifier.h"
 #include <stdexcept>
-
-CDummyTargetPointVerifier CDummyTargetPointVerifier::Instance = CDummyTargetPointVerifier();
+#include <TheOtherSideMP/Helpers/TOS_AI.h>
+#include <TheOtherSideMP/Helpers/TOS_Entity.h>
+#include <TheOtherSideMP/Helpers/TOS_Script.h>
 
 CTOSActor::CTOSActor()
 	:
 	//m_filteredDeltaMovement(ZERO),
+	m_isEntityHidden(false),
 	m_isSlave(false),
 	m_isMaster(false),
 	m_isZeus(false),
 	m_chargingJump(false),
 	m_lastShooterId(0),
-	m_pEnergyConsumer(nullptr)
+	m_pEnergyManager(nullptr)
 {
 	
 }
@@ -50,57 +51,95 @@ CTOSActor::~CTOSActor() {};
 
 bool CTOSActor::Init(IGameObject* pGameObject)
 {
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorInit, "", true));
+
 	if (!CActor::Init(pGameObject))
 		return false;
 
-	m_pEnergyConsumer = static_cast<CTOSEnergyConsumer*>(GetGameObject()->AcquireExtension("TOSEnergyConsumer"));
-	assert(m_pEnergyConsumer);
-	m_pEnergyConsumer->Reset();
-
 	m_debugName = GetEntity()->GetName();
+
+	m_pEnergyManager = static_cast<CTOSEnergyManager*>(GetGameObject()->AcquireExtension("TOSEnergyManager"));
+	m_pEnergyManager->Reset();
 
 	return true;
 }
 
 void CTOSActor::PostInit(IGameObject* pGameObject)
 {
-	//CryLogAlways("[C++][%s][%s][CTOSActor::PostInit] Actor: %s|%i",
-	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
+	//CryLogAlways("<C++>[%s][%s][CTOSActor::PostInit] Actor: %s|%i",
+	//	tos::debug::GetEnv(), tos::debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
 
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorPostInit, "", true));
+	m_debugName = GetEntity()->GetName();
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorPostInit, m_debugName, true));
 
 	CActor::PostInit(pGameObject);
+
+	//Crysis Co-op
+	pGameObject->SetAIActivation(eGOAIAM_Always);
+	//~Crysis Co-op
 
 	m_netBodyInfo.Reset();
 	m_slaveStats = STOSSlaveStats();
 
 	// Факт: если оружие выдаётся на сервере, оно выдаётся и на всех клиентах тоже.
-	ResetActorWeapons(1000);
+	//ResetActorWeapons(1000);
 
 	// 30.11.2023 Akeeper: Это я оставлю здесь на всякий случай.
 	// Но к сожалению это не позволяет включить PrePhysicsUpdate в одиночной игре 
 	// отравки запроса на движение в MasterClient. 
 	GetGameObject()->EnablePrePhysicsUpdate(ePPU_Always);
-	m_debugName = GetEntity()->GetName();
 
 	if (ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0))
 		pCharacter->SetFlags(pCharacter->GetFlags() | CS_FLAG_UPDATE_ALWAYS);
 
 	IEntityRenderProxy* pRenderProxy = (IEntityRenderProxy*)(GetEntity()->GetProxy(ENTITY_PROXY_RENDER));
 	if (pRenderProxy)
-	{
 		pRenderProxy->UpdateCharactersBeforePhysics(true);
+
+	// сохранение и применение модели персонажа
+	if (gEnv->bServer)
+	{
+		const char* model = 0;
+		tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
+		m_modelFilename = model;
+	}
+	else
+	{
+		if (m_modelFilename.length() > 0)
+		{
+			// предполагаем, что при спавне движок уже загрузил m_modelFilename из SpawnInfo
+			tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
+			CActor::Physicalize();  // пересоздать физику под новую модель
+		}
 	}
 }
 
 void CTOSActor::InitClient(const int channelId)
 {
-	//CryLogAlways("[C++][%s][%s][CTOSActor::InitClient] Actor: %s|%i|ch:%i",
-	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId(), channelId);
+	//CryLogAlways("<C++>[%s][%s][CTOSActor::InitClient] Actor: %s|%i|ch:%i",
+	//	tos::debug::GetEnv(), tos::debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId(), channelId);
 
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_InitClient, "", true, false, nullptr, 0.0f, channelId));
+	TOS_RECORD_EVENT(GetEntityId(), 
+		STOSGameEvent(eEGE_InitClient, "", true, false, nullptr, 0.0f, channelId));
 
 	CActor::InitClient(channelId);
+}
+
+void CTOSActor::PostInitClient(const int channelId)
+{
+	CActor::PostInitClient(channelId);
+
+	//if (gEnv->bMultiplayer && !IsPlayer())
+	//{
+	//	GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+	//}
+
+	// Для обновления состояния во время подключения клиента
+	GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC |
+		tos::net::SERVER_ASPECT_STATIC |
+		tos::net::CLIENT_ASPECT_DYNAMIC |
+		tos::net::CLIENT_ASPECT_STATIC
+	);
 }
 
 void CTOSActor::ProcessEvent(SEntityEvent& event)
@@ -111,75 +150,89 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 	if (pMC)
 		pMC->OnEntityEvent(GetEntity(), event);
 
+	if (gEnv->bEditor)
+		return;
+
 	switch (event.event)
 	{
-	//case ENTITY_EVENT_XFORM:
-	//{
-	//	auto flag = event.nParam[0];
+	case ENTITY_EVENT_HIDE:
+	{
+		if (!IsPlayer() && gEnv->bServer)
+		{
+			GetInventory()->Clear();
+			m_isEntityHidden = true;
+			GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		}
 
-	//	if (gEnv->bServer && IsPlayer() && (flag & ENTITY_XFORM_POS))
-	//	{
-	//		auto pSlaveEntity = g_pTOSGame->GetMasterModule()->GetCurrentSlave(GetEntity());
-	//		if (pSlaveEntity)
-	//		{
-	//			const Vec3 slavePos = pSlaveEntity->GetWorldPos();
-	//			const Quat slaveRot = pSlaveEntity->GetWorldRotation();
+		break;
+	}
+	case ENTITY_EVENT_UNHIDE:
+	{
+		if (!IsPlayer() && gEnv->bServer)
+		{
+			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
+			m_isEntityHidden = false;
+			GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		}
 
-	//			if ((this->GetEntity()->GetWorldPos() - slavePos).len() > 1.0f)
-	//			{
-	//				this->GetEntity()->SetWorldTM(Matrix34::CreateTranslationMat(slavePos), 0);
-	//			}
-	//		}
-	//	}
-	//	
-	//	break;
-	//}
+		break;
+	}
+	case ENTITY_EVENT_START_LEVEL:
+	{
+		if (!IsPlayer() && gEnv->bServer)
+		{
+			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
+			m_isEntityHidden = false;
+			GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		}
+
+		break;
+	}
 	case ENTITY_EVENT_TIMER:
 	{
 		// Фикс бага #29
-		if (event.nParam[0] == eMPTIMER_REMOVEWEAPONSDELAY)
+		//if (event.nParam[0] == eMPTIMER_REMOVEWEAPONSDELAY)
+		//{
+		//	const auto pInventory = GetInventory();
+		//	if (pInventory)
+		//	{
+		//		pInventory->HolsterItem(true);
+		//		pInventory->RemoveAllItems();
+		//		pInventory->Clear();
+		//	}
+		//}
+		if (event.nParam[0] == eMPTIMER_GIVEWEAPONDELAY)
 		{
-			const auto pInventory = GetInventory();
-			if (pInventory)
+			IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
+			SmartScriptTable props;
+			if (pScriptTable->GetValue("Properties", props))
 			{
-				pInventory->HolsterItem(true);
-				pInventory->RemoveAllItems();
-				pInventory->Clear();
-
-				if (gEnv->bServer && gEnv->bMultiplayer && !IsPlayer())
+				auto pEquipManager = gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GetIEquipmentManager();
+				char* equip;
+				if (pEquipManager && props->GetValue("equip_EquipmentPack", equip))			
 				{
-					GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
+					pEquipManager->GiveEquipmentPack(this, equip, true, false);
+
+					if (!IsPlayer() && gEnv->bServer)
+					{
+						GetEntity()->SetTimer(eMPTIMER_SELECTPRIMARY, 300);
+					}
 				}
 			}
 		}
-		else if (event.nParam[0] == eMPTIMER_GIVEWEAPONDELAY)
+		else if (event.nParam[0] == eMPTIMER_SELECTPRIMARY)
 		{
-			string       equipName;
-			const string actorClass = GetEntity()->GetClass()->GetName();
-
-			if (actorClass == "Trooper")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_TrooperMPEquipPack")->GetString();
-			}
-			else if (actorClass == "Scout")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_ScoutMPEquipPack")->GetString();
-			}
-			else if (actorClass == "Alien")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_AlienMPEquipPack")->GetString();
-			}
-			else if (actorClass == "Hunter")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HunterMPEquipPack")->GetString();
-			}
-			else if (actorClass == "Grunt")
-			{
-				equipName = (string)gEnv->pConsole->GetCVar("tos_sv_HumanGruntMPEquipPack")->GetString();
-			}
-
-			TOS_Inventory::GiveEquipmentPack(this, equipName, false);
+			tos::inventory::SelectPrimary(this);
+			tos::ai::SetStance(this->GetEntity()->GetAI(), EStance::STANCE_STAND);
 		}
+		//else if (event.nParam[0] == eMPTIMER_RAGDOLL)
+		//{
+		//	RagDollize(false);
+		//	pe_action_impulse imp;
+		//	imp.impulse = Vec3(1, 1, 1);
+
+		//	GetEntity()->GetPhysics()->Action(&imp);
+		//}
 	}
 	default: 
 		break;
@@ -192,7 +245,7 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 	if (!CActor::NetSerialize(ser,aspect,profile,flags))
 		return false;
 
-	if (aspect == TOS_NET::SERVER_ASPECT_STATIC)
+	if (aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
 		// Персонаж мастера всегда должен быть невидим
 		ser.Value("is_master", m_isMaster, 'bool');
@@ -201,11 +254,51 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 
 		if (ser.IsReading())
 		{
-			HideMe(m_isMaster);
+			HideMe(m_isMaster || m_isZeus);
+
+			if (m_isZeus)
+				RemoveAllItems();
+		}
+	}
+
+	if (!IsPlayer())
+	{
+		if (aspect == tos::net::SERVER_ASPECT_STATIC)
+		{
+			ser.Value("bHide", m_isEntityHidden, 'bool');
+
+			if (ser.IsReading())
+			{
+				GetEntity()->Hide(m_isEntityHidden);
+				HideMe(m_isEntityHidden);
+			}
+
+		}
+
+		if (aspect == tos::net::CLIENT_ASPECT_STATIC ||
+			aspect == tos::net::SERVER_ASPECT_STATIC)
+		{
+			// Current Weapon Serialize
+			const bool writing = ser.IsWriting();
+			bool	   hasWeapon = false;
+
+			if (writing)
+				hasWeapon = NetGetCurrentItem() != 0;
+
+			ser.Value("hasWeapon", hasWeapon, 'bool');
+			ser.Value("currentItemId",
+				static_cast<CActor*>(this),
+				&CActor::NetGetCurrentItem,
+				&CActor::NetSetCurrentItem,
+				'eid');
+
+			if (!writing && hasWeapon && NetGetCurrentItem() == 0)
+			{
+				ser.FlagPartialRead();
+			}
 		}
 
 	}
-
 
 	return true;
 }
@@ -216,7 +309,11 @@ void CTOSActor::SelectNextItem(const int direction, const bool keepHistory, cons
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 }
 
@@ -226,7 +323,11 @@ void CTOSActor::HolsterItem(const bool holster)
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 }
 
@@ -236,8 +337,13 @@ void CTOSActor::SelectLastItem(const bool keepHistory, const bool forceNext /* =
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
 	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+	}
+
 }
 
 void CTOSActor::SelectItemByName(const char* name, const bool keepHistory)
@@ -246,8 +352,13 @@ void CTOSActor::SelectItemByName(const char* name, const bool keepHistory)
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
 	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+	}
+
 }
 
 void CTOSActor::SelectItem(const EntityId itemId, const bool keepHistory)
@@ -256,7 +367,11 @@ void CTOSActor::SelectItem(const EntityId itemId, const bool keepHistory)
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+	}
+	else
+	{
+		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	}
 }
 
@@ -266,38 +381,29 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 	CActor::Update(ctx, updateSlot);
 
 	//Отладка потребителя энергии в виде вывода инф. на экран
-	if (gEnv->bClient && IsClient())
-	{
-		const auto pDebugEntity = gEnv->pEntitySystem->FindEntityByName(CTOSEnergyConsumer::s_debugEntityName);
-		if (pDebugEntity)
-		{
-			const auto pDebugActor = static_cast<CTOSActor*>(g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pDebugEntity->GetId()));
-			if (pDebugActor)
-			{
-				const float energy    = pDebugActor->m_pEnergyConsumer->GetEnergy();
-				const float maxEnergy = pDebugActor->m_pEnergyConsumer->GetMaxEnergy();
-				const float drain     = pDebugActor->m_pEnergyConsumer->GetDrainValue();
-				const bool  updating  = pDebugActor->m_pEnergyConsumer->IsUpdating();
-
-				DRAW_2D_TEXT(40, 200, 1.3f, "--- Energy Consumer (%s) ---", pDebugEntity->GetName());
-				DRAW_2D_TEXT(40, 215, 1.3f, "Updating:   %i", updating);
-				DRAW_2D_TEXT(40, 230, 1.3f, "Energy:     %1.f", energy);
-				DRAW_2D_TEXT(40, 245, 1.3f, "MaxEnergy:  %1.f", maxEnergy);
-				DRAW_2D_TEXT(40, 260, 1.3f, "DrainValue: %1.f", drain);
-			}
-		}
-	}
-
-	//int clTeamId = -1;
-	//int svTeamId = -1;
-
-	//if (gEnv->bClient)
+	//if (gEnv->bClient && IsClient())
 	//{
-	//	clTeamId = g_pGame->GetGameRules()->GetTeam(GetEntityId());
-	//}
-	//if (gEnv->bServer)
-	//{
-	//	svTeamId = g_pGame->GetGameRules()->GetTeam(GetEntityId());
+	//	const char* debugName = CTOSEnergyManager::s_debugEntityName;
+	//	const auto pDebugEntity = gEnv->pEntitySystem->FindEntityByName(debugName);
+	//	if (pDebugEntity)
+	//	{
+	//		const auto pDebugActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pDebugEntity->GetId()));
+	//		if (pDebugActor)
+	//		{
+	//			const auto pEnergyConsumer = pDebugActor->GetEnergyManager();
+	//			const float energy    = pEnergyConsumer->GetEnergy();
+	//			const float maxEnergy = pEnergyConsumer->GetMaxEnergy();
+	//			const float drain	  = pEnergyConsumer->GetDrainValue();
+	//			const bool  updating  = pEnergyConsumer->IsUpdating();
+
+	//			DRAW_2D_TEXT(40, 200, 1.3f, "--- Energy Consumer (%s) ---", 
+	//				pDebugEntity->GetName());
+	//			DRAW_2D_TEXT(40, 215, 1.3f, "Updating:   %i", updating);
+	//			DRAW_2D_TEXT(40, 230, 1.3f, "Energy:     %1.f", energy);
+	//			DRAW_2D_TEXT(40, 245, 1.3f, "MaxEnergy:  %1.f", maxEnergy);
+	//			DRAW_2D_TEXT(40, 260, 1.3f, "DrainValue: %1.f", drain);
+	//		}
+	//	}
 	//}
 
 	NETINPUT_TRACE(GetEntityId(), m_isMaster);
@@ -307,10 +413,10 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 
 void CTOSActor::Release()
 {
-	//CryLogAlways("[C++][%s][%s][CTOSActor::Release] Actor: %s|%i",
-	//	TOS_Debug::GetEnv(), TOS_Debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
+	//CryLogAlways("<C++>[%s][%s][CTOSActor::Release] Actor: %s|%i",
+	//	tos::debug::GetEnv(), tos::debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
 
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorRelease, "", true));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorRelease, m_debugName, true));
 
 	CActor::Release();
 }
@@ -325,7 +431,7 @@ void CTOSActor::Revive(const bool fromInit)
 
 		if (gEnv->bClient)
 		{
-			GetGameObject()->InvokeRMI(SvRequestHideMe(), NetHideMeParams(true), eRMI_ToServer);
+			// GetGameObject()->InvokeRMI(SvRequestHideMe(), NetHideMeParams(true), eRMI_ToServer);
 		}
 		else if (gEnv->bServer)
 		{
@@ -333,7 +439,7 @@ void CTOSActor::Revive(const bool fromInit)
 			if (pFists)
 				g_pGame->GetIGameFramework()->GetIItemSystem()->SetActorItem(this, pFists->GetEntityId());
 
-			GetGameObject()->InvokeRMI(ClMarkHideMe(), NetHideMeParams(true), eRMI_ToAllClients);
+			// GetGameObject()->InvokeRMI(ClMarkHideMe(), NetHideMeParams(true), eRMI_ToAllClients);
 		}
 
 		if (IsClient())
@@ -355,6 +461,13 @@ void CTOSActor::Revive(const bool fromInit)
 		m_pAnimatedCharacter->ForceRefreshPhysicalColliderMode();
 		m_pAnimatedCharacter->RequestPhysicalColliderMode(eColliderMode_Spectator, eColliderModeLayer_Game, "Actor::SetAspectProfile");
 	}
+	else
+	{
+		if (IsPlayer())
+			tos::ai::SendEvent(GetEntity()->GetAI(), AIEVENT_ENABLE);
+	}
+
+	SelectLastItem(true, true); 
 
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorRevived, "", true));
 }
@@ -363,26 +476,11 @@ void CTOSActor::Kill()
 {
 	CActor::Kill();
 
+	if (IsPlayer())
+		tos::ai::SendEvent(GetEntity()->GetAI(), AIEVENT_DISABLE);
+
 	// Вызывается только на сервере
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorDead, "", true));
-}
-
-void CTOSActor::PlayAction(const char* action, const char* extension, const bool looping)
-{
-	CActor::PlayAction(action, extension, looping);
-
-	NetPlayAnimationParams params;
-	params.animation = action;
-	params.mode = looping ? AIANIM_ACTION : AIANIM_SIGNAL;
-
-	if (gEnv->bClient)
-	{
-		GetGameObject()->InvokeRMI(SvRequestPlayAnimation(), params, eRMI_ToServer);
-	}
-	else
-	{
-		GetGameObject()->InvokeRMI(ClPlayAnimation(), params, eRMI_ToRemoteClients);
-	}
 }
 
 void CTOSActor::AnimationEvent(ICharacterInstance* pCharacter, const AnimEventInstance& event)
@@ -569,16 +667,64 @@ void CTOSActor::NetSimpleKill()
 	Kill();
 }
 
-bool CTOSActor::ResetActorWeapons(int delayMilliseconds)
+void CTOSActor::SerializeSpawnInfo(TSerialize ser)
 {
-	if (gEnv->bServer && gEnv->bMultiplayer && !IsPlayer())
+	CActor::SerializeSpawnInfo(ser);
+
+	string model;
+	ser.Value("modelFilename", model, 'stab');
+	m_modelFilename = model;
+
+	// Клиент: таблица lua здесь ещё не создана
+}
+
+ISerializableInfoPtr CTOSActor::GetSpawnInfo()
+{
+	struct SInfo : public ISerializableInfo
 	{
-		GetEntity()->SetTimer(eMPTIMER_REMOVEWEAPONSDELAY, 1000);
-		return true;
+		int teamId;
+		string modelFilename;
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("teamId", teamId, 'team');
+			ser.Value("modelFilename", modelFilename, 'stab');
+		}
+	};
+
+	SInfo* p = new SInfo();
+
+	CGameRules* pGameRules = g_pGame->GetGameRules();
+	p->teamId = pGameRules ? pGameRules->GetTeam(GetEntityId()) : 0;
+
+	const char* model = 0;
+	tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
+	p->modelFilename = m_modelFilename = model;
+
+	return p;
+}
+
+bool CTOSActor::CanPickUpObject(IEntity *obj, float &heavyness, float &volume)
+{
+	// Зевс не может поднимать объекты
+	if (IsZeus())
+	{
+		CryLogWarning("[CTOSActor::CanPickUpObject] Zeus cannot pick up objects");
+		return false;
 	}
 
-	return false;
+	return CActor::CanPickUpObject(obj, heavyness, volume);
 }
+
+//bool CTOSActor::ResetActorWeapons(int delayMilliseconds)
+//{
+//	if (gEnv->bServer && gEnv->bMultiplayer && !IsPlayer())
+//	{
+//		GetEntity()->SetTimer(eMPTIMER_REMOVEWEAPONSDELAY, delayMilliseconds);
+//		return true;
+//	}
+//
+//	return false;
+//}
 
 bool CTOSActor::ShouldUsePhysicsMovement()
 {
@@ -618,6 +764,22 @@ bool CTOSActor::ApplyActions(int actions)
 {
 	throw std::logic_error("функция должна быть переопределена в дочерних классах");
 	return false;
+}
+
+void CTOSActor::RemoveAllItems()
+{
+	auto pInv = GetInventory();
+	if (pInv)
+	{
+		g_pGame->GetIGameFramework()->GetIItemSystem()->SetActorItem(this, EntityId(0));
+		// pInv->HolsterItem(true); //FIXME 04.12.2024 возможно это причина того, почему у зевса видно пистолет в кобуре
+		pInv->RemoveAllItems();
+	}
+
+	if (gEnv->bClient)
+	{
+		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+	}
 }
 
 //void CTOSActor::QueueAnimationEvent(const SQueuedAnimEvent& sEvent)
@@ -661,46 +823,6 @@ bool CTOSActor::ApplyActions(int actions)
 //	}
 //}
 
-void CTOSActor::OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, float value, TAnimationGraphQueryID* pQueryID)
-{
-	
-}
-
-void CTOSActor::OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, int value, TAnimationGraphQueryID* pQueryID)
-{
-	
-}
-
-void CTOSActor::OnAGSetInput(const bool bSucceeded, const IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID)
-{
-	//TODO:
-	//20/10/2023 Не уверен, что это вообще работает
-	//21/10/2023 Брейкпоинты так и не вызывались
-
-	IAnimationGraphState* pState = m_pAnimatedCharacter ? m_pAnimatedCharacter->GetAnimationGraphState() : nullptr;
-	if (bSucceeded && gEnv->bServer && !this->IsPlayer())
-	{
-		if (strcmp(value, m_sLastNetworkedAnim) != 0)
-		{
-			if (pState->GetInputId("Action") == id)
-				GetGameObject()->InvokeRMI(ClPlayAnimation(), NetPlayAnimationParams(AIANIM_ACTION, value), eRMI_ToRemoteClients);
-			if (pState->GetInputId("Signal") == id)
-				GetGameObject()->InvokeRMI(ClPlayAnimation(), NetPlayAnimationParams(AIANIM_SIGNAL, value), eRMI_ToRemoteClients);
-
-			m_sLastNetworkedAnim = value;
-		}
-		//SQueuedAnimEvent sAnimEvent = SQueuedAnimEvent();
-
-		//if (this->IsAnimEvent(value, &sAnimEvent.sAnimEventName, &sAnimEvent.fEventTime))
-		//{
-		//	QueueAnimationEvent(sAnimEvent);
-		//}
-
-		//GetAnimationGraphState()->GetInputName(id);
-	}
-
-}
-
 bool CTOSActor::IsLocalSlave() const
 {
 	const auto pMC = g_pTOSGame->GetMasterModule()->GetMasterClient();
@@ -710,10 +832,10 @@ bool CTOSActor::IsLocalSlave() const
 	return pMC->GetSlaveEntity() == GetEntity();
 }
 
-CTOSEnergyConsumer* CTOSActor::GetEnergyConsumer() const
+CTOSEnergyManager* CTOSActor::GetEnergyManager() const
 {
-	assert(m_pEnergyConsumer);
-	return m_pEnergyConsumer;
+	assert(m_pEnergyManager);
+	return m_pEnergyManager;
 }
 
 bool CTOSActor::UpdateLastMPSpawnPointRotation(const Quat& rotation)
@@ -729,6 +851,30 @@ bool CTOSActor::UpdateLastShooterId(const EntityId id)
 
 	return true;
 }
+
+void CTOSActor::GiveEquipmentPack()
+{
+	IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
+	SmartScriptTable props;
+	if (pScriptTable->GetValue("Properties", props))
+	{
+		char* equip;
+		if (props->GetValue("equip_EquipmentPack", equip))
+		{
+			tos::inventory::GiveEquipmentPack(this, string(equip), false);
+			CryLogAlways("[CTOSActor::GiveEquipmentPack] %s acquired equipment pack %s", GetEntity()->GetName(), equip);
+		}
+	}
+}
+
+//void CTOSActor::NetSetActorModel(const char* model)
+//{
+//	m_modelFilename = model;
+//	if (gEnv->bClient)
+//		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+//	else if (gEnv->bServer)
+//		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+//}
 
 bool CTOSActor::HideMe(bool value)
 {
@@ -763,253 +909,9 @@ bool CTOSActor::SetMeMaster(bool value)
 	return true;
 }
 
-//void CTOSActor::NetMarkMeSlave(const bool slave) const
-//{
-//	CRY_ASSERT_MESSAGE(!IsPlayer(), "[MarkMeSlave] by design at 21/10/2023 the player cannot be a slave");
-//	if (IsPlayer())
-//		return;
-//
-//	if (gEnv->bClient)
-//	{
-//		NetMarkMeParams params;
-//		params.value = slave;
-//
-//		GetGameObject()->InvokeRMI(SvRequestMarkMeAsSlave(), params, eRMI_ToServer);
-//	}
-//}
-//
-//void CTOSActor::NetMarkMeMaster(const bool master) const
-//{
-//	if (gEnv->bClient)
-//	{
-//		NetMarkMeParams params;
-//		params.value = master;
-//
-//		GetGameObject()->InvokeRMI(SvRequestMarkMeAsMaster(), params, eRMI_ToServer);
-//	}
-//}
-
-//const Vec3& CTOSActor::FilterDeltaMovement(const Vec3& deltaMov)
-//{
-//	//Скопировано из PlayerInput.cpp
-//
-//	const float frameTimeCap(min(gEnv->pTimer->GetFrameTime(), 0.033f));
-//	const float inputAccel(gEnv->pConsole->GetCVar("tos_sv_pl_inputAccel")->GetFVal());
-//
-//	//const Vec3 oldFilteredMovement = m_filteredDeltaMovement;
-//
-//	if (deltaMov.len2() < 0.01f)
-//	{
-//		m_filteredDeltaMovement = {0,0,0};
-//	}
-//	else if (inputAccel < 0.1f)
-//	{
-//		m_filteredDeltaMovement = deltaMov;
-//	}
-//	else
-//	{
-//		Vec3 delta(deltaMov - m_filteredDeltaMovement);
-//
-//		const float len(delta.len());
-//		if (len <= 1.0f)
-//			delta = delta * (1.0f - len * 0.55f);
-//
-//		m_filteredDeltaMovement += delta * min(frameTimeCap * inputAccel, 1.0f);
-//	}
-//
-//	//if (oldFilteredMovement.GetDistance(m_filteredDeltaMovement) > 0.001f)
-//	//	GetGameObject()->ChangedNetworkState(TOS_NET::CLIENT_ASPECT_INPUT);
-//
-//	return m_filteredDeltaMovement;
-//}
-
-IMPLEMENT_RMI(CTOSActor, SvRequestPlayAnimation)
+bool CTOSActor::SetMeZeus(bool value)
 {
-	// Описываем здесь всё, что будет выполняться на сервере
-
-	GetGameObject()->InvokeRMI(ClPlayAnimation(), params, eRMI_ToRemoteClients);
-
-	return true;
-}
-
-IMPLEMENT_RMI(CTOSActor, ClPlayAnimation)
-{
-	// Описываем здесь всё, что будет выполняться на клиенте
-
-	IAnimationGraphState* pGraphState = (GetAnimatedCharacter() ? GetAnimatedCharacter()->GetAnimationGraphState() : nullptr);
-	string mode;
-
-	if (pGraphState)
-	{
-		if (params.mode == AIANIM_SIGNAL)
-		{
-			mode = "Signal";
-		}
-		else if (params.mode == AIANIM_ACTION)
-		{
-			mode = "Action";
-		}
-
-		pGraphState->SetInput(mode.c_str(), params.animation.c_str());
-	}
-
-	//CryLogAlways("[C++][%s][%s][%s] mode = %s, animation = %s", 
-	//	TOS_Debug::GetEnv(), 
-	//	TOS_Debug::GetAct(3), 
-	//	__FUNCTION__, 
-	//	mode.c_str(), params.animation.c_str());
-
-	return true;
-}
-
-//IMPLEMENT_RMI(CTOSActor, SvRequestMarkMeAsMaster)
-//{
-//	// Описываем здесь всё, что будет выполняться на сервере
-//
-//	m_isMaster = params.value;
-//	GetGameObject()->InvokeRMI(ClMarkMeAsMaster(), params, eRMI_ToAllClients);
-//
-//	GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
-//
-//	CryLog("[C++][%s][%s][%s][%s] mark as master = %i",
-//		TOS_Debug::GetEnv(),
-//		TOS_Debug::GetAct(3),
-//		__FUNCTION__,
-//		m_debugName,
-//		params.value);
-//
-//
-//	return true;
-//}
-//
-//IMPLEMENT_RMI(CTOSActor, ClMarkMeAsMaster)
-//{
-//	// Описываем здесь всё, что будет выполняться на клиенте
-//
-//	m_isMaster = params.value;
-//
-//	CryLog("[C++][%s][%s][%s][%s] mark as master = %i",
-//		TOS_Debug::GetEnv(),
-//		TOS_Debug::GetAct(3),
-//		__FUNCTION__,
-//		m_debugName,
-//		params.value);
-//
-//	return true;
-//}
-//
-//IMPLEMENT_RMI(CTOSActor, SvRequestMarkMeAsSlave)
-//{
-//	// Описываем здесь всё, что будет выполняться на сервере
-//
-//	m_isSlave = params.value;
-//
-//	GetGameObject()->ChangedNetworkState(TOS_NET::SERVER_ASPECT_STATIC);
-//
-//	CryLog("[C++][%s][%s][%s][%s] mark as slave = %i",
-//		TOS_Debug::GetEnv(),
-//		TOS_Debug::GetAct(3),
-//		__FUNCTION__,
-//		m_debugName,
-//		params.value);
-//	
-//
-//	return true;
-//}
-//
-//IMPLEMENT_RMI(CTOSActor, ClMarkMeAsSlave)
-//{
-//	// Описываем здесь всё, что будет выполняться на клиенте
-//
-//	m_isSlave = params.value;
-//
-//	CryLog("[C++][%s][%s][%s][%s] mark as slave = %i",
-//		TOS_Debug::GetEnv(),
-//		TOS_Debug::GetAct(3),
-//		__FUNCTION__,
-//		m_debugName,
-//		params.value);
-//
-//	return true;
-//}
-
-IMPLEMENT_RMI(CTOSActor, SvRequestHideMe)
-{
-	// Описываем здесь всё, что будет выполняться на сервере
-
-	// 13.01.2024 Akeeper: Не уверен на счёт этих строк, но пусть они тут будут (519-521)
-	const auto* pFists = static_cast<CFists*>(GetItemByClass(CItem::sFistsClass));
-	if (pFists)
-		g_pGame->GetIGameFramework()->GetIItemSystem()->SetActorItem(this, pFists->GetEntityId());
-
-	GetGameObject()->SetAspectProfile(eEA_Physics, GetSpectatorMode() != 0 || params.hide ? eAP_Spectator : eAP_Alive);
-	GetGameObject()->InvokeRMI(ClMarkHideMe(), params, eRMI_ToAllClients);	
-
-	return true;
-}
-
-IMPLEMENT_RMI(CTOSActor, ClMarkHideMe)
-{
-	// Описываем здесь всё, что будет выполняться на клиенте
-
-	HideMe(params.hide);
-	return true;
-}
-
-//------------------------------------------------------------------------
-IMPLEMENT_RMI(CTOSActor, ClTOSJump)
-{
-	CMovementRequest request;
-	request.SetJump();
-	GetMovementController()->RequestMovement(request);
-
-	CryLog("[%s] Received jump", m_debugName);
-	return true;
-}
-
-//------------------------------------------------------------------------
-IMPLEMENT_RMI(CTOSActor, SvRequestTOSJump)
-{
-	auto channelId = g_pGame->GetIGameFramework()->GetGameChannelId(pNetChannel);
-	GetGameObject()->InvokeRMI(ClTOSJump(), params, eRMI_ToOtherClients | eRMI_NoLocalCalls, channelId);
-	GetGameObject()->Pulse('bang');
-
-	if ((IsSlave() && !IsLocalSlave()) || IsClient())
-	{
-		CMovementRequest request;
-		request.SetJump();
-		GetMovementController()->RequestMovement(request);
-
-		CryLog("[%s] Requesting jump to channel %i", m_debugName, channelId);
-	}
-
-	return true;
-}
-
-//------------------------------------------------------------------------
-IMPLEMENT_RMI(CTOSActor, ClAttachChild)
-{
-	IEntity* pChild = TOS_GET_ENTITY(params.id);
-	if(pChild)
-	{
-		GetEntity()->AttachChild(pChild, params.flags);
-		CryLog("[%s] Received attach child '%s'", m_debugName, pChild->GetName());
-	}
-
-	return true;
-}
-
-//------------------------------------------------------------------------
-IMPLEMENT_RMI(CTOSActor, SvRequestAttachChild)
-{
-	IEntity* pChild = TOS_GET_ENTITY(params.id);
-	if(pChild)
-	{
-		CryLog("[%s] Requesting attach child '%s'", m_debugName, pChild->GetName());
-		GetEntity()->AttachChild(pChild, params.flags);
-	}
-
-	GetGameObject()->InvokeRMI(ClAttachChild(), params, eRMI_ToRemoteClients);
-
+	m_isZeus = value;
+	GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
 	return true;
 }

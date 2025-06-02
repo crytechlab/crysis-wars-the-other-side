@@ -256,6 +256,12 @@ protected:
 	IAnimationGraph::InputID m_idActionInput;
 	IAnimationGraph::InputID m_idSignalInput;
 	IAnimationGraph::InputID m_idMovementInput;
+
+//TheOtherSide
+private:
+	void UpdateEffectsTrooper(const float frameTime);
+
+//~TheOtherSide
 };
 
 

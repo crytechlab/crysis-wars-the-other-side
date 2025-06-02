@@ -19,9 +19,9 @@ Copyright (C), AlienKeeper, 2024.
 #include "TheOtherSideMP/Helpers/TOS_Cache.h"
 #include "TheOtherSideMP/Helpers/TOS_Script.h"
 #include "TheOtherSideMP/Helpers/TOS_Version.h"
-#include "TheOtherSideMP/AI/AIHooks.h"
 
-#include "Modules\Zeus\ZeusModule.h"
+#include "Modules/Zeus/ZeusModule.h"
+#include "TheOtherSideMP/Helpers/TOS_Entity.h"
 
 CTOSGame::CTOSGame() :
 	m_pEventRecorder(nullptr),
@@ -35,7 +35,7 @@ CTOSGame::CTOSGame() :
 {
 
 	// Получение версии по имени выполняемого файла
-    m_modVersion = TOS_Version::GetDLLVersion("CrysisTheOtherSide");
+    m_modVersion = tos::version::GetDLLVersion("CrysisTheOtherSide");
 }
 
 CTOSGame::~CTOSGame()
@@ -65,7 +65,6 @@ void CTOSGame::Init()
 
 	m_pEventRecorder = new CTOSGameEventRecorder();
 
-
 	//Modules
 	m_pModuleZeus = new CTOSZeusModule();
 	m_pModuleEntitySpawn = new CTOSEntitySpawnModule();
@@ -75,12 +74,13 @@ void CTOSGame::Init()
 	m_pFGPluginLoader = new CFGPluginLoader(gEnv->pConsole, g_pGameCVars);
 	m_pFGPluginLoader->RegisterPlugins();
 
-	// Исправление бага https://github.com/akeeperctl/crysis-wars-the-other-side/issues/8
+	// Исправление бага 
+	// https://github.com/akeeperctl/crysis-wars-the-other-side/issues/8
 	g_pGameCVars->hud_enableAlienInterference = 0;
 
 	CryLogAlways("[TOS] Starting modules initialization...");
 	CryLogAlways("---------------------------");
-	for (std::vector<ITOSGameModule*>::iterator it = m_modules.begin(); it != m_modules.end(); ++it)
+	for (auto it = m_modules.begin(); it != m_modules.end(); ++it)
 	{
 		ITOSGameModule* pModule = *it;
 		if (pModule)
@@ -111,8 +111,20 @@ void CTOSGame::Update(const float frameTime, int frameId)
 {
 	UpdateChannelConnectionState();
 	UpdateContextViewState();
+	
+	IEntityItPtr pIt = gEnv->pEntitySystem->GetEntityIterator();
+	while (!pIt->IsEnd())
+	{
+		if (IEntity* pEntity = pIt->Next())
+		{
+			const auto id = pEntity->GetId();
+			const auto pVehicle = TOS_GET_VEHICLE(id);
+			if (pVehicle)
+				pVehicle->RegisterVehicleEventListener(this, "CTOSGame");
+		}
+	}
 
-	for (std::vector<ITOSGameModule*>::iterator it = m_modules.begin(); it != m_modules.end(); ++it)
+	for (auto it = m_modules.begin(); it != m_modules.end(); ++it)
 	{
 		ITOSGameModule* pModule = *it;
 		if (pModule)
@@ -147,6 +159,7 @@ void CTOSGame::InitScriptBinds()
 	}
 
 	m_pCustomScriptBind = new CScriptBind_Custom(gEnv->pSystem, g_pGame->GetIGameFramework());
+	m_pItemSystemScriptBind = new CScriptBind_ItemSystem(gEnv->pSystem, g_pGame->GetIGameFramework());
 }
 
 void CTOSGame::ReleaseScriptBinds()
@@ -161,11 +174,12 @@ void CTOSGame::ReleaseScriptBinds()
 	}
 
 	SAFE_DELETE(m_pCustomScriptBind);
+	SAFE_DELETE(m_pItemSystemScriptBind);
 }
 
 void CTOSGame::OnLevelNotFound(const char* levelName)
 {
-
+	
 }
 
 void CTOSGame::OnLoadingStart(ILevelInfo* pLevel)
@@ -178,32 +192,35 @@ void CTOSGame::OnLoadingStart(ILevelInfo* pLevel)
 void CTOSGame::CacheAssets()
 {
 	//Пришельцы
-	TOS_Cache::CacheObject("Objects/Characters/Alien/trooper/Trooper.chr");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/trooper/trooper_leader.chr");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/scout/scout_base.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/scout/scout_leader.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/hunter/Hunter.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Alien/AlienBase/AlienBase.cdf");
+	tos::cache::CacheObject("Objects/Characters/Alien/trooper/Trooper.chr");
+	tos::cache::CacheObject("Objects/Characters/Alien/trooper/trooper_leader.chr");
+	tos::cache::CacheObject("Objects/Characters/Alien/scout/scout_base.cdf");
+	tos::cache::CacheObject("Objects/Characters/Alien/scout/scout_leader.cdf");
+	tos::cache::CacheObject("Objects/Characters/Alien/hunter/Hunter.cdf");
+	tos::cache::CacheObject("Objects/Characters/Alien/AlienBase/AlienBase.cdf");
+
+	//Корейцы
+	tos::cache::CacheObject("Objects/Characters/Human/Asian/NK_Soldier/nk_soldier_jungle_cover_light_01.cdf");
 
 	//Нанокостюмы
-	TOS_Cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us_fp3p.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us_multiplayer.cdf");
-	TOS_Cache::CacheObject("objects/weapons/arms_global/arms_nanosuit_us.chr");
+	tos::cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us.cdf");
+	tos::cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us_fp3p.cdf");
+	tos::cache::CacheObject("Objects/Characters/Human/US/NanoSuit/nanosuit_us_multiplayer.cdf");
+	tos::cache::CacheObject("objects/weapons/arms_global/arms_nanosuit_us.chr");
 	CNanoSuit::PrecacheMaterials(false);
 
-	TOS_Cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian_fp3p.cdf");
-	TOS_Cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian_multiplayer.cdf");
-	TOS_Cache::CacheObject("objects/weapons/arms_global/arms_nanosuit_asian.chr");
+	tos::cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian.cdf");
+	tos::cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian_fp3p.cdf");
+	tos::cache::CacheObject("Objects/Characters/Human/Asian/NanoSuit/nanosuit_asian_multiplayer.cdf");
+	tos::cache::CacheObject("objects/weapons/arms_global/arms_nanosuit_asian.chr");
 	CNanoSuit::PrecacheMaterials(true);
 
 	//Прочие объекты
-	TOS_Cache::CacheObject("objects/effects/tracer_standard_new.cgf");
-	TOS_Cache::CacheObject("objects/effects/tracer_standard_red_new.cgf");
-	TOS_Cache::CacheMaterial("objects/effects/tracer_standard.mtl");
+	tos::cache::CacheObject("objects/effects/tracer_standard_new.cgf");
+	tos::cache::CacheObject("objects/effects/tracer_standard_red_new.cgf");
+	tos::cache::CacheMaterial("objects/effects/tracer_standard.mtl");
 
-	TOS_Cache::CacheObject("objects/characters/human/asian/nk_soldier/nk_soldier_frozen_scatter.cgf");
+	tos::cache::CacheObject("objects/characters/human/asian/nk_soldier/nk_soldier_frozen_scatter.cgf");
 }
 
 void CTOSGame::OnLoadingComplete(ILevel* pLevel)
@@ -337,7 +354,7 @@ void CTOSGame::UpdateContextViewState()
 				break;
 		}
 
-		TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_UpdateContextViewState, state, true));
+		TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_UpdateContextViewState, state, true, false, nullptr, 0.0f, currentState));
 	}
 
 }

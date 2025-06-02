@@ -43,10 +43,12 @@
 #include "TheOtherSideMP/Actors/player/TOSPlayer.h"
 #include "TheOtherSideMP/Game/TOSGameEventRecorder.h"
 #include "TheOtherSideMP/Game/Modules/Master/MasterModule.h"
+#include "TheOtherSideMP/Game/Modules/Zeus/ZeusModule.h"
 #include "TheOtherSideMP/Helpers/TOS_MasterModule.h"
 #include "TheOtherSideMP/HUD/TOSCrosshair.h"
 #include "TheOtherSideMP/Helpers/TOS_AI.h"
-#include <TheOtherSideMP\Helpers\TOS_Entity.h>
+#include "TheOtherSideMP/Helpers/TOS_Entity.h"
+#include "TheOtherSideMP/Game/TOSGameEventRecorder.h"
 //TheOtherSide
 
 DbgPlotter g_dbgPlotter;
@@ -196,7 +198,7 @@ bool CGameRules::Init(IGameObject* pGameObject)
 		CreateRestrictedItemList(g_pGameCVars->i_restrictItems->GetString());
 
 	//TheOtherSide
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesInit, "", false));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesInit, GetEntity()->GetClass()->GetName(), false));
 	//~TheOtherSide
 
 	return true;
@@ -214,12 +216,14 @@ void CGameRules::PostInit(IGameObject* pGameObject)
 	RegisterConsoleVars(pConsole);
 
 	//TheOtherSide
-	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesPostInit, "", false));
+	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesPostInit, GetEntity()->GetClass()->GetName(), false));
 	//~TheOtherSide
 }
 
 //------------------------------------------------------------------------
-void CGameRules::InitClient(int channelId) {}
+void CGameRules::InitClient(int channelId) 
+{
+}
 
 //------------------------------------------------------------------------
 void CGameRules::PostInitClient(const int channelId)
@@ -227,7 +231,6 @@ void CGameRules::PostInitClient(const int channelId)
 	//TheOtherSide
 	char buffer[256] = {};
 	sprintf(buffer, "ChannelId = %i", channelId);
-
 	TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_GamerulesPostInitClient, buffer, false));
 	//~TheOtherSide
 
@@ -388,6 +391,10 @@ void CGameRules::ProcessEvent(SEntityEvent& event)
 {
 	FUNCTION_PROFILER(gEnv->pSystem, PROFILE_GAME);
 
+	//Crysis Co-op
+	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+	//~Crysis Co-op
+
 	static ICVar* pTOD = gEnv->pConsole->GetCVar("sv_timeofdayenable");
 
 	switch (event.event)
@@ -415,7 +422,7 @@ void CGameRules::ProcessEvent(SEntityEvent& event)
 		m_removals.clear();
 
 	//TheOtherSide
-		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesReset, "", true));
+		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesReset, GetEntity()->GetClass()->GetName(), true));
 	//~TheOtherSide
 
 		break;
@@ -424,21 +431,24 @@ void CGameRules::ProcessEvent(SEntityEvent& event)
 		m_timeOfDayInitialized = false;
 		g_pGame->GetWeaponSystem()->GetTracerManager().Reset();
 
-		if (gEnv->bServer && gEnv->bMultiplayer && pTOD && pTOD->GetIVal() && g_pGame->GetIGameFramework()->IsImmersiveMPEnabled())
+		if (!bIsCoop)
 		{
-			static ICVar* pStart = gEnv->pConsole->GetCVar("sv_timeofdaystart");
-			if (pStart)
-				gEnv->p3DEngine->GetTimeOfDay()->SetTime(pStart->GetFVal(), true);
+			if (gEnv->bServer && gEnv->bMultiplayer && pTOD && pTOD->GetIVal() && g_pGame->GetIGameFramework()->IsImmersiveMPEnabled())
+			{
+				static ICVar* pStart = gEnv->pConsole->GetCVar("sv_timeofdaystart");
+				if (pStart)
+					gEnv->p3DEngine->GetTimeOfDay()->SetTime(pStart->GetFVal(), true);
+			}
 		}
-
+	
 	//TheOtherSide
-		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesStartGame, "", true));
+		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesStartGame, GetEntity()->GetClass()->GetName(), true));
 	//~TheOtherSide
 		break;
 
 	//TheOtherSide
 	case ENTITY_EVENT_INIT:
-		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesEventInit, "", true));
+		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_GamerulesEventInit, GetEntity()->GetClass()->GetName(), true));
 		break;
 	//~TheOtherSide
 
@@ -1127,18 +1137,20 @@ void CGameRules::KillPlayer(CTOSActor *pActor, const bool dropItem, const bool r
 			pActor->DropItem(itemId, 1.0f, false, true);
 	}
 
-	//TheOtherSide
-	const auto pPlayer = static_cast<CTOSPlayer*>(pActor);
-	if (pPlayer)
+	// Crysis Co-op
+
+	// Only change the nanosuit stance if the actor is a player.
+	// TODO: Maybe refactor to allow NK nanosuits to behave the same.
+	if (pActor->IsPlayer())
 	{
-		CNanoSuit* pSuit = pPlayer->GetNanoSuit();
+		CNanoSuit* pSuit = (static_cast<CTOSPlayer*>(pActor))->GetNanoSuit();
 		if (pSuit)
 		{
 			pSuit->SetMode(NANOMODE_DEFENSE, true, true);
 			pSuit->SetCloakLevel(CLOAKMODE_REFRACTION);
 		}
 	}
-	//~TheOtherSide
+	// ~Crysis Co-op
 
 	uint16      weaponClassId   = 0;
 	if (const IEntity* pEntity = gEnv->pEntitySystem->GetEntity(weaponId))
@@ -1197,6 +1209,7 @@ void CGameRules::ChangeSpectatorMode(CActor* pActor, const uint8 mode, const Ent
 		const ScriptHandle target(targetId);
 		CallScript(m_serverStateScript, "OnChangeSpectatorMode", handle, mode, target, resetAll);
 		m_pGameplayRecorder->Event(pActor->GetEntity(), GameplayEvent(eGE_Spectator, nullptr, mode));
+
 	}
 	else if (pActor->GetEntityId() == m_pGameFramework->GetClientActor()->GetEntityId())
 	{
@@ -1228,12 +1241,12 @@ void CGameRules::ChangeTeam(IActor* pActor, const int teamId)
 	//TheOtherSide
 	//auto pClient = m_pGameFramework->GetClientActor();
 	const auto pClient = g_pTOSGame->GetActualClientActor();
+	TOS_RECORD_EVENT(params.entityId, STOSGameEvent(eEGE_OnPlayerPreChangeTeam, GetTeamName(params.teamId), true, false, nullptr, 0.0f, params.teamId));
 	//~TheOtherSide
 
 	if (gEnv->bServer)
 	{
-		const auto pTosActor = static_cast<CTOSActor*>(pActor);
-		if (pTosActor && !pTosActor->IsSlave())
+		if (!static_cast<CTOSActor*>(pActor)->IsSlave())
 		{
 			const ScriptHandle handle(params.entityId);
 			CallScript(m_serverStateScript, "OnChangeTeam", handle, params.teamId);
@@ -1243,6 +1256,7 @@ void CGameRules::ChangeTeam(IActor* pActor, const int teamId)
 	{
 		GetGameObject()->InvokeRMIWithDependentObject(SvRequestChangeTeam(), params, eRMI_ToServer, params.entityId);
 	}
+
 }
 
 //------------------------------------------------------------------------
@@ -1351,7 +1365,7 @@ bool CGameRules::IsPlayerActivelyPlaying(const EntityId playerId, const bool mus
 	if (!pActor)
 		return false;
 
-	// in IA, out of the game if spectating when alive
+	// в InstantAction, вне игры если в режиме наблюдателя когда жив
 	return (pActor->GetHealth() > 0 || pActor->GetSpectatorMode() == CActor::eASM_None);
 }
 
@@ -1728,6 +1742,10 @@ void CGameRules::SetTeam(int teamId, EntityId entityId)
 			m_pRadio->SetTeam(GetTeamName(teamId));
 	}
 
+	//TheOtherSide
+	TOS_RECORD_EVENT(entityId, STOSGameEvent(eEGE_OnEntitySetTeam, GetTeamName(teamId), true, false, nullptr, 0.0f, teamId));
+	//~TheOtherSide
+
 	const ScriptHandle handle(entityId);
 	CallScript(m_serverStateScript, "OnSetTeam", handle, teamId);
 
@@ -1743,7 +1761,9 @@ void CGameRules::SetTeam(int teamId, EntityId entityId)
 	GetGameObject()->InvokeRMIWithDependentObject(ClSetTeam(), SetTeamParams(entityId, teamId), eRMI_ToRemoteClients, entityId);
 
 	if (IEntity* pEntity = m_pEntitySystem->GetEntity(entityId))
+	{		
 		m_pGameplayRecorder->Event(pEntity, GameplayEvent(eGE_ChangedTeam, nullptr, static_cast<float>(teamId)));
+	}
 }
 
 //------------------------------------------------------------------------
@@ -4739,7 +4759,7 @@ void CGameRules::SetSpecies(int speciesIdx, EntityId entityId)
 	if (!pAI)
 		return;
 
-	TOS_AI::SetSpecies(pAI, speciesIdx);
+	tos::ai::SetSpecies(pAI, speciesIdx);
 }
 
 //
@@ -4754,5 +4774,5 @@ int CGameRules::GetSpecies(EntityId entityId)
 	if (!pAI)
 		return -1;
 
-	return TOS_AI::GetSpecies(pAI, false);
+	return tos::ai::GetSpecies(pAI, false);
 }

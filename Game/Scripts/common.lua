@@ -124,14 +124,16 @@ function LogError(fmt, ...)
 	System.Log("[ERROR] $4"..string.format(fmt, ...));
 end
 
-
 function LogWarning(fmt, ...)
 	System.Log("[WARNING] $6"..string.format(fmt, ...));
 end
 
+function LogDebug(fmt, ...)
+	System.Log("[DEBUG] "..string.format(fmt, ...));
+end
 
 function Log(fmt, ...)
-	System.Log(string.format(fmt, ...));
+	System.Log("[INFO] "..string.format(fmt, ...));
 end
 
 
@@ -214,6 +216,14 @@ function EntityName(entity)
 	return "";
 end
 
+function IsPlayer(entity)
+	if(entity.actor and entity.actor:IsPlayer()) then 
+		return true;
+	else
+		return false;
+	end
+end
+
 
 -- easy way to get entity by name
 -- usefull for "console debugging"!
@@ -270,3 +280,29 @@ Script.ReloadScript("scripts/entities/items/itemsystemmath.lua");
 Sound.Precache("Sounds/physics:bullet_impact:mat_grass", SOUND_PRECACHE_LOAD_SOUND);   -- bullet_hit fsb
 Sound.Precache("Sounds/physics:footstep_walk:mat_grass", SOUND_PRECACHE_LOAD_SOUND);   -- footsteps fsb
 Sound.Precache("Sounds/physics:mat_metal_sheet:mat_dirt", SOUND_PRECACHE_LOAD_SOUND); -- collision fsb
+
+--TheOtherSide
+function TableToString(tbl)
+	local function serialize(t, indent)
+	  indent = indent or ""
+	  local result = "{\n"
+	  local nextIndent = indent .. "  "
+	  for key, value in pairs(t) do
+		local formattedKey = (type(key) == "string") and key or ("[" .. tostring(key) .. "]")
+		result = result .. nextIndent .. formattedKey .. " = "
+		if type(value) == "table" then
+		  result = result .. serialize(value, nextIndent)
+		elseif type(value) == "string" then
+		  result = result .. string.format("%q", value)
+		else
+		  result = result .. tostring(value)
+		end
+		result = result .. ",\n"
+	  end
+	  result = result .. indent .. "}"
+	  return result
+	end
+  
+	return serialize(tbl)
+  end
+--TheOtherSide

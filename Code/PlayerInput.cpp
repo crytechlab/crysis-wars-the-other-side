@@ -633,8 +633,23 @@ const Vec3 &CPlayerInput::FilterMovement(const Vec3 &desired)
 
 bool CPlayerInput::CanMove() const
 {
-	bool canMove = !m_pPlayer->m_stats.spectatorMode || m_pPlayer->m_stats.spectatorMode==CActor::eASM_Fixed;
-	canMove &=!m_pPlayer->m_stats.isStandingUp;
+	bool canMove = false;
+
+	// Проверяем режим наблюдателя
+	const auto spectatorMode = m_pPlayer->m_stats.spectatorMode;
+	if (spectatorMode == CActor::eASM_None || 
+		spectatorMode == CActor::eASM_Fixed ||
+		spectatorMode == CActor::eASM_Zeus)
+	{
+		canMove = true;
+	}
+
+	// Нельзя двигаться во время вставания
+	if (m_pPlayer->m_stats.isStandingUp)
+	{
+		canMove = false;
+	}
+
 	return canMove;
 }
 
@@ -988,7 +1003,7 @@ void CPlayerInput::SerializeSaveGame( TSerialize ser )
 bool CPlayerInput::OnActionMoveForward(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 
@@ -1018,7 +1033,7 @@ bool CPlayerInput::OnActionMoveForward(EntityId entityId, const ActionId& action
 bool CPlayerInput::OnActionMoveBack(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 
@@ -1060,7 +1075,7 @@ bool CPlayerInput::OnActionMoveBack(EntityId entityId, const ActionId& actionId,
 bool CPlayerInput::OnActionMoveLeft(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 
@@ -1090,7 +1105,7 @@ bool CPlayerInput::OnActionMoveLeft(EntityId entityId, const ActionId& actionId,
 bool CPlayerInput::OnActionMoveRight(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 
@@ -1212,7 +1227,7 @@ bool CPlayerInput::OnActionSuitSkin(EntityId entityId, const ActionId& actionId,
 bool CPlayerInput::OnActionJump(EntityId entityId, const ActionId& actionId, int activationMode, float value)
 {
 	//TheOtherSide
-	if (TOS_MasterModule::ClientPlayerHaveSlave(m_pPlayer))
+	if (tos::mastermodule::ClientPlayerHaveSlave(m_pPlayer))
 		return false;
 	//TheOtherSide
 

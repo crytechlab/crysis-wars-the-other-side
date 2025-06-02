@@ -17,7 +17,8 @@ Copyright (C), AlienKeeper, 2024.
 #include "Modules/Master/MasterModule.h"
 
 #include "TheOtherSideMP/Actors/TOSActor.h"
-#include "TheOtherSideMP/Extensions/EnergyСonsumer.h"
+#include "TheOtherSideMP/Extensions/EnergyManager.h"
+#include <TheOtherSideMP/Helpers/TOS_Entity.h>
 
 void STOSCvars::InitCVars(IConsole* pConsole)
 {
@@ -63,10 +64,10 @@ void STOSCvars::InitCCommands(IConsole* pConsole)
 	// Отладочные команды потребителя энергии
 	pConsole->AddCommand("consumersetenergy", CmdConsumerSetEnergy);
 	pConsole->AddCommand("consumersetdrain", CmdConsumerSetDrain);
-	pConsole->AddCommand("consumersetdebugentname", CmdConsumerSetDebugEntityName);
 
 	//CLIENT COMMANDS
 	pConsole->AddCommand("getdudename", CmdGetDudeName);
+	pConsole->AddCommand("rmi_removeinventory", CmdRMIRemoveInventory);
 
 	for (std::vector<ITOSGameModule*>::iterator it = g_pTOSGame->m_modules.begin(); it != g_pTOSGame->m_modules.end(); ++it)
 		(*it)->InitCCommands(pConsole);
@@ -95,6 +96,8 @@ void STOSCvars::ReleaseCCommands()
 	pConsole->RemoveCommand("consumersetdrain");
 	pConsole->RemoveCommand("consumersetdebugentname");
 	pConsole->RemoveCommand("getdudename");
+
+	pConsole->RemoveCommand("rmi_removeinventory");
 
 	g_pTOSGame->m_pFGPluginLoader->UnregisterConsoleCommands();
 }
@@ -282,7 +285,7 @@ void STOSCvars::CmdDumpEntityInfo(IConsoleCmdArgs* pArgs)
 		CryLogAlways("	Authority: %s", strAuth);
 	}
 
-	TOS_Debug::DumpEntityFlags(pEntity);
+	tos::debug::DumpEntityFlags(pEntity);
 
 	IEntityRenderProxy* pRenderProxy = static_cast<IEntityRenderProxy*>(pEntity->GetProxy(ENTITY_PROXY_RENDER));
 
@@ -353,7 +356,7 @@ void STOSCvars::CmdConsumerSetEnergy(IConsoleCmdArgs* pArgs)
 
 	const string energyStr = pArgs->GetArg(2);
 	const int energy = atoi(energyStr.empty() ? 0 : energyStr);
-	pActor->GetEnergyConsumer()->SetEnergy(energy);
+	pActor->GetEnergyManager()->SetEnergy(energy);
 }
 
 void STOSCvars::CmdConsumerSetDrain(IConsoleCmdArgs* pArgs)
@@ -371,16 +374,7 @@ void STOSCvars::CmdConsumerSetDrain(IConsoleCmdArgs* pArgs)
 		return;
 	}
 
-	pActor->GetEnergyConsumer()->SetDrainValue(energy);
-}
-
-void STOSCvars::CmdConsumerSetDebugEntityName(IConsoleCmdArgs* pArgs)
-{
-	ONLY_CLIENT_CMD;
-	GET_ENTITY_FROM_FIRST_ARG;
-
-
-	CTOSEnergyConsumer::SetDebugEntityName(pEntity->GetName());
+	pActor->GetEnergyManager()->SetDrainValue(energy);
 }
 
 void STOSCvars::CmdGetDudeName(IConsoleCmdArgs* pArgs)
@@ -391,4 +385,19 @@ void STOSCvars::CmdGetDudeName(IConsoleCmdArgs* pArgs)
 	assert(pPlayer);
 
 	CryLogAlways("Result: %s", pPlayer->GetEntity()->GetName());
+}
+
+void STOSCvars::CmdRMIRemoveInventory(IConsoleCmdArgs* pArgs)
+{
+	ONLY_SERVER_CMD;
+	GET_ENTITY_FROM_FIRST_ARG;
+
+	auto pActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pEntity->GetId()));
+	if (!pActor)
+	{
+		CryLogAlways("Failed: cant find actor with name %s", name.c_str());
+		return; 
+	}
+
+	pActor->GetGameObject()->InvokeRMI(CTOSActor::ClClearInventory(), CActor::NoParams(), eRMI_ToAllClients);
 }

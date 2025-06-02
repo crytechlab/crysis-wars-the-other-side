@@ -401,12 +401,17 @@ void CPlayer::ProcessEvent(SEntityEvent& event)
 	{
 		if(gEnv->bMultiplayer)
 		{
-			// if our local player is spectating this one, move it to this position
-			CPlayer* pPlayer = (CPlayer*)gEnv->pGame->GetIGameFramework()->GetClientActor();
-			if(pPlayer && pPlayer->GetSpectatorMode() == CPlayer::eASM_Follow && pPlayer->GetSpectatorTarget() == GetEntityId())
+			// Проверяем, наблюдает ли локальный игрок за этим игроком
+			CPlayer* pLocalPlayer = (CPlayer*)gEnv->pGame->GetIGameFramework()->GetClientActor();
+			
+			bool isSpectatingThisPlayer = pLocalPlayer && 
+										pLocalPlayer->GetSpectatorMode() == CPlayer::eASM_Follow &&
+										pLocalPlayer->GetSpectatorTarget() == GetEntityId();
+			
+			if (isSpectatingThisPlayer)
 			{
-				// local player is spectating us. Move them to our position
-				pPlayer->MoveToSpectatorTargetPosition();
+				// Перемещаем наблюдателя на позицию наблюдаемого игрока
+				pLocalPlayer->MoveToSpectatorTargetPosition();
 			}
 		}
 
@@ -447,7 +452,7 @@ void CPlayer::ProcessEvent(SEntityEvent& event)
 			PrePhysicsUpdate();
 	}
 
-	CActor::ProcessEvent(event);
+	CTOSActor::ProcessEvent(event);
 
 	// needs to be after CActor::ProcessEvent()
 	if (event.event == ENTITY_EVENT_RESET)
@@ -1021,22 +1026,32 @@ void CPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 			}
 		}
 
-		// also, after the player we are spectating dies (or goes into spectator mode), wait 3s then switch to new target
+		// Переключаем наблюдение на другого игрока через 3 секунды после смерти текущей цели
 		CActor* pCActor = static_cast<CActor*>(pActor);
+		
+		// Проверяем что цель - игрок
 		if(pCActor && pCActor->GetActorClass() == CPlayer::GetActorClassType())
 		{
 			CPlayer* pTargetPlayer = static_cast<CPlayer*>(pCActor);
+			
+			// Проверяем условия для переключения цели:
+			// - Игрок мертв более 3 секунд
+			// - Или игрок перешел в режим наблюдателя
 			float timeSinceDeath = gEnv->pTimer->GetFrameStartTime().GetSeconds() - pTargetPlayer->GetDeathTime();
-			if(pTargetPlayer && (pTargetPlayer->GetHealth() <= 0 && timeSinceDeath > 3.0f) || pTargetPlayer->GetSpectatorMode() != eASM_None)
+			bool needSwitchTarget = (pTargetPlayer->GetHealth() <= 0 && timeSinceDeath > 3.0f) || 
+								  (pTargetPlayer->GetSpectatorMode() != eASM_None);
+			
+			if(pTargetPlayer && needSwitchTarget)
 			{
-				m_stats.spectatorTarget = 0; // else if no other players found, HUD will continue to display previous name...
+				// Сбрасываем текущую цель и запрашиваем следующую
+				m_stats.spectatorTarget = 0;
 				g_pGame->GetGameRules()->RequestNextSpectatorTarget(this, 1);
 			}
 		}
 		else if(!pActor)
 		{
-			// they might have disconnected. At any rate, they don't exist, so pick another...
-			m_stats.spectatorTarget = 0;	// else if no other players found, HUD will continue to display previous name...
+			// Если игрок отключился - переключаемся на следующую цель
+			m_stats.spectatorTarget = 0;
 			g_pGame->GetGameRules()->RequestNextSpectatorTarget(this, 1);
 		}
 	}
@@ -1325,35 +1340,34 @@ void CPlayer::ProcessCharacterOffset()
 
 void CPlayer::PrePhysicsUpdate()
 {
-	FUNCTION_PROFILER(GetISystem(), PROFILE_GAME);
+    FUNCTION_PROFILER(GetISystem(), PROFILE_GAME);
 
-	// TODO: This whole function needs to be optimized.
-	// TODO: Especially when characters are dead, alot of stuff here can be skipped.
+    // TODO: Оптимизировать эту функцию.
+    // TODO: Особенно когда персонажи мертвы, много чего можно пропустить.
 
-	if (!m_pAnimatedCharacter)
-		return;
+    if (!m_pAnimatedCharacter)
+        return;
 
-	IEntity* pEnt = GetEntity();
-	if (pEnt->IsHidden() && !(GetEntity()->GetFlags() & ENTITY_FLAG_UPDATE_HIDDEN))
-		return;
+    IEntity* pEnt = GetEntity();
+    if (pEnt->IsHidden() && !(GetEntity()->GetFlags() & ENTITY_FLAG_UPDATE_HIDDEN))
+        return;
 
-	Debug();
+    Debug();
 
-	//workaround - Avoid collision with grabbed NPC - Beni
-	/*if(m_pHumanGrabEntity && !m_throwingNPC)
-	{
-		IMovementController * pMC = GetMovementController();
-		if(pMC)
-		{
-			SMovementState info;
-			pMC->GetMovementState(info);
+    // Временное решение - Избежать столкновения с захваченным NPC - Бени
+    /*if(m_pHumanGrabEntity && !m_throwingNPC)
+    {
+        IMovementController * pMC = GetMovementController();
+        if(pMC)
+        {
+            SMovementState info;
+            pMC->GetMovementState(info);
 
-			Matrix34 prePhysics = m_pHumanGrabEntity->GetWorldTM();
-			prePhysics.AddTranslation(info.eyeDirection*0.5f);
-			m_pHumanGrabEntity->SetWorldTM(prePhysics);
-		}
-
-	}*/
+            Matrix34 prePhysics = m_pHumanGrabEntity->GetWorldTM();
+            prePhysics.AddTranslation(info.eyeDirection * 0.5f);
+            m_pHumanGrabEntity->SetWorldTM(prePhysics);
+        }
+    }*/
 
 	if (m_pMovementController)
 	{
@@ -1616,7 +1630,7 @@ void CPlayer::SetIK( const SActorFrameMovementParams& frameMovementParams )
 			aimTarget = info.eyePosition + info.aimDirection * 5.0f; // If this is too close the aiming will fade out.
 
 			//TheOtherSide
-			aimEnabled = TOS_Console::GetSafeIntVar("tos_sv_PlayerAlwaysAiming", 1);
+			aimEnabled = tos::console::GetSafeIntVar("tos_sv_PlayerAlwaysAiming", 1);
 			//~TheOtherSide
 			// 
 			// TODO: This should probably be moved somewhere else and not done every frame.
@@ -1799,7 +1813,7 @@ IEntity *CPlayer::LinkToVehicle(EntityId vehicleId)
 
 			//TheOtherSide
 			string vehName = pVehicle->GetEntity()->GetClass()->GetName();
-			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorEnterVehicle, vehName.c_str(), true, false, 0, 0, pVehicle->GetEntityId()));
+			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorEnterVehicle, vehName.c_str(), true, false, 0, 0.0f, pVehicle->GetEntityId()));
 			//~TheOtherSide
 		}
 
@@ -2036,9 +2050,13 @@ void CPlayer::SetParams(SmartScriptTable &rTable,bool resetFirst)
 
 	CActor::SetParams(rTable,resetFirst);
 
+	//Crysis Co-op
+	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+	//~Crysis Co-op
+
 	CScriptSetGetChain params(rTable);
 	params.GetValue("sprintMultiplier",m_params.sprintMultiplier);
-	if(gEnv->bMultiplayer)
+	if(gEnv->bMultiplayer && !bIsCoop)
 		params.GetValue("strafeMultiplierMP",m_params.strafeMultiplier);
 	else
 		params.GetValue("strafeMultiplier",m_params.strafeMultiplier);
@@ -2099,10 +2117,14 @@ bool CPlayer::GetParams(SmartScriptTable &rTable)
 {
 	FUNCTION_PROFILER(gEnv->pSystem, PROFILE_GAME);
 
+	//Crysis Co-op
+	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+	//~Crysis Co-op
+
 	CScriptSetGetChain params(rTable);
 
 	params.SetValue("sprintMultiplier", m_params.sprintMultiplier);
-	if(gEnv->bMultiplayer)
+	if(gEnv->bMultiplayer && !bIsCoop)
 		params.SetValue("strafeMultiplierMP", m_params.strafeMultiplier);
 	else
 		params.SetValue("strafeMultiplier", m_params.strafeMultiplier);
@@ -2313,8 +2335,13 @@ void CPlayer::UpdateSwimStats(float frameTime)
 	// Update inWater timer (positive is in water, negative is out of water).
 	if (ShouldSwim())
 	{
+		//Crysis Co-op
+		bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+
 		//by design : AI cannot swim and drowns no matter what
-		if((GetHealth() > 0) && !isClient && !gEnv->bMultiplayer)
+		if ((GetHealth() > 0) && !IsPlayer() && (!gEnv->bMultiplayer || bIsCoop))
+			//if((GetHealth() > 0) && !isClient && !gEnv->bMultiplayer)
+			//~Crysis Co-op
 		{
 			// apply damage same way as all the other kinds
 			HitInfo hitInfo;
@@ -4260,7 +4287,10 @@ bool CPlayer::NetSerialize( TSerialize ser, EEntityAspects aspect, uint8 profile
 			ser.FlagPartialRead();
 	}
 
-	if(m_pNanoSuit)													// nanosuit needs to be serialized before input
+	// Crysis Co-op
+	//if(m_pNanoSuit)													// nanosuit needs to be serialized before input
+	if (m_pNanoSuit && IsPlayer()) // Fixes crash for nanosuited AI
+		//~Crysis Co-op
 		m_pNanoSuit->Serialize(ser, aspect);	// because jumping/punching/sprinting energy consumption will vary with suit settings
 
 	if (aspect == IPlayerInput::INPUT_ASPECT)
@@ -5124,7 +5154,13 @@ void CPlayer::UpdateFootSteps(float frameTime)
 		//switch foot
 		m_currentFootID = footID;	
 
-		if (!gEnv->bMultiplayer && gEnv->pAISystem)
+		// Crysis Co-op :: we certainly want footsteps alerting AI in co-op
+		bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
+
+		//if (!gEnv->bMultiplayer && gEnv->pAISystem)
+		//if ((!gEnv->bMultiplayer || bIsCoop) && gEnv->pAISystem)
+		if (gEnv->pAISystem) // TheOtherSide
+			//~Crysis Co-op
 		{
 			float pseudoSpeed = 0.0f;
 			if (m_stats.velocity.GetLengthSquared() > sqr(0.01f))
@@ -5223,20 +5259,37 @@ void CPlayer::ActivateNanosuit(bool active)
 	{
 		m_pNanoSuit->Activate(false);
 	}
+
+	//TheOtherSide: исправление бага с неактивным нано-костюмом у ИИ на сервере
+	if (gEnv->bServer)
+	{
+		GetGameObject()->InvokeRMI(ClActivateNanoSuit(), ActivateNanoSuitParams(active), eRMI_ToAllClients | eRMI_NoLocalCalls);
+	}
+	//~TheOtherSide
 }
 
 void CPlayer::SetFlyMode(uint8 flyMode)
 {
-	if (m_stats.spectatorMode)
-		return;
+    // Не меняем режим полета в режиме наблюдателя
+    if (m_stats.spectatorMode)
+        return;
 
-	m_stats.flyMode = flyMode;
+    // Устанавливаем новый режим полета
+    m_stats.flyMode = flyMode;
 
-	if (m_stats.flyMode>2)
-		m_stats.flyMode = 0;
+    // Проверяем корректность значения (0-2)
+    if (m_stats.flyMode > 2)
+        m_stats.flyMode = 0;
 
-	if(m_pAnimatedCharacter)
-		m_pAnimatedCharacter->RequestPhysicalColliderMode((m_stats.flyMode==2)?eColliderMode_Disabled:eColliderMode_Undefined, eColliderModeLayer_Game, "Player::SetFlyMode");
+    // Обновляем физический коллайдер персонажа
+    if (m_pAnimatedCharacter)
+    {
+        m_pAnimatedCharacter->RequestPhysicalColliderMode(
+            (m_stats.flyMode == 2) ? eColliderMode_Disabled : eColliderMode_Undefined,
+            eColliderModeLayer_Game,
+            "Player::SetFlyMode"
+        );
+    }
 }
 
 void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
@@ -5249,7 +5302,7 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 	if(gEnv->bClient)
 		m_pPlayerInput.reset();
 
-	if (mode && !m_stats.spectatorMode)
+	if (mode && !oldSpectatorMode)
 	{
 		if (IVehicle *pVehicle=GetLinkedVehicle())
 		{
@@ -5259,11 +5312,12 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 
 		Revive(false);
 
+		// TheOtherSide: нужно поддержания физического состояния в режиме наблюдателя для зевса
+		GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
+		//~TheOtherSide
+		
 		if (server)
-		{
-			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Spectator);
 			GetGameObject()->InvokeRMI(CActor::ClSetSpectatorMode(), CActor::SetSpectatorModeParams(mode, targetId), eRMI_ToAllClients | eRMI_NoLocalCalls);
-		}
 
 		Draw(false);
 
@@ -5279,11 +5333,12 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 		if(mode == CActor::eASM_Follow)
 			MoveToSpectatorTargetPosition();
 	}
-	else if (!mode && m_stats.spectatorMode)
+	else if (!mode && oldSpectatorMode)
 	{
+		GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Alive);
+
 		if (server)
 		{
-			GetGameObject()->SetAspectProfile(eEA_Physics, eAP_Alive);
 			GetGameObject()->InvokeRMI(CActor::ClSetSpectatorMode(), CActor::SetSpectatorModeParams(mode, targetId), eRMI_ToAllClients|eRMI_NoLocalCalls);
 		}
 
@@ -5293,6 +5348,11 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 		m_stats.spectatorMode=mode;
 		m_stats.inAir=0.0f;
 		m_stats.onGround=0.0f;
+
+		// TheOtherSide: запись события о том, что игрок вышел из режима наблюдателя зевса
+		if (oldSpectatorMode == CActor::eASM_Zeus)
+			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnPlayerLeftZeus, "", true, false, nullptr, 0.0f, mode));
+		//~TheOtherSide
 	}
 	else if (oldSpectatorMode!=mode || m_stats.spectatorTarget != targetId)
 	{
@@ -5307,6 +5367,12 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 
 		if(mode == CActor::eASM_Follow)
 			MoveToSpectatorTargetPosition();
+
+		// TheOtherSide: запись события о том, что игрок сменил режим наблюдателя
+		if (oldSpectatorMode == CActor::eASM_Zeus)
+			TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnPlayerLeftZeus, "", true, false, nullptr, 0.0f, mode));
+		//~TheOtherSide
+
 	}
 }
 
@@ -5454,7 +5520,7 @@ void CPlayer::PlaySound(EPlayerSounds sound, bool play, bool param /*= false*/, 
 	const char* soundName = nullptr;
 
 	//TheOtherSide
-	const int feedbackVersion = TOS_Console::GetSafeIntVar("tos_cl_playerFeedbackSoundsVersion");
+	const int feedbackVersion = tos::console::GetSafeIntVar("tos_cl_playerFeedbackSoundsVersion");
 	assert(feedbackVersion == 1 || feedbackVersion == 2);
 
 	if (feedbackVersion == 2)
@@ -6054,6 +6120,15 @@ IMPLEMENT_RMI(CPlayer, ClLeaveLadder)
 	}
 	return true;
 }
+
+//TheOtherSide
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CPlayer, ClActivateNanoSuit)
+{
+	ActivateNanosuit(params.activate);
+	return true;
+}
+//~TheOtherSide
 
 //-----------------------------------------------------------------------
 bool CPlayer::UpdateLadderAnimation(ELadderState eLS, ELadderDirection eLDIR, float time /*=0.0f*/)

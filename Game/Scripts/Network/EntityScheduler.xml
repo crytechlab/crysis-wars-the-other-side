@@ -66,6 +66,11 @@
 	<Class name="Reflex" policy="gun"/>
 	<Class name="LAWScope" policy="gun"/>
 	<Class name="RadarKit" policy="gun"/>
+	
+	<!-- Crysis co-op -->
+	<Class name="TacticalAttachment" policy="gun"/>
+	<!-- ~Crysis co-op -->
+	
   <Class name="AY69" policy="gun"/>
   <Class name="FGL40" policy="gun"/>
   <Class name="FGL40Frag" policy="gun"/>

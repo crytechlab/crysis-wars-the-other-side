@@ -7,8 +7,11 @@ Copyright (C), AlienKeeper, 2024.
 
 #include "Actor.h"
 #include "ITOSMasterControllable.h"
+// Crysis Co-op
+#include <TheOtherSideMP/Actors/Animation/AnimationGraphState.h>
+// ~Crysis Co-op
 
-class CTOSEnergyConsumer;
+class CTOSEnergyManager;
 
 struct STOSSlaveStats
 {
@@ -32,59 +35,6 @@ struct STOSSlaveStats
 	float chargingJumpPressDur;
 };
 
-struct NetPlayAnimationParams
-{
-	NetPlayAnimationParams()
-		: mode(0) {} ;
-	NetPlayAnimationParams(const uint _mode, const string& _animation) :
-		mode(_mode),
-		animation(_animation)
-	{};
-
-	uint mode;
-	string animation;
-
-	void SerializeWith(TSerialize ser)
-	{
-		ser.Value("mode", mode, 'ui2');
-		ser.Value("animation", animation, 'stab');
-	}
-};
-
-struct NetMarkMeParams
-{
-	NetMarkMeParams()
-		: value(false) {};
-
-	explicit NetMarkMeParams(const bool _slave_or_master) :
-		value(_slave_or_master)
-	{}
-
-	bool value;
-
-	void SerializeWith(TSerialize ser)
-	{
-		ser.Value("value", value, 'bool');
-	}
-};
-
-struct NetHideMeParams
-{
-	NetHideMeParams()
-		: hide(false) {};
-
-	explicit NetHideMeParams(const bool _hide) :
-		hide(_hide)
-	{}
-
-	bool hide;
-
-	void SerializeWith(TSerialize ser)
-	{
-		ser.Value("hide", hide, 'bool');
-	}
-};
-
 /**
  * \brief Информация о состоянии тела актёра, передеваемая по сети
 	\note Канал, владеющий сущностью будет записывать данные, а остальные в т.ч сервер, будут принимать данные.
@@ -106,9 +56,9 @@ struct STOSNetBodyInfo
 		//alertness(ZERO), grunt штука
 		stance(ZERO),
 		//suitMode(ZERO),
-		hidden(false)
+		hidden(false),
+		hasAimTarget(false)
 		//allowStrafing(false), grunt штука
-		//hasAimTarget(false) grunt штука
 	{ }
 
 	void Serialize(IEntity* pInfoOwnerEntity, TSerialize ser)
@@ -129,6 +79,7 @@ struct STOSNetBodyInfo
 
 		// GameServerStatic в коопе был
 		ser.Value("hidden", hidden, 'bool');
+		ser.Value("hasAimTarget", hasAimTarget, 'bool');
 
 		if (ser.IsReading())
 			pInfoOwnerEntity->Hide(hidden);
@@ -180,6 +131,7 @@ struct STOSNetBodyInfo
 	//int suitMode;
 
 	bool hidden;
+	bool hasAimTarget;
 	//bool m_allowStrafing;
 	//bool m_hasAimTarget;
 };
@@ -191,6 +143,8 @@ class CTOSActor:
 public:
 
 	friend class CTOSZeusModule;
+	friend class CTOSZeusSynchronizer;
+	friend class CTOSZeusClientServer;
 	friend class CTOSMasterModule;
 	friend class CTOSMasterClient;
 
@@ -198,6 +152,45 @@ public:
 	{
 		eMPTIMER_GIVEWEAPONDELAY = 0x110,
 		eMPTIMER_REMOVEWEAPONSDELAY = 0x111,
+		eMPTIMER_SELECTPRIMARY = 0x112,
+	};
+
+	struct NetMarkMeParams
+	{
+		NetMarkMeParams()
+			: value(false) {
+		};
+
+		explicit NetMarkMeParams(const bool _slave_or_master) :
+			value(_slave_or_master)
+		{
+		}
+
+		bool value;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("value", value, 'bool');
+		}
+	};
+
+	struct NetHideMeParams
+	{
+		NetHideMeParams()
+			: hide(false) {
+		};
+
+		explicit NetHideMeParams(const bool _hide) :
+			hide(_hide)
+		{
+		}
+
+		bool hide;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("hide", hide, 'bool');
+		}
 	};
 
 	struct NetAttachChild
@@ -216,6 +209,21 @@ public:
 		}
 	};
 
+	struct NetClearInventoryParams
+	{
+		EntityId actorEntityId;
+
+		NetClearInventoryParams()
+			:
+			actorEntityId(0)
+		{};
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("actorEntityId", actorEntityId, 'eid');
+		}
+	};
+
 	CTOSActor();
 	~CTOSActor() ;
 
@@ -223,7 +231,8 @@ public:
 	bool Init(IGameObject* pGameObject) ;
 	void PostInit( IGameObject * pGameObject ) ;
 	void InitClient(int channelId ) ;
-	void ProcessEvent(SEntityEvent& event) ;
+	void PostInitClient(const int channelId);
+	void ProcessEvent(SEntityEvent& event);
 	bool NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profile, int flags) ;
 	void SelectNextItem(int direction, bool keepHistory, const char* category) ;
 	void HolsterItem(bool holster) ;
@@ -234,13 +243,15 @@ public:
 	void Release() ;
 	void Revive(bool fromInit = false) ;
 	void Kill() ;
-	void PlayAction(const char* action, const char* extension, bool looping = false) ;
 	void AnimationEvent(ICharacterInstance* pCharacter, const AnimEventInstance& event) ;
 
 	void NetKill(EntityId shooterId, uint16 weaponClassId, int damage, int material, int hit_type, int killerHealthOnKill) ;
 	void NetReviveAt(const Vec3& pos, const Quat& rot, int teamId) ;
 	void NetReviveInVehicle(EntityId vehicleId, int seatId, int teamId) ;
 	void NetSimpleKill() ;
+	void SerializeSpawnInfo(TSerialize ser);
+	ISerializableInfoPtr GetSpawnInfo();
+	bool CanPickUpObject(IEntity* obj, float& heavyness, float& volume) override;
 	// ~CActor
 
 	//ITOSMasterControllable
@@ -248,7 +259,7 @@ public:
 	void ApplyMasterMovement(const Vec3& delta)  {};
 	//~ITOSMasterControllable
 
-	bool ResetActorWeapons(int delayMilliseconds);
+	// bool ResetActorWeapons(int delayMilliseconds);
 
 	virtual Matrix33 GetViewMtx() { return Matrix33(); };
 	virtual Matrix33 GetBaseMtx() { return Matrix33(); };
@@ -257,35 +268,7 @@ public:
 	virtual bool ShouldUsePhysicsMovement();
 	virtual bool ApplyActions(int actions); // нужна для поддержки m_actions не только в игроке
 
-	//Новые функции сюда
-	//const Vec3& FilterDeltaMovement(const Vec3& deltaMov);
-
-	//const STOSSlaveStats& ReadSlaveStats() const { return m_slaveStats; } ///< Считать статистику раба. Изменять нельзя.
-
-	// Скопировано из CActor в Crysis Co-op
-	//struct SQueuedAnimEvent
-	//{
-	//	SQueuedAnimEvent() : sAnimEventName(""), fEventTime(0.f), fElapsed(0.f) {};
-	//	SQueuedAnimEvent(const string& name, const float eventTime) : sAnimEventName(name), fEventTime(eventTime), fElapsed(0.f) {};
-	//	string sAnimEventName;
-	//	float fEventTime;
-	//	float fElapsed;
-	//};
-
-	//virtual bool IsAnimEvent(const char* sAnimSignal, string* sAnimEventName, float* fEventTime)
-	//{
-	//	*sAnimEventName = "";
-	//	*fEventTime = 0.f;
-	//	return false;
-	//};
-
-	//void QueueAnimationEvent(const SQueuedAnimEvent& sEvent);
-	//void UpdateAnimEvents(float fFrameTime);
-
-	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, float value, TAnimationGraphQueryID* pQueryID);
-	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, int value, TAnimationGraphQueryID* pQueryID);
-	void OnAGSetInput(bool bSucceeded, IAnimationGraphState::InputID id, const char* value, TAnimationGraphQueryID* pQueryID);
-	// ~Скопировано из CActor в Crysis Co-op
+	void RemoveAllItems();
 
 	STOSSlaveStats& GetSlaveStats() { return m_slaveStats; } ///< Получить статистику раба. Изменять можно.
 	bool IsSlave() const {return m_isSlave;}
@@ -293,53 +276,39 @@ public:
 	bool IsZeus() const {return m_isZeus;}
 	bool IsLocalSlave() const; ///< проверка на локальной машине является ли актёр рабом
 
-	virtual CTOSEnergyConsumer* GetEnergyConsumer() const;
+	virtual CTOSEnergyManager* GetEnergyManager() const;
 	bool IsHaveChargingJump() const {return m_chargingJump;}
 
 	bool UpdateLastMPSpawnPointRotation(const Quat& rotation);
 	bool UpdateLastShooterId(const EntityId id);
+	void GiveEquipmentPack();
+	//void NetSetActorModel(const char* model);
 
 protected:
+	bool HideMe(bool value);
 	// Сделать мастером или рабом на стороне сервера
 	bool SetMeSlave(bool value);
 	bool SetMeMaster(bool value);
+	bool SetMeZeus(bool value);
 	string m_debugName;
 
 private:
-	// Скрыть актера на стороне клиента
-	bool HideMe(bool value);
-
-	string m_sLastNetworkedAnim;
 
 	Quat m_lastSpawnPointRotation;
 	EntityId m_lastShooterId;
+	bool m_isEntityHidden;
 	bool m_isZeus;
 	bool m_isSlave; // сериализованное по сети значение, является ли актёр рабом
 	bool m_isMaster; // сериализованное по сети значение, является ли актёр мастером
-
-	// Зафиксировать на всех клиентах и сервере, что данный актёр стал рабом. Вызывать только с клиента!
-	//void NetMarkMeSlave(bool slave) const;
-
-	// Зафиксировать на всех клиентах и сервере, что данный актёр стал master. Вызывать только с клиента!
-	//void NetMarkMeMaster(bool master) const;
-
-	DECLARE_SERVER_RMI_NOATTACH(SvRequestPlayAnimation, NetPlayAnimationParams, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_NOATTACH(ClPlayAnimation, NetPlayAnimationParams, eNRT_ReliableOrdered);
-
-	//DECLARE_SERVER_RMI_NOATTACH(SvRequestMarkMeAsSlave, NetMarkMeParams, eNRT_ReliableOrdered);
-	//DECLARE_CLIENT_RMI_NOATTACH(ClMarkMeAsSlave, NetMarkMeParams, eNRT_ReliableOrdered);	
-	//
-	//DECLARE_SERVER_RMI_NOATTACH(SvRequestMarkMeAsMaster, NetMarkMeParams, eNRT_ReliableOrdered);
-	//DECLARE_CLIENT_RMI_NOATTACH(ClMarkMeAsMaster, NetMarkMeParams, eNRT_ReliableOrdered);
-
-	DECLARE_SERVER_RMI_NOATTACH(SvRequestHideMe, NetHideMeParams, eNRT_ReliableOrdered);
-	DECLARE_CLIENT_RMI_NOATTACH(ClMarkHideMe, NetHideMeParams, eNRT_ReliableOrdered);
+	string m_modelFilename;
 
 	DECLARE_CLIENT_RMI_NOATTACH_FAST(ClTOSJump, NoParams, eNRT_ReliableUnordered);
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestTOSJump, NoParams, eNRT_ReliableUnordered);
 
 	DECLARE_CLIENT_RMI_POSTATTACH(ClAttachChild, NetAttachChild, eNRT_ReliableUnordered);
 	DECLARE_SERVER_RMI_POSTATTACH(SvRequestAttachChild, NetAttachChild, eNRT_ReliableUnordered);
+
+	DECLARE_CLIENT_RMI_PREATTACH(ClClearInventory, NoParams, eNRT_ReliableOrdered);
 
 protected:
 	bool m_chargingJump;///< Если *true, то высота прыжка зависит от длительности нажатия на дейсвие прыжка [jump]
@@ -348,5 +317,5 @@ protected:
 	//Vec3 m_filteredDeltaMovement;
 	STOSNetBodyInfo m_netBodyInfo;///< Информация о состоянии тела актёра, передаваемая по сети
 
-	CTOSEnergyConsumer* m_pEnergyConsumer;
+	CTOSEnergyManager* m_pEnergyManager;
 };

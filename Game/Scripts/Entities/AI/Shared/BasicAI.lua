@@ -150,6 +150,12 @@ function BasicAI:RegisterAIasPlayer()
 	AI.RegisterWithAI(self.id, AIOBJECT_PLAYER, self.Properties, self.PropertiesInstance, self.AIMovementAbility,self.melee);
 end
 --TheOtherSide
+
+--Crysis co-op
+function BasicAI:UnregisterAI()
+	AI.RegisterWithAI(self.id, AIOBJECT_DUMMY, self.Properties, self.PropertiesInstance, self.AIMovementAbility,self.melee);
+end
+--~Crysis co-op
 -----------------------------------------------------------------------------------------------------
 function BasicAI:RegisterAI()
 
@@ -811,7 +817,8 @@ function BasicAI:AssignPrimaryWeapon()
 	local equipmentPack = self.Properties.equip_EquipmentPack;
 	if (equipmentPack and equipmentPack ~= "") then
 		self.primaryWeapon = ItemSystem.GetPackPrimaryItem(equipmentPack) or "";
-		
+		--LogAlways("%s has primary weapon %s", self:GetName(), self.primaryWeapon);
+
     -- get secondary weapon
     if (ItemSystem.GetPackNumItems(equipmentPack)>1) then
 	    self.secondaryWeapon = ItemSystem.GetPackItemByIndex(equipmentPack, 1) or "";
@@ -821,7 +828,7 @@ function BasicAI:AssignPrimaryWeapon()
 	  		  self.secondaryWeapon == "AIGrenades" ) then
 		    		self.secondaryWeapon = "";
 	    end		
-	    --Log("%s has secondary weapon %s", self:GetName(), self.secondaryWeapon);
+	    --LogAlways("%s has secondary weapon %s", self:GetName(), self.secondaryWeapon);
     end		
 	end
 end

@@ -131,7 +131,7 @@ AIBehaviour.FriendlyNPCIdle = {
 	---------------------------------------------
 	OnFriendlyDamage = function ( self, entity, sender, data)
 
-		if(data.id == g_localActor.id) then 
+		if(not AI.Hostile(entity.id, data.id)) then 
 		
 			local health = entity.actor:GetHealth();
 			local maxHealth = entity.actor:GetMaxHealth();

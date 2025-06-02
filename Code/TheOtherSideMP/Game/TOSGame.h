@@ -12,7 +12,12 @@ Copyright (C), AlienKeeper, 2024.
 #include <ILevelSystem.h>
 #include <IInput.h>
 #include "ScriptBinds\ScriptBind_Custom.h"
+#include "ScriptBinds\ScriptBind_ItemSystem.h"
 #include "FGPS\FGPluginLoader.h"
+#include "ScriptBinds/ScriptBind_Zeus.h"
+//Crysis co-op
+#include <Coop/CoopSystem.h>
+//~Crysis co-op
 
 class CGameFlashAnimation;
 
@@ -31,9 +36,8 @@ struct IHardwareMouseEventListener;
 struct IHitListener;
 
 // ReSharper disable once CppInconsistentNaming
-/**
- * \brief указатель на функцию
- */
+
+/* указатель на функцию */
 typedef void (*func)();
 
 //enum EExtraGameplayEvent;
@@ -44,7 +48,8 @@ class CTOSGame :  // NOLINT(cppcoreguidelines-special-member-functions)
 	public IInputEventListener,
 	public IEntitySystemSink,
 	public IScriptTableDumpSink,
-	public ILevelSystemListener
+	public ILevelSystemListener,
+	public IVehicleEventListener
 {
 public:
 	CTOSGame();
@@ -86,6 +91,10 @@ public:
 	//IGameplayListener
 	void OnGameplayEvent(IEntity* pEntity, const GameplayEvent& event);
 	//~IGameplayListener
+
+	//IVehicleEventListener
+	void OnVehicleEvent(EVehicleEvent event, const SVehicleEventParams& params);
+	//~IVehicleEventListener
 
 	//TOSEventRecorder->RecordEvent->calling this
 	//IGameplayRecorder->Event->calling this
@@ -165,6 +174,7 @@ private:
 	CTOSGameEventRecorder* m_pEventRecorder;
 
 	CScriptBind_Custom* m_pCustomScriptBind;
+	CScriptBind_ItemSystem* m_pItemSystemScriptBind;
 
 	std::vector<ITOSGameEventListener*> m_gameEventListeners;
 	std::vector<ITOSGameModule*> m_modules;

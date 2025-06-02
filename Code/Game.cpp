@@ -7,7 +7,7 @@
 
  -------------------------------------------------------------------------
   History:
-  - 3:8:2004   11:26 : Created by Mбrcio Martins
+  - 3:8:2004   11:26 : Created by M�rcio Martins
   - 17:8:2005        : Modified - NickH: Factory registration moved to GameFactory.cpp
 
 *************************************************************************/
@@ -160,6 +160,19 @@ CGame::~CGame()
 	SAFE_DELETE(m_pDownloadTask);
 }
 
+// Crysis Co-op
+class CCharacterManager : public ICharacterManager
+{
+public:
+	std::vector<uint32> v0;//?
+	std::vector<uint32> v1;//?
+	std::vector<uint32> v2;//?
+	std::vector<uint32> v3;//?
+	uint32 framenumber;//?
+	uint32 DedicatedServer;
+};
+// ~Crysis Co-op
+
 bool CGame::Init(IGameFramework* pFramework)
 {
 	LOADING_TIME_PROFILE_SECTION(GetISystem());
@@ -167,6 +180,11 @@ bool CGame::Init(IGameFramework* pFramework)
 #ifdef GAME_DEBUG_MEM
 	DumpMemInfo("CGame::Init start");
 #endif
+
+	// Crysis Co-op
+	// CCharacterManager uses a weird flag for determining dedicated server behavior seemingly.
+	(static_cast<CCharacterManager*>(gEnv->pSystem->GetIAnimationSystem()))->DedicatedServer = 0;
+	// ~Crysis Co-op
 
 	m_pFramework = pFramework;
 	assert(m_pFramework);
@@ -385,6 +403,9 @@ bool CGame::Init(IGameFramework* pFramework)
 	}
 
 	m_pFramework->RegisterListener(this, "Game", FRAMEWORKLISTENERPRIORITY_GAME);
+	//Crysis co-op
+	CCoopSystem::GetInstance()->Initialize();
+	//~Crysis co-op
 
 #ifdef GAME_DEBUG_MEM
 	DumpMemInfo("CGame::Init end");
@@ -437,6 +458,10 @@ bool CGame::CompleteInit()
 			pFactory = pFactory->m_pNext;
 		}
 	}
+
+	//Crysis co-op
+	CCoopSystem::GetInstance()->CompleteInit();
+	//~Crysis co-op
 
 #ifdef GAME_DEBUG_MEM
 	DumpMemInfo("CGame::CompleteInit");
@@ -492,7 +517,7 @@ void CGame::ConfigureGameChannel(bool isServer, IProtocolBuilder* pBuilder)
 	}
 
 	//TheOtherSide
-	TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_ConfigureGameChannel, "", true));
+	TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_ConfigureGameChannel, isServer ? "Server" : "Client", true));
 	//~TheOtherSide
 }
 
@@ -598,9 +623,12 @@ void CGame::Shutdown()
 	//TheOtherSide
 	g_pTOSGame->Shutdown();
 	g_pTOSGame = nullptr;
-
 	SAFE_DELETE(g_pTOSGameCvars);
 	//TheOtherSide
+
+	//Crysis co-op
+	CCoopSystem::GetInstance()->Shutdown();
+	//~Crysis co-op
 
 	if (m_pPlayerProfileManager)
 	{
@@ -624,7 +652,11 @@ const char* CGame::GetName()
 }
 
 void CGame::OnPostUpdate(float fDeltaTime)
-{}
+{
+	//Crysis co-op
+	CCoopSystem::GetInstance()->Update(fDeltaTime);
+	//~Crysis co-op
+}
 
 void CGame::OnSaveGame(ISaveGame* pSaveGame)
 {
@@ -748,7 +780,7 @@ void CGame::GameChannelDestroyed(bool isServer)
 	}
 
 	//TheOtherSide
-	TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_GameChannelDestroyed, "", true));
+	TOS_RECORD_EVENT(0, STOSGameEvent(eEGE_GameChannelDestroyed, isServer ? "Server" : "Client", true));
 	//~TheOtherSide
 }
 

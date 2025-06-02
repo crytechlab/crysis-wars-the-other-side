@@ -9,13 +9,11 @@ Copyright (C), Crysis Co-op
 
 #include <IAnimationGraph.h>
 
-class CTOSActor;
-
 class CAnimationGraphState  : public IAnimationGraphState
 {
-	friend class CTOSActor;
+	friend class CActor;
 
-	CAnimationGraphState(CTOSActor* pActor, IAnimationGraphState* pState)
+	CAnimationGraphState(CActor* pActor, IAnimationGraphState* pState)
 		:
 		m_pOwner(pActor),
 		m_pAnimationGraphState(pState) { }
@@ -283,7 +281,7 @@ public:
 
 private:
 	// Pointer to the owner actor.
-	CTOSActor* m_pOwner;
+	CActor* m_pOwner;
 	// Pointer to the native IAnimationGraphState class implementation.
 	IAnimationGraphState* m_pAnimationGraphState;
 };

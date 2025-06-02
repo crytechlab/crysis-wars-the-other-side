@@ -5,12 +5,14 @@ Copyright (C), AlienKeeper, 2024.
 
 // ReSharper disable CppParameterMayBeConstPtrOrRef
 #include "StdAfx.h"
-
+#include "TheOtherSideMP\Game\TOSGameCvars.h"
 #include "TheOtherSideMP\Game\Modules\Zeus\ZeusModule.h"
+#include "ZeusModule.h"
 
-void CTOSZeusModule::InitCVars(IConsole* pConsole)
+void CTOSZeusModule::InitCVars(IConsole *pConsole)
 {
-	CTOSGenericModule::InitCVars(pConsole);
+	pConsole->Register("tos_sv_zeus_update", &tos_sv_zeus_update, 1, VF_CHEAT,
+					   "0 - update disabled \n1 - update enabled");
 
 	pConsole->Register("tos_sv_zeus_mass_selection_hold_sec", &tos_sv_zeus_mass_selection_hold_sec, 0.2f, VF_CHEAT,
 					   "Delay in sec, how long you need to hold LMB down before the multiple object selection mode is enabled");
@@ -31,9 +33,8 @@ void CTOSZeusModule::InitCVars(IConsole* pConsole)
 	pConsole->Register("tos_sv_zeus_dragging_move_start_delay", &tos_sv_zeus_dragging_move_start_delay, 0.05f, VF_CHEAT,
 					   "Delay in sec in starting to move entities after enabling drag and drop");
 
-	pConsole->Register("tos_sv_zeus_dragging_move_boxes_separately", &tos_sv_zeus_dragging_move_boxes_separately, 1, VF_CHEAT,
-					   "0 - entities and selection boxes move together in realtime. Copying with 0 cause move bug \n1 - selection boxes move separately from entities");
-
+	// pConsole->Register("tos_sv_zeus_dragging_move_boxes_separately", &tos_sv_zeus_dragging_move_boxes_separately, 1, VF_CHEAT,
+	//				   "0 - entities and selection boxes move together in realtime. Copying with 0 cause move bug \n1 - selection boxes move separately from entities");
 
 	// ZEUS ON SCREEN ICONS
 	pConsole->Register("tos_sv_zeus_on_screen_force_show", &tos_sv_zeus_on_screen_force_show, 1, VF_CHEAT,
@@ -56,9 +57,6 @@ void CTOSZeusModule::InitCVars(IConsole* pConsole)
 
 	pConsole->Register("tos_sv_zeus_on_screen_offsetY", &tos_sv_zeus_on_screen_offsetY, 0, VF_CHEAT,
 					   "On screen icon 2d offset on Y axis");
-
-	pConsole->Register("tos_sv_zeus_on_screen_update_delay", &tos_sv_zeus_on_screen_update_delay, 0.0f, VF_CHEAT,
-					   "");
 
 	// ZEUS SELECTION
 	pConsole->Register("tos_sv_zeus_selection_ignore_default", &tos_sv_zeus_selection_ignore_default, 1, VF_CHEAT,
@@ -100,9 +98,8 @@ void CTOSZeusModule::InitCVars(IConsole* pConsole)
 
 void CTOSZeusModule::ReleaseCVars()
 {
-	CTOSGenericModule::ReleaseCVars();
-
 	const auto pConsole = gEnv->pConsole;
+	pConsole->UnregisterVariable("tos_sv_zeus_update", true);
 	pConsole->UnregisterVariable("tos_sv_zeus_mass_selection_hold_sec", true);
 
 	pConsole->UnregisterVariable("tos_sv_zeus_dragging_ignore_dead_bodies", true);
@@ -116,7 +113,6 @@ void CTOSZeusModule::ReleaseCVars()
 	pConsole->UnregisterVariable("tos_sv_zeus_on_screen_far_distance", true);
 	pConsole->UnregisterVariable("tos_sv_zeus_on_screen_offsetX", true);
 	pConsole->UnregisterVariable("tos_sv_zeus_on_screen_offsetY", true);
-	pConsole->UnregisterVariable("tos_sv_zeus_on_screen_update_delay", true);
 
 	pConsole->UnregisterVariable("tos_sv_zeus_selection_always_select_parent", true);
 	pConsole->UnregisterVariable("tos_sv_zeus_selection_ignore_default", true);
@@ -132,18 +128,29 @@ void CTOSZeusModule::ReleaseCVars()
 	pConsole->UnregisterVariable("tos_sv_zeus_selection_ignore_vehicle_part_detached", true);
 }
 
-void CTOSZeusModule::InitCCommands(IConsole* pConsole)
+void CTOSZeusModule::InitCCommands(IConsole *pConsole)
 {
-	CTOSGenericModule::InitCCommands(pConsole);
-
-	//pConsole->AddCommand("tos_cmd_dumpmasterslist", CmdDumpMastersList);
+	pConsole->AddCommand("tos_cmd_reload_zeus_menu_items", CmdReloadMenuItems);
+	pConsole->AddCommand("tos_cmd_become_zeus", CmdBecomeZeus);
 }
 
 void CTOSZeusModule::ReleaseCCommands()
 {
-	CTOSGenericModule::ReleaseCCommands();
-
 	const auto pConsole = gEnv->pConsole;
-	//pConsole->RemoveCommand("tos_cmd_getmasterslist");
+	pConsole->RemoveCommand("tos_cmd_reload_zeus_menu_items");
+	pConsole->RemoveCommand("tos_cmd_become_zeus");
+}
 
+void CTOSZeusModule::CmdReloadMenuItems(IConsoleCmdArgs *pArgs)
+{
+	g_pTOSGame->GetZeusModule()->GetHUD().MenuLoadItems();
+}
+
+void CTOSZeusModule::CmdBecomeZeus(IConsoleCmdArgs *pArgs)
+{
+	ONLY_CLIENT_CMD;
+	const string make = pArgs->GetArg(1);
+	const bool bMake = bool(atoi(make) > 0);
+
+	g_pTOSGame->GetZeusModule()->GetClientServer().DispatchMakeZeus(g_pGame->GetIGameFramework()->GetClientActor(), bMake, nullptr);
 }

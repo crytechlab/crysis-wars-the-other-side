@@ -228,7 +228,7 @@ bool CTOSMasterClient::OnActionJump(CTOSActor* pActor, const ActionId& actionId,
 	if (pActor->IsHaveChargingJump() && pActor->GetActorStats()->onGround > 0.0f)
 	{
 		// Получение времени удержания кнопки и задержки для прыжка
-		const float jumpDelay = TOS_Console::GetSafeFloatVar("tos_tr_charging_jump_input_time");
+		const float jumpDelay = tos::console::GetSafeFloatVar("tos_tr_charging_jump_input_time");
 
 		// Автопрыжок при удержании клавиши прыжка
 		if (activationMode == eAAM_OnHold && holdTime > jumpDelay)
@@ -682,7 +682,7 @@ void CTOSMasterClient::StartControl(IEntity* pEntity, uint dudeFlags, bool fromF
 	const auto pHUD = g_pGame->GetHUD();
 	if (pHUD)
 	{
-		const auto pSlaveConsumer = pSlaveActor->GetEnergyConsumer();
+		const auto pSlaveConsumer = pSlaveActor->GetEnergyManager();
 
 		if (pSlaveConsumer)
 			pHUD->TOSSetEnergyConsumer(pSlaveConsumer);
@@ -722,7 +722,7 @@ void CTOSMasterClient::StopControl(bool callFromFG /*= false*/)
 	const auto pHUD = g_pGame->GetHUD();
 	if (pHUD)
 	{
-		const auto pDudeConsumer = m_pLocalDude->GetEnergyConsumer();
+		const auto pDudeConsumer = m_pLocalDude->GetEnergyManager();
 		if (pDudeConsumer)
 			pHUD->TOSSetEnergyConsumer(pDudeConsumer);
 	}
@@ -905,7 +905,7 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 
 		auto pAI = m_pLocalDude->GetEntity()->GetAI();
 		if (pAI)
-			TOS_AI::SendEvent(pAI, AIEVENT_DISABLE);
+			tos::ai::SendEvent(pAI, AIEVENT_DISABLE);
 
         if (dudeFlags & TOS_DUDE_FLAG_DISABLE_SUIT)
         {
@@ -923,10 +923,7 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 			g_pGameActions->FilterMasterControlSlave()->Enable(true);
         }
 
-		//if (dudeFlags & TOS_DUDE_FLAG_HIDE_MODEL)
-		//{
-		m_pLocalDude->GetGameObject()->InvokeRMI(CTOSActor::SvRequestHideMe(), NetHideMeParams(true), eRMI_ToServer);
-		//}
+		// m_pLocalDude->GetGameObject()->InvokeRMI(CTOSActor::SvRequestHideMe(), NetHideMeParams(true), eRMI_ToServer);
 
 		if (dudeFlags & TOS_DUDE_FLAG_BEAM_MODEL)
 		{
@@ -934,9 +931,6 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 			const Quat slaveRot = m_pSlaveEntity->GetWorldRotation();
 
 			m_pLocalDude->GetEntity()->SetWorldTM(Matrix34::CreateTranslationMat(slavePos), 0);
-
-			// Привязка НЕ работает от клиента к серверу без исп. RMI
-			//m_pSlaveEntity->AttachChild(m_pLocalDude->GetEntity(), ENTITY_XFORM_USER | IEntity::ATTACHMENT_KEEP_TRANSFORMATION);
 
 			CTOSActor::NetAttachChild params;
 			params.flags = ENTITY_XFORM_USER | IEntity::ATTACHMENT_KEEP_TRANSFORMATION;
@@ -949,7 +943,6 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 			m_pLocalDude->GetAnimatedCharacter()->SetParams(anparams);
 
 			m_pLocalDude->SetViewRotation(slaveRot);
-			//m_pLocalDude->SetAngles(Ang3(slaveRot));
 		}
 
 		IInventory* pInventory = m_pLocalDude->GetInventory();
@@ -957,56 +950,13 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 		{
 			pInventory->HolsterItem(true);
 			pInventory->RemoveAllItems();
-
-			//if (IEntityClassRegistry* pClassRegistry = gEnv->pEntitySystem->GetClassRegistry())
-			//{
-				//const string itemClassName = "Binoculars";
-
-				//pClassRegistry->IteratorMoveFirst();
-				//const IEntityClass* pEntityClass = pClassRegistry->FindClass(itemClassName);
-
-				//if (pEntityClass)
-					//g_pGame->GetIGameFramework()->GetIItemSystem()->GiveItem(pActor, itemClassName, false, false, false);
-			//}
 		}
-
-        //if (dudeFlags & TOS_DUDE_FLAG_CLEAR_INVENTORY)
-        //{
-        //    //TODO Сохранение инвентаря Dude
-        //}
-
-		//g_pGameCVars->hud_enableAlienInterference = 0;
-        //m_pLocalDude->ClearInterference();
-        //gEnv->pConsole->GetCVar("hud_enableAlienInterference")->ForceSet("0");
 
         if (pHUD)
         {
-            //LoadHUD(true); deprecated
-            //m_pAbilitiesSystem->InitHUD(true);			
-            //m_pAbilitiesSystem->ShowHUD(true);
-            //m_pAbilitiesSystem->UpdateHUD();
-            //m_pAbilitiesSystem->ReloadHUD();
-
-            //SetAmmoHealthHUD();
-
-            //g_pGame->GetHUD()->UpdateHealth(m_pControlledActor);
-            //g_pGame->GetHUD()->m_animPlayerStats.Reload(true);
-
 			const auto pHUDCrosshair = pHUD->GetCrosshair();
 			pHUDCrosshair->SetOpacity(1.0f);
 			pHUDCrosshair->SetCrosshair(g_pGameCVars->hud_crosshair);
-        }
-
-        if (!gEnv->bEditor)
-        {
-            // fix "Pure function error" 	
-
-            /*CGameRules* pGR = g_pGame->GetGameRules();
-            if (pGR && !m_isHitListener)
-            {
-                m_isHitListener = true;
-                pGR->AddHitListener(this);
-            }*/
         }
     }
     else
@@ -1021,18 +971,18 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 
 		auto pAI = m_pLocalDude->GetEntity()->GetAI();
 		if (pAI)
-			TOS_AI::SendEvent(pAI, AIEVENT_ENABLE);
+			tos::ai::SendEvent(pAI, AIEVENT_ENABLE);
 
         if (dudeFlags & TOS_DUDE_FLAG_ENABLE_ACTION_FILTER)
         {
 			g_pGameActions->FilterMasterControlSlave()->Enable(false);
         }
 
-		bool zeus = m_pLocalDude->IsZeus();
-		if (!zeus)
-		{
-			m_pLocalDude->GetGameObject()->InvokeRMI(CTOSActor::SvRequestHideMe(), NetHideMeParams(false), eRMI_ToServer);
-		}
+		// bool zeus = m_pLocalDude->IsZeus();
+		// if (!zeus)
+		// {
+		// 	//m_pLocalDude->GetGameObject()->InvokeRMI(CTOSActor::SvRequestHideMe(), NetHideMeParams(false), eRMI_ToServer);
+		// }
 
 		if (dudeFlags & TOS_DUDE_FLAG_BEAM_MODEL)
 		{
@@ -1045,18 +995,8 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 			m_pLocalDude->GetAnimatedCharacter()->SetParams(params);
 		}
 
-        //m_pLocalDude->InitInterference();
-		//gEnv->pConsole->GetCVar("hud_enableAlienInterference")->ForceSet("1");
-        //g_pGameCVars->hud_enableAlienInterference = 1;
-		//m_pLocalDude->ResetScreenFX();
-		//gEnv->pSystem->GetI3DEngine()->SetPostEffectParam("AlienInterference_Amount", 0.0f);
-		//SAFE_HUD_FUNC(StartInterference(0, 0, 100.0f, 3.f));
-
         if (m_pLocalDude->IsThirdPerson())
             m_pLocalDude->ToggleThirdPerson();
-
-        // Выполнено - Нужно написать функцию для отображения дружественного перекрестия
-		// Выполнено - Нужно написать функцию для смены имени текущего оружия
 
 		if (pHUD)
 		{
@@ -1078,12 +1018,12 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
 	        // ReSharper disable once CppInconsistentNaming
 	        const auto dudeHP = m_pLocalDude->GetHealth();
 	        const auto spectatorMode = m_pLocalDude->GetSpectatorMode();
-			const auto inSpectatorMode = spectatorMode > CActor::eASM_None && spectatorMode < CActor::eASM_Cutscene;
+			const auto inSpectatorMode = CActor::eASM_None < spectatorMode < CActor::eASM_Last;
 			
             if (dudeHP > 0 || inSpectatorMode)
             {
 				pSuit->Reset(m_pLocalDude);
-				pSuit->SetSuitEnergy(m_pLocalDude->GetEnergyConsumer()->GetMaxEnergy());
+				pSuit->SetSuitEnergy(m_pLocalDude->GetEnergyManager()->GetMaxEnergy());
             }
 
             if (dudeFlags & TOS_DUDE_FLAG_DISABLE_SUIT)
@@ -1104,28 +1044,6 @@ void CTOSMasterClient::PrepareDude(const bool toStartControl, const uint dudeFla
             {
 				SAFE_HUD_FUNC(TOSSetAmmoHealthHUD(m_pLocalDude, "Libs/UI/HUD_AmmoHealthEnergySuit.gfx"));
 				SAFE_HUD_FUNC(TOSSetInventoryHUD(m_pLocalDude, "Libs/UI/HUD_WeaponSelection.gfx"));
-
-                //m_animScoutFlyInterface.Unload();
-
-                //switch (pSuit->GetMode())
-                //{
-                //case NANOMODE_DEFENSE:
-                //    g_pGame->GetHUD()->m_animPlayerStats.Invoke("setMode", "Armor");
-                //    break;
-                //case NANOMODE_SPEED:
-                //    g_pGame->GetHUD()->m_animPlayerStats.Invoke("setMode", "Speed");
-                //    break;
-                //case NANOMODE_STRENGTH:
-                //    g_pGame->GetHUD()->m_animPlayerStats.Invoke("setMode", "Strength");
-                //    break;
-                //case NANOMODE_CLOAK:
-                //    g_pGame->GetHUD()->m_animPlayerStats.Invoke("setMode", "Cloak");
-                //    break;
-                //case NANOMODE_INVULNERABILITY:
-                //case NANOMODE_DEFENSE_HIT_REACTION:
-                //case NANOMODE_LAST:
-                //    break;
-                //}
             }
 
         }
@@ -1157,7 +1075,7 @@ bool CTOSMasterClient::PrepareNextSlave(CTOSActor* pNextActor) const
     //Re-register controlled actor in AI System as AI Player
     if (pAI->GetAIType() == AIOBJECT_PUPPET)
 	{
-		TOS_AI::RegisterAI(pNextActor->GetEntity(), true);
+		tos::ai::RegisterAI(pNextActor->GetEntity(), true);
 	}
 	
 	//Restore AI values to new ai pointer
@@ -1198,7 +1116,7 @@ bool CTOSMasterClient::PreparePrevSlave(CTOSActor* pPrevActor) const
     {
 		if (pAI->GetAIType() == AIOBJECT_PLAYER)
 		{
-			TOS_AI::RegisterAI(pPrevActor->GetEntity(), false);
+			tos::ai::RegisterAI(pPrevActor->GetEntity(), false);
 		}
     }
 

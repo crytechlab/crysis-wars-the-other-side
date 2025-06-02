@@ -7,7 +7,7 @@ $DateTime$
 
 -------------------------------------------------------------------------
 History:
-- 23:5:2006   9:27 : Created by Mбrcio Martins
+- 23:5:2006   9:27 : Created by M�rcio Martins
 
 *************************************************************************/
 #include "StdAfx.h"
@@ -274,16 +274,8 @@ void CGameRules::ProcessServerHit(HitInfo& hitInfo)
 	if (hitInfo.targetId)
 	{
 		CTOSActor* pTarget = GetActorByEntityId(hitInfo.targetId);
-		//TheOtherSide
-		//if (pTarget && pTarget->GetSpectatorMode())
-		if (pTarget)
-		{
-			if (pTarget->GetSpectatorMode())
-				ok = false;
-			else if (pTarget->IsZeus())
-				ok = false;
-		}
-		//~TheOtherSide
+		if (pTarget && pTarget->GetSpectatorMode())
+			ok = false;
 	}
 
 	if (ok)
@@ -791,13 +783,19 @@ IMPLEMENT_RMI(CGameRules, ClRenameEntity)
 
 		CryLogAlways("$8%s$o renamed to $8%s", old.c_str(), params.name.c_str());
 
-		// if this was a remote player, check we're not spectating them.
-		//	If we are, we need to trigger a spectator hud update for the new name
-		EntityId clientId = g_pGame->GetIGameFramework()->GetClientActorId();
-		if (gEnv->bMultiplayer && params.entityId != clientId)
+		// Проверяем, не наблюдаем ли мы за переименованным игроком
+		// Если да - обновляем имя в интерфейсе наблюдателя
+		const EntityId clientId = g_pGame->GetIGameFramework()->GetClientActorId();
+		const bool isRemotePlayer = (gEnv->bMultiplayer && params.entityId != clientId);
+
+		if (isRemotePlayer)
 		{
 			CActor* pClientActor = static_cast<CActor*>(g_pGame->GetIGameFramework()->GetClientActor());
-			if (pClientActor && pClientActor->GetSpectatorMode() == CActor::eASM_Follow && pClientActor->GetSpectatorTarget() == params.entityId && g_pGame->GetHUD())
+			const bool isSpectatingPlayer = (pClientActor && 
+										   pClientActor->GetSpectatorMode() == CActor::eASM_Follow &&
+										   pClientActor->GetSpectatorTarget() == params.entityId);
+
+			if (isSpectatingPlayer && g_pGame->GetHUD())
 			{
 				g_pGame->GetHUD()->RefreshSpectatorHUDText();
 			}
@@ -868,7 +866,10 @@ IMPLEMENT_RMI(CGameRules, SvRequestSpectatorMode)
 	if (!pActor)
 		return true;
 
-	ChangeSpectatorMode(pActor, params.mode, params.targetId, params.resetAll);
+	ChangeSpectatorMode(pActor, 
+		params.mode, 
+		params.targetId, 
+		params.resetAll);
 
 	return true;
 }
@@ -928,6 +929,10 @@ IMPLEMENT_RMI(CGameRules, ClSetTeam)
 		if (pActor->IsClient())
 			m_pRadio->SetTeam(GetTeamName(params.teamId));
 	}
+
+	//TheOtherSide
+	TOS_RECORD_EVENT(params.entityId, STOSGameEvent(eEGE_OnEntitySetTeam, GetTeamName(params.teamId), true));
+	//~TheOtherSide
 
 	ScriptHandle handle(params.entityId);
 	CallScript(m_clientStateScript, "OnSetTeam", handle, params.teamId);
@@ -1240,8 +1245,8 @@ IMPLEMENT_RMI(CGameRules, ClEnteredGame)
 			m_pGameplayRecorder->Event(pActor->GetEntity(), GameplayEvent(eGE_Connected, 0, 0, (void*)status));
 
 			//TheOtherSide
-			//CryLogAlways("[C++][%s][%s][ClEnteredGame] LocalPlayerNick = %s",
-				//TOS_Debug::GetEnv(), TOS_Debug::GetAct(3), pActor->GetEntity()->GetName());
+			//CryLogAlways("<C++>[%s][%s][ClEnteredGame] LocalPlayerNick = %s",
+				//tos::debug::GetEnv(), tos::debug::GetAct(3), pActor->GetEntity()->GetName());
 
 
 			TOS_RECORD_EVENT(pActor->GetEntityId(), STOSGameEvent(eEGE_ClientEnteredGame, "", true));
