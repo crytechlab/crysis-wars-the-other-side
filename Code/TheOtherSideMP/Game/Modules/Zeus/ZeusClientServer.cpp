@@ -121,10 +121,11 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor *pActor, bool bMake, 
 		&& pModule->GetLocal().GetFlag(CTOSZeusModule::EFlag::Zeusing) 
 		&& pPlayer->GetSpectatorMode() != CActor::eASM_None)
 	{
-		// Нужно для того чтобы игрок летал и был невидимым
+		// Если выходим из режима Зевса, то переключаемся в режим зрителя
 		pGameRules->ChangeSpectatorMode(pPlayer, CActor::eASM_Fixed, 0, true);
 	}
 	else
+		// Если не были в режиме Зевса, то переключаемся в режим Зрителя Зевса в зависимости от параметра
 		pGameRules->ChangeSpectatorMode(static_cast<CActor *>(pPlayer), bMake ? CActor::eASM_Zeus : CActor::eASM_None, 0, true);
 
 	if (gEnv->bServer)
