@@ -145,7 +145,23 @@ void CWeapon::RequestShoot(IEntityClass *pAmmoType, const Vec3 &pos, const Vec3 
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
 
-	if ((!pActor || pActor->IsClient()) && IsClient())
+	// Crysis Co-op
+	// TheOtherSide: используется eRMI_ToRemoteClients потому что ИИ на сервере уже это делает
+	CActor *pOwner = GetOwnerActor();
+
+	if (IsServer() && IS_AI_IN_MP(pOwner))
+	{
+		if (IsServerSpawn(pAmmoType) || forceExtended)
+		{
+			GetGameObject()->InvokeRMI(CWeapon::ClShoot(), ClShootParams(pos + dir * 5.0f, predictionHandle), eRMI_ToRemoteClients);
+		}
+		else
+		{
+			GetGameObject()->InvokeRMI(CWeapon::ClShoot(), ClShootParams(hit, predictionHandle), eRMI_ToRemoteClients);
+		}
+	}
+	// ~Crysis Co-op
+	else if ((!pActor || pActor->IsClient()) && IsClient())
 	{
 		if (pActor)
 			pActor->GetGameObject()->Pulse('bang');
@@ -175,7 +191,17 @@ void CWeapon::RequestShoot(IEntityClass *pAmmoType, const Vec3 &pos, const Vec3 
 void CWeapon::RequestMeleeAttack(bool weaponMelee, const Vec3 &pos, const Vec3 &dir, uint16 seq)
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if ((!pActor || pActor->IsClient()) && IsClient())
+
+	// Crysis Co-op
+	// TheOtherSide: используется eRMI_ToRemoteClients потому что ИИ на сервере уже это делает
+	CActor *pOwner = GetOwnerActor();
+
+	if (IsServer() && IS_AI_IN_MP(pOwner))
+	{
+		GetGameObject()->InvokeRMI(CWeapon::ClMeleeAttack(), ClMeleeAttackParams(weaponMelee, pos, dir), eRMI_ToRemoteClients);
+	}
+	// ~Crysis Co-op
+	else if ((!pActor || pActor->IsClient()) && IsClient())
 		GetGameObject()->InvokeRMI(CWeapon::SvRequestMeleeAttack(), RequestMeleeAttackParams(weaponMelee, pos, dir, seq), eRMI_ToServer);
 	else if (!IsClient() && IsServer())
 	{
@@ -188,7 +214,16 @@ void CWeapon::RequestMeleeAttack(bool weaponMelee, const Vec3 &pos, const Vec3 &
 void CWeapon::RequestStartFire()
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if ((!pActor || pActor->IsClient()) && IsClient())
+	// Crysis Co-op
+	// TheOtherSide: используется eRMI_ToRemoteClients потому что ИИ на сервере уже это делает
+	CActor *pOwner = GetOwnerActor();
+
+	if (IsServer() && IS_AI_IN_MP(pOwner))
+	{
+		GetGameObject()->InvokeRMI(CWeapon::ClStartFire(), EmptyParams(), eRMI_ToRemoteClients);
+	}
+	// ~Crysis Co-op
+	else if ((!pActor || pActor->IsClient()) && IsClient())
 		GetGameObject()->InvokeRMI(CWeapon::SvRequestStartFire(), EmptyParams(), eRMI_ToServer);
 	else if (!IsClient() && IsServer())
 		GetGameObject()->InvokeRMI(CWeapon::ClStartFire(), EmptyParams(), eRMI_ToAllClients);
@@ -198,7 +233,17 @@ void CWeapon::RequestStartFire()
 void CWeapon::RequestStartMeleeAttack(bool weaponMelee)
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if ((!pActor || pActor->IsClient()) && IsClient())
+
+	// Crysis Co-op
+	// TheOtherSide: используется eRMI_ToRemoteClients потому что ИИ на сервере уже это делает
+	CActor *pOwner = GetOwnerActor();
+
+	if (IsServer() && IS_AI_IN_MP(pOwner))
+	{
+		GetGameObject()->InvokeRMI(CWeapon::ClStartMeleeAttack(), RequestStartMeleeAttackParams(weaponMelee), eRMI_ToRemoteClients);
+	}
+	// ~Crysis Co-op
+	else if ((!pActor || pActor->IsClient()) && IsClient())
 		GetGameObject()->InvokeRMI(CWeapon::SvRequestStartMeleeAttack(), RequestStartMeleeAttackParams(weaponMelee), eRMI_ToServer);
 	else if (!IsClient() && IsServer())
 	{
@@ -211,7 +256,17 @@ void CWeapon::RequestStartMeleeAttack(bool weaponMelee)
 void CWeapon::RequestZoom(float fov)
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if ((!pActor || pActor->IsClient()) && IsClient())
+
+	// Crysis Co-op
+	// TheOtherSide: используется eRMI_ToRemoteClients потому что ИИ на сервере уже это делает
+	CActor *pOwner = GetOwnerActor();
+
+	if (IsServer() && IS_AI_IN_MP(pOwner))
+	{
+		GetGameObject()->InvokeRMI(CWeapon::ClZoom(), ZoomParams(fov), eRMI_ToRemoteClients);
+	}
+	// ~Crysis Co-op
+	else if ((!pActor || pActor->IsClient()) && IsClient())
 		GetGameObject()->InvokeRMI(CWeapon::SvRequestZoom(), ZoomParams(fov), eRMI_ToServer);
 	else if (!IsClient() && IsServer())
 	{
@@ -224,7 +279,17 @@ void CWeapon::RequestZoom(float fov)
 void CWeapon::RequestStopFire()
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if ((!pActor || pActor->IsClient()) && IsClient())
+
+	// Crysis Co-op
+	// TheOtherSide: используется eRMI_ToRemoteClients потому что ИИ на сервере уже это делает
+	CActor *pOwner = GetOwnerActor();
+
+	if (IsServer() && IS_AI_IN_MP(pOwner))
+	{
+		GetGameObject()->InvokeRMI(CWeapon::ClStopFire(), EmptyParams(), eRMI_ToRemoteClients);
+	}
+	// ~Crysis Co-op
+	else if ((!pActor || pActor->IsClient()) && IsClient())
 		GetGameObject()->InvokeRMI(CWeapon::SvRequestStopFire(), EmptyParams(), eRMI_ToServer);
 	else if (!IsClient() && IsServer())
 		GetGameObject()->InvokeRMI(CWeapon::ClStopFire(), EmptyParams(), eRMI_ToAllClients);
@@ -234,7 +299,16 @@ void CWeapon::RequestStopFire()
 void CWeapon::RequestReload()
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if ((!pActor || pActor->IsClient()) && IsClient())
+	// Crysis Co-op
+	// TheOtherSide: используется eRMI_ToRemoteClients потому что ИИ на сервере уже это делает
+	CActor *pOwner = GetOwnerActor();	
+
+	if (IsServer() && IS_AI_IN_MP(pOwner))
+	{
+		GetGameObject()->InvokeRMI(CWeapon::ClReload(), EmptyParams(), eRMI_ToRemoteClients);
+	}
+	// ~Crysis Co-op
+	else if ((!pActor || pActor->IsClient()) && IsClient())
 		GetGameObject()->InvokeRMI(SvRequestReload(), EmptyParams(), eRMI_ToServer);
 	else if (!IsClient() && IsServer())
 		GetGameObject()->InvokeRMI(CWeapon::ClReload(), EmptyParams(), eRMI_ToAllClients);
@@ -244,7 +318,16 @@ void CWeapon::RequestReload()
 void CWeapon::RequestCancelReload()
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if ((!pActor || pActor->IsClient()) && IsClient())
+	// Crysis Co-op
+	// TheOtherSide: используется eRMI_ToRemoteClients потому что ИИ на сервере уже это делает
+	CActor *pOwner = GetOwnerActor();	
+
+	if (IsServer() && IS_AI_IN_MP(pOwner))
+	{
+		GetGameObject()->InvokeRMI(CWeapon::ClCancelReload(), EmptyParams(), eRMI_ToRemoteClients);
+	}
+	// ~Crysis Co-op
+	else if ((!pActor || pActor->IsClient()) && IsClient())
 		GetGameObject()->InvokeRMI(SvRequestCancelReload(), EmptyParams(), eRMI_ToServer);
 	else if (!IsClient() && IsServer())
 		GetGameObject()->InvokeRMI(CWeapon::ClCancelReload(), EmptyParams(), eRMI_ToAllClients);
@@ -254,7 +337,16 @@ void CWeapon::RequestCancelReload()
 void CWeapon::RequestFireMode(int fmId)
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if (!pActor || pActor->IsClient())
+	// Crysis Co-op
+	// TheOtherSide: добавил по аналогии с другими методами
+	CActor *pOwner = GetOwnerActor();
+
+	if (IsServer() && IS_AI_IN_MP(pOwner))
+	{
+		SetCurrentFireMode(fmId);
+	}
+	// ~Crysis Co-op
+	else if (!pActor || pActor->IsClient())
 	{
 		if (IsServer())
 			SetCurrentFireMode(fmId); // serialization will fix the rest.
@@ -267,7 +359,13 @@ void CWeapon::RequestFireMode(int fmId)
 void CWeapon::RequestLock(EntityId id, int partId)
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if (!pActor || pActor->IsClient())
+	// Crysis Co-op
+	// TheOtherSide: добавил по аналогии с другими методами
+	//if (!pActor || pActor->IsClient())
+	CActor *pOwner = GetOwnerActor();
+
+	if (!pActor || pActor->IsClient() || IS_AI_IN_MP(pOwner))
+	// ~Crysis Co-op
 	{
 		if (IsServer())
 		{
@@ -285,8 +383,28 @@ void CWeapon::RequestLock(EntityId id, int partId)
 void CWeapon::RequestUnlock()
 {
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if (!pActor || pActor->IsClient())
-		GetGameObject()->InvokeRMI(SvRequestUnlock(), EmptyParams(), eRMI_ToServer);
+	// Crysis Co-op
+	// TheOtherSide: добавил по аналогии с другими методами
+	//if (!pActor || pActor->IsClient())
+	CActor *pOwner = GetOwnerActor();
+
+	if (!pActor || pActor->IsClient() || IS_AI_IN_MP(pOwner))
+	{
+		// ~Crysis Co-op
+
+		//TheOtherSide
+		if (IsServer())
+		{
+			if (m_fm)
+				m_fm->Unlock();
+			GetGameObject()->InvokeRMI(CWeapon::ClUnlock(), EmptyParams(), eRMI_ToRemoteClients);
+		}
+		else
+		{
+			GetGameObject()->InvokeRMI(SvRequestUnlock(), EmptyParams(), eRMI_ToServer);
+		}
+	}
+	// ~TheOtherSide
 }
 
 //------------------------------------------------------------------------
@@ -295,7 +413,11 @@ void CWeapon::RequestWeaponRaised(bool raise)
 	if (gEnv->bMultiplayer)
 	{
 		CActor *pActor = GetOwnerActor();
-		if (pActor && pActor->IsClient())
+		// Crysis Co-op
+		// TheOtherSide: добавил по аналогии с другими методами
+		//if (pActor && pActor->IsClient())
+		if (pActor && pActor->IsClient() || IS_AI_IN_MP(pActor))
+		// ~Crysis Co-op
 		{
 			if (IsServer())
 				GetGameObject()->InvokeRMI(ClWeaponRaised(), WeaponRaiseParams(raise), eRMI_ToRemoteClients | eRMI_NoLocalCalls);
@@ -308,11 +430,29 @@ void CWeapon::RequestWeaponRaised(bool raise)
 //------------------------------------------------------------------------
 void CWeapon::RequestStartSecondaryFire()
 {
+	// Crysis Co-op
+	// TheOtherSide: добавил по аналогии с другими методами
+	// IActor *pActor = m_pGameFramework->GetClientActor();
+	// if ((!pActor || pActor->IsClient()) && IsClient())
+	// 	GetGameObject()->InvokeRMI(CWeapon::SvRequestStartSecondaryFire(), EmptyParams(), eRMI_ToServer);
+
 	IActor *pActor = m_pGameFramework->GetClientActor();
-	if ((!pActor || pActor->IsClient()) && IsClient())
-		GetGameObject()->InvokeRMI(CWeapon::SvRequestStartSecondaryFire(), EmptyParams(), eRMI_ToServer);
-	else if (!IsClient() && IsServer())
-		GetGameObject()->InvokeRMI(CWeapon::ClStartSecondaryFire(), EmptyParams(), eRMI_ToAllClients);
+	CActor *pOwner = GetOwnerActor();
+
+	if (!pActor || pActor->IsClient() || IS_AI_IN_MP(pOwner))
+	{
+		if (IsServer())
+		{
+			//FIXME: здесь не уверен на счет eRMI_ToAllClients
+			GetGameObject()->InvokeRMI(CWeapon::ClStartSecondaryFire(), EmptyParams(), eRMI_ToAllClients);
+		}
+		else 
+		{
+			GetGameObject()->InvokeRMI(CWeapon::SvRequestStartSecondaryFire(), EmptyParams(), eRMI_ToServer);
+		}
+	}
+
+	// ~Crysis Co-op
 }
 
 //------------------------------------------------------------------------
@@ -382,10 +522,13 @@ IMPLEMENT_RMI(CWeapon, SvRequestShoot)
 {
 	CHECK_OWNER_REQUEST();
 
+	//Crysis Co-op
+	// TheOtherSide: фикс оружия, неделающего действие без владельца на удаленном клиенте 
 	bool ok = true;
 	CActor *pActor = GetActorByNetChannel(pNetChannel);
-	if (!pActor || pActor->GetHealth() <= 0)
-		ok = false;
+	//if (!pActor || pActor->GetHealth() <= 0)
+		//ok = false;
+	//~Crysis Co-op
 
 	ok &= !OutOfAmmo(false);
 
@@ -424,7 +567,8 @@ IMPLEMENT_RMI(CWeapon, SvRequestShoot)
 									   eRMI_ToOtherClients | eRMI_NoLocalCalls, m_pGameFramework->GetGameChannelId(pNetChannel));
 
 		IActor *pLocalActor = m_pGameFramework->GetClientActor();
-		bool isLocal = pLocalActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
+		//TheOtherSide: добавил pActor
+		bool isLocal = pLocalActor && pActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
 
 		if (!isLocal)
 			NetShoot(params.hit, params.predictionHandle);
@@ -444,10 +588,13 @@ IMPLEMENT_RMI(CWeapon, SvRequestShootEx)
 {
 	CHECK_OWNER_REQUEST();
 
+	//Crysis Co-op
+	// TheOtherSide: фикс оружия, неделающего действие без владельца на удаленном клиенте 
 	bool ok = true;
 	CActor *pActor = GetActorByNetChannel(pNetChannel);
-	if (!pActor || pActor->GetHealth() <= 0)
-		ok = false;
+	//if (!pActor || pActor->GetHealth() <= 0)
+		//ok = false;
+	//~Crysis Co-op
 
 	ok &= !OutOfAmmo(false);
 
@@ -461,7 +608,9 @@ IMPLEMENT_RMI(CWeapon, SvRequestShootEx)
 								   eRMI_ToOtherClients | eRMI_NoLocalCalls, m_pGameFramework->GetGameChannelId(pNetChannel));
 
 		IActor *pLocalActor = m_pGameFramework->GetClientActor();
-		bool isLocal = pLocalActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
+		
+		//TheOtherSide: добавил pActor
+		bool isLocal = pLocalActor && pActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
 
 		if (!isLocal)
 			NetShootEx(params.pos, params.dir, params.vel, params.hit, params.extra, params.predictionHandle);
@@ -531,18 +680,23 @@ IMPLEMENT_RMI(CWeapon, SvRequestMeleeAttack)
 {
 	CHECK_OWNER_REQUEST();
 
+	//Crysis Co-op
+	// TheOtherSide: фикс оружия, неделающего действие без владельца на удаленном клиенте 
 	bool ok = true;
 	CActor *pActor = GetActorByNetChannel(pNetChannel);
-	if (pActor && pActor->GetHealth() <= 0)
-		ok = false;
-
+	//if (!pActor || pActor->GetHealth() <= 0)
+		//ok = false;
+	//~Crysis Co-op
+	
 	if (ok)
 	{
 		GetGameObject()->InvokeRMI(CWeapon::ClMeleeAttack(), ClMeleeAttackParams(params.wmelee, params.pos, params.dir),
 								   eRMI_ToOtherClients | eRMI_NoLocalCalls, m_pGameFramework->GetGameChannelId(pNetChannel));
 
 		IActor *pLocalActor = m_pGameFramework->GetClientActor();
-		bool isLocal = pLocalActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
+
+		//TheOtherSide: добавил pActor
+		bool isLocal = pLocalActor && pActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
 
 		if (!isLocal)
 			NetMeleeAttack(params.wmelee, params.pos, params.dir);
@@ -572,10 +726,13 @@ IMPLEMENT_RMI(CWeapon, SvRequestZoom)
 {
 	CHECK_OWNER_REQUEST();
 
+	//Crysis Co-op
+	// TheOtherSide: фикс оружия, неделающего действие без владельца на удаленном клиенте 
 	bool ok = true;
 	CActor *pActor = GetActorByNetChannel(pNetChannel);
-	if (!pActor || pActor->GetHealth() <= 0)
-		ok = false;
+	//if (!pActor || pActor->GetHealth() <= 0)
+		//ok = false;
+	//~Crysis Co-op
 
 	if (ok)
 	{
@@ -583,7 +740,9 @@ IMPLEMENT_RMI(CWeapon, SvRequestZoom)
 								   eRMI_ToOtherClients | eRMI_NoLocalCalls, m_pGameFramework->GetGameChannelId(pNetChannel));
 
 		IActor *pLocalActor = m_pGameFramework->GetClientActor();
-		bool isLocal = pLocalActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
+
+		//TheOtherSide: добавил pActor
+		bool isLocal = pLocalActor && pActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
 
 		if (!isLocal)
 			NetZoom(params.fov);
@@ -628,17 +787,22 @@ IMPLEMENT_RMI(CWeapon, SvRequestReload)
 {
 	CHECK_OWNER_REQUEST();
 
+	//Crysis Co-op
+	// TheOtherSide: фикс оружия, неделающего действие без владельца на удаленном клиенте 
 	bool ok = true;
 	CActor *pActor = GetActorByNetChannel(pNetChannel);
-	if (!pActor || pActor->GetHealth() <= 0)
-		ok = false;
+	//if (!pActor || pActor->GetHealth() <= 0)
+		//ok = false;
+	//~Crysis Co-op
 
 	if (ok)
 	{
 		GetGameObject()->InvokeRMI(CWeapon::ClReload(), params, eRMI_ToOtherClients | eRMI_NoLocalCalls, m_pGameFramework->GetGameChannelId(pNetChannel));
 
 		IActor *pLocalActor = m_pGameFramework->GetClientActor();
-		bool isLocal = pLocalActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
+
+		//TheOtherSide: добавил pActor
+		bool isLocal = pLocalActor && pActor && (pLocalActor->GetChannelId() == pActor->GetChannelId());
 
 		if (!isLocal && m_fm)
 			m_fm->Reload(0);
@@ -764,9 +928,12 @@ IMPLEMENT_RMI(CWeapon, SvRequestStartSecondaryFire)
 {
 	CHECK_OWNER_REQUEST();
 
+	// Crysis Co-op
+	// TheOtherSide: фикс оружия, неделающего действие без владельца на удаленном клиенте 
 	CActor *pActor = GetActorByNetChannel(pNetChannel);
-	if (!pActor || pActor->GetHealth() <= 0)
-		return true;
+	//if (!pActor || pActor->GetHealth() <= 0)
+		//return true
+	// ~Crysis Co-op
 
 	GetGameObject()->InvokeRMI(CWeapon::ClStartSecondaryFire(), params, eRMI_ToAllClients,
 							   m_pGameFramework->GetGameChannelId(pNetChannel));
