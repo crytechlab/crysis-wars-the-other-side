@@ -152,8 +152,9 @@ bool CCompatibilityAlienMovementController::RequestMovement( CMovementRequest& r
 
 	if (pAnimationGraphState)
 	{
+		//TheOtherSide: добавил проверку на slave и server
 		// Обработка цели актора, если она есть
-		if (request.HasActorTarget())
+		if (request.HasActorTarget() && (m_pAlien->IsSlave() || gEnv->bServer))
 		{
 			// Получаем параметры цели актора
 			const SActorTargetParams& p = request.GetActorTarget();
@@ -191,7 +192,8 @@ bool CCompatibilityAlienMovementController::RequestMovement( CMovementRequest& r
 			}
 		}
 		// Если есть запрос на удаление цели актора, очищаем триггер
-		else if (request.RemoveActorTarget())
+		//TheOtherSide: добавил проверку на slave и server
+		else if (request.RemoveActorTarget() && (m_pAlien->IsSlave() || gEnv->bServer))
 		{
 			pAnimationGraphState->ClearTrigger(eAGTU_AI);
 		}
