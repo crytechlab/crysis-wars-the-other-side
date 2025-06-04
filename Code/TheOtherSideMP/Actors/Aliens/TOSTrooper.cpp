@@ -126,7 +126,7 @@ void CTOSTrooper::Update(SEntityUpdateContext& ctx, const int updateSlot)
 
 	GetGameObject()->SetAutoDisablePhysicsMode(adpm);
 	//~TheOtherSide
-	
+
 	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
 	{
 		// Only update on dedicated server.
@@ -340,24 +340,6 @@ void CTOSTrooper::UpdateStats(float frameTime)
 	CTrooper::UpdateStats(frameTime);
 
 	const auto pPhysEnt = GetEntity()->GetPhysics();
-
-	//if (gEnv->pSystem->IsDedicated())
-	//{
-	//	if (pPhysEnt)
-	//	{
-	//		// leipzig: force inactive (was active on ded. servers)
-	//		pe_player_dynamics paramsGet;
-	//		if (pPhysEnt->GetParams(&paramsGet))
-	//		{
-	//			if (!paramsGet.bActive && m_pAnimatedCharacter)
-	//			{
-	//				m_pAnimatedCharacter->ForceRefreshPhysicalColliderMode();
-	//				m_pAnimatedCharacter->RequestPhysicalColliderMode(eColliderMode_Undefined, eColliderModeLayer_Game, "CTOSTrooper::UpdateStats");
-	//			}
-	//		}			
-	//	}
-	//}
-
 	if (pPhysEnt)
 	{
 		pe_player_dynamics paramsGet;
@@ -424,20 +406,6 @@ void CTOSTrooper::PrePhysicsUpdate()
 
 void CTOSTrooper::UpdateMasterView(SViewParams& viewParams, Vec3& offsetX, Vec3& offsetY, Vec3& offsetZ, Vec3& target, Vec3& current, float& currentFov)
 {
-	//CTrooper::UpdateMasterView(viewParams, offsetY, target, currentFov);
-
-	//const Matrix33 alienWorldMtx(GetEntity()->GetWorldTM());
-
-	//if (esSystem->trooper.isCeiling)
-	//	target(g_pGameCVars->ctrl_trTargetx, g_pGameCVars->ctrl_trTargety, g_pGameCVars->ctrl_trTargetz);
-	//else
-	//{
-	//	target(g_pGameCVars->ctrl_trTargetx, g_pGameCVars->ctrl_trTargety,
-	//		g_pGameCVars->ctrl_trTargetz - 2.f);
-	//}
-	//offsetY = gEnv->pSystem->GetViewCamera().GetViewdir() * current.y; //Used by all aliens in this mod
-	//currentFov = g_pGameCVars->ctrl_trFov;
-
 	currentFov = 75.0f;
 	target(0.7f, -2.8f, 1.75f);
 
@@ -452,86 +420,3 @@ bool CTOSTrooper::ApplyActions(int actions)
 
 	return true;
 }
-
-//void CTOSTrooper::ProcessJump(const CMovementRequest& request)
-//{
-//	//throw std::logic_error("Функция не актуальна");
-//
-//	TOS_CHECK_CONSUMER_EXISTING(this);
-//
-//	//pe_action_impulse impulse;
-//	SCharacterMoveRequest animCharRequest;
-//	animCharRequest.jumping = true;
-//	animCharRequest.type = eCMT_JumpInstant; //eCMT_JumpAccumulate;//eCMT_JumpInstant; //eCMT_Impulse //eCMT_JumpAccumulate;
-//
-//	Vec3 jumpVec(0, 0, 0);
-//
-//	const Vec3& upDir      = GetEntity()->GetWorldTM().GetColumn(2);
-//	const Vec3& forwardDir = GetEntity()->GetWorldTM().GetColumn(1);
-//	const Vec3& rightDir   = GetEntity()->GetWorldTM().GetColumn(0);
-//
-//	STOSSlaveStats* pSlaveStats = &GetSlaveStats();
-//	const auto      pActorStats = GetActorStats();
-//
-//	if (pActorStats)
-//	{
-//		const float     onGround  = pActorStats->onGround;
-//		const float		jumpPressDur = pSlaveStats->chargingJumpPressDur;
-//		const float		jumpForce = 6.0f;
-//		const float		finalOnceJumpForce = jumpPressDur > tos::console::GetSafeFloatVar("tos_tr_charging_jump_input_time") ? jumpForce + 4.0f : jumpForce;
-//
-//		const float doubleJumpCost = tos::console::GetSafeFloatVar("tos_tr_double_jump_energy_cost");
-//		const float energy = TOS_SAFE_GET_ENERGY(this);
-//
-//		// Одиночный прыжок
-//		if (onGround > 0.25f)
-//		{
-//			pSlaveStats->jumpCount++;
-//			jumpVec.z = upDir.z * finalOnceJumpForce; //400.0f
-//
-//			//GetEntity()->GetPhysics()->Action(&impulse);
-//			animCharRequest.velocity += jumpVec;
-//			m_pAnimatedCharacter->AddMovement(animCharRequest);
-//
-//			pSlaveStats->chargingJumpPressDur = 0.0f;
-//
-//			//TODO
-//			//NetPlayAnimAction("CTRL_JumpStart", false);
-//		}
-//		else if (pSlaveStats->jumpCount > 0 && pActorStats->inAir > 0.0f && energy > doubleJumpCost)
-//		{
-//			// Двойной прыжок
-//
-//			if (request.HasDeltaMovement() && !request.GetDeltaMovement().IsZero())
-//			{
-//				//jumpVec += request.GetDeltaMovement().x * 300.f * rightDir / 1.5f;
-//				//jumpVec += request.GetDeltaMovement().y * 300.f * forwardDir / 1.5f;
-//
-//				jumpVec += request.GetDeltaMovement().x * jumpForce * rightDir / 1.5f;
-//				jumpVec += request.GetDeltaMovement().y * jumpForce * forwardDir / 1.5f;
-//			}
-//			else
-//			{
-//				jumpVec = forwardDir * jumpForce; //300.f;
-//			}
-//			jumpVec.z = upDir.z * 2.5f; // 250.f;
-//
-//			//TODO
-//			//NetSpawnParticleEffect("alien_special.Trooper.doubleJumpAttack");
-//
-//			//TODO
-//			//SubEnergy(TROOPER_JUMP_ENERGY_COST);
-//
-//			animCharRequest.velocity += jumpVec;
-//			m_pAnimatedCharacter->AddMovement(animCharRequest);
-//
-//			TOS_SAFE_ADD_ENERGY(this, -doubleJumpCost);
-//
-//			pSlaveStats->jumpCount = 0;
-//
-//			//TODO
-//			//The controlled trooper cannot to do jump attack after double jump
-//			//m_trooper.canJumpMelee = false;
-//		}
-//	}
-//}
