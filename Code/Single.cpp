@@ -7,7 +7,7 @@ $DateTime$
 
 -------------------------------------------------------------------------
 History:
-- 11:9:2005   15:00 : Created by Márcio Martins
+- 11:9:2005   15:00 : Created by Mï¿½rcio Martins
 
 *************************************************************************/
 // ReSharper disable CppInconsistentNaming
@@ -2846,7 +2846,7 @@ void CSingle::InternalNetShootEx(IEntityClass* spawn_ammo, const Vec3& pos, cons
 			
 		//TheOtherSide fix ai unreplicated grenades
 		// Force network binding for AI grenades
-		if (NOT_PLAYER_IN_MP(m_pWeapon->GetOwnerActor()) && gEnv->bServer && pAmmo->GetEntity())
+		if (IS_AI_IN_MP(m_pWeapon->GetOwnerActor()) && gEnv->bServer && pAmmo->GetEntity())
 			pAmmo->GetGameObject()->BindToNetwork();
 		//~TheOtherSide
 
