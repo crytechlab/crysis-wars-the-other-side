@@ -15,6 +15,7 @@ Copyright (C), AlienKeeper, 2024.
 #include <CompatibilityAlienMovementController.h>
 #include <utility>
 #include "TOSAlienMovementController.h"
+#include "Coop/Utilities/DedicatedServerHackScope.h"
 
 CTOSTrooper::CTOSTrooper() {};
 
@@ -126,6 +127,17 @@ void CTOSTrooper::Update(SEntityUpdateContext& ctx, const int updateSlot)
 
 	GetGameObject()->SetAutoDisablePhysicsMode(adpm);
 	//~TheOtherSide
+	
+	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
+	{
+		// Only update on dedicated server.
+		if (gEnv->bServer && !gEnv->bClient)
+		{
+			CDedicatedServerHackScope::Enter();
+			pGraphState->Update();
+			CDedicatedServerHackScope::Exit();
+		}
+	}
 }
 
 bool CTOSTrooper::NetSerialize(TSerialize ser, const EEntityAspects aspect, const uint8 profile, const int flags)
@@ -161,7 +173,6 @@ bool CTOSTrooper::NetSerialize(TSerialize ser, const EEntityAspects aspect, cons
 			GetMovementController()->RequestMovement(request);
 		}
 	}
-
 	return true;
 }
 

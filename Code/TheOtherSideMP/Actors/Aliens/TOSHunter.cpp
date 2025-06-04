@@ -55,6 +55,16 @@ void CTOSHunter::Update(SEntityUpdateContext& ctx, int updateSlot)
 
 	GetGameObject()->SetAutoDisablePhysicsMode(adpm);
 
+	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
+	{
+		// Only update on dedicated server.
+		if (gEnv->bServer && !gEnv->bClient)
+		{
+			CDedicatedServerHackScope::Enter();
+			pGraphState->Update();
+			CDedicatedServerHackScope::Exit();
+		}
+	}
 }
 
 void CTOSHunter::ProcessEvent(SEntityEvent& event)

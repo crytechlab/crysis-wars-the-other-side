@@ -56,7 +56,16 @@ void CTOSAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
 {
 	CAlien::Update(ctx, updateSlot);
 
-
+	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
+	{
+		// Only update on dedicated server.
+		if (gEnv->bServer && !gEnv->bClient)
+		{
+			CDedicatedServerHackScope::Enter();
+			pGraphState->Update();
+			CDedicatedServerHackScope::Exit();
+		}
+	}
 }
 
 // ReSharper disable once CppParameterMayBeConst
@@ -170,17 +179,6 @@ void CTOSAlien::PrePhysicsUpdate()
 	else
 	{
 		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
-	}
-
-	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
-	{
-		// Only update on dedicated server.
-		if (gEnv->bServer && !gEnv->bClient)
-		{
-			CDedicatedServerHackScope::Enter();
-			pGraphState->Update();
-			CDedicatedServerHackScope::Exit();
-		}
 	}
 }
 

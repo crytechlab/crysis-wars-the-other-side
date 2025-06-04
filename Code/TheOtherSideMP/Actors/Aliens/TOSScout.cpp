@@ -62,6 +62,17 @@ void CTOSScout::Update(SEntityUpdateContext& ctx, int updateSlot)
 	}
 
 	GetGameObject()->SetAutoDisablePhysicsMode(adpm);
+
+	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
+	{
+		// Only update on dedicated server.
+		if (gEnv->bServer && !gEnv->bClient)
+		{
+			CDedicatedServerHackScope::Enter();
+			pGraphState->Update();
+			CDedicatedServerHackScope::Exit();
+		}
+	}
 }
 
 void CTOSScout::PrePhysicsUpdate()
@@ -93,17 +104,6 @@ void CTOSScout::PrePhysicsUpdate()
 	else
 	{
 		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
-	}
-
-	if (IAnimationGraphState* pGraphState = this->GetAnimationGraphState())
-	{
-		// Only update on dedicated server.
-		if (gEnv->bServer && !gEnv->bClient)
-		{
-			CDedicatedServerHackScope::Enter();
-			pGraphState->Update();
-			CDedicatedServerHackScope::Exit();
-		}
 	}
 }
 
