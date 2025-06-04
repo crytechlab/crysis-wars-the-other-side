@@ -4341,7 +4341,28 @@ void CActor::DumpActorInfo()
       CryLog("Mass: %.1f", dyn.mass);
       CryLog("Vel: %.2f %.2f %.2f", dyn.v.x, dyn.v.y, dyn.v.z);
     } 
-  }  
+  }
+
+  if (m_pAnimatedCharacter)
+  {
+	  SAnimatedCharacterParams params = m_pAnimatedCharacter->GetParams();
+	  
+	  // Вывод флагов AnimatedCharacter
+	  CryLog("Animated character flags:");
+	  CryLog("  AllowEntityClampingByAnimation: %s", (params.flags & eACF_AllowEntityClampingByAnimation) ? "Yes" : "No");
+	  CryLog("  AlwaysAnimation: %s", (params.flags & eACF_AlwaysAnimation) ? "Yes" : "No");
+	  CryLog("  AlwaysPhysics: %s", (params.flags & eACF_AlwaysPhysics) ? "Yes" : "No");
+	  CryLog("  ConstrainDesiredSpeedToXY: %s", (params.flags & eACF_ConstrainDesiredSpeedToXY) ? "Yes" : "No");
+	  CryLog("  EnableMovementProcessing: %s", (params.flags & eACF_EnableMovementProcessing) ? "Yes" : "No");
+	  CryLog("  Frozen: %s", (params.flags & eACF_Frozen) ? "Yes" : "No");
+	  CryLog("  ImmediateStance: %s", (params.flags & eACF_ImmediateStance) ? "Yes" : "No");
+	  CryLog("  LockToEntity: %s", (params.flags & eACF_LockToEntity) ? "Yes" : "No");
+	  CryLog("  NoLMErrorCorrection: %s", (params.flags & eACF_NoLMErrorCorrection) ? "Yes" : "No");
+	  CryLog("  NoTransRot2k: %s", (params.flags & eACF_NoTransRot2k) ? "Yes" : "No");
+	  CryLog("  PerAnimGraph: %s", (params.flags & eACF_PerAnimGraph) ? "Yes" : "No");
+	  CryLog("  UseHumanBlending: %s", (params.flags & eACF_UseHumanBlending) ? "Yes" : "No");
+	  CryLog("  ZCoordinateFromPhysics: %s", (params.flags & eACF_ZCoordinateFromPhysics) ? "Yes" : "No");
+  }
 
   if (IVehicle* pVehicle = GetLinkedVehicle())
   {

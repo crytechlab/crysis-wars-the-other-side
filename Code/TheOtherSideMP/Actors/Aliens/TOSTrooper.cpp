@@ -56,60 +56,59 @@ void CTOSTrooper::Update(SEntityUpdateContext& ctx, const int updateSlot)
 {
 	const float regenStartDelay = m_pEnergyManager->GetRegenStartDelay();
 
-	NETINPUT_TRACE(GetEntityId(), regenStartDelay);
-	NETINPUT_TRACE(GetEntityId(), m_input.deltaMovement);
-	NETINPUT_TRACE(GetEntityId(), m_input.viewDir);
-	NETINPUT_TRACE(GetEntityId(), m_input.actions);
-	NETINPUT_TRACE(GetEntityId(), m_input.viewVector);
-	NETINPUT_TRACE(GetEntityId(), m_netBodyInfo.desiredSpeed);
-	NETINPUT_TRACE(GetEntityId(), m_netBodyInfo.deltaMov);
-	NETINPUT_TRACE(GetEntityId(), m_netBodyInfo.lookTarget);
-	NETINPUT_TRACE(GetEntityId(), GetEntity()->GetWorldPos());
-	NETINPUT_TRACE(GetEntityId(), m_stats.inAir);
-	NETINPUT_TRACE(GetEntityId(), m_stats.onGround);
-	NETINPUT_TRACE(GetEntityId(), m_jumpParams.bFreeFall);
-	NETINPUT_TRACE(GetEntityId(), m_jumpParams.velocity);
-	NETINPUT_TRACE(GetEntityId(), m_jumpParams.curVelocity);
-	NETINPUT_TRACE(GetEntityId(), m_jumpParams.state);
-	NETINPUT_TRACE(GetEntityId(), m_jumpParams.duration);
-	NETINPUT_TRACE(GetEntityId(), m_jumpParams.prevInAir);
-	NETINPUT_TRACE(GetEntityId(), m_jumpParams.remainingTime);
-	NETINPUT_TRACE(GetEntityId(), m_lastTimeOnGround.GetSeconds());
+	// NETINPUT_TRACE(GetEntityId(), regenStartDelay);
+	// NETINPUT_TRACE(GetEntityId(), m_input.deltaMovement);
+	// NETINPUT_TRACE(GetEntityId(), m_input.viewDir);
+	// NETINPUT_TRACE(GetEntityId(), m_input.actions);
+	// NETINPUT_TRACE(GetEntityId(), m_input.viewVector);
+	// NETINPUT_TRACE(GetEntityId(), m_netBodyInfo.desiredSpeed);
+	// NETINPUT_TRACE(GetEntityId(), m_netBodyInfo.deltaMov);
+	// NETINPUT_TRACE(GetEntityId(), m_netBodyInfo.lookTarget);
+	// NETINPUT_TRACE(GetEntityId(), GetEntity()->GetWorldPos());
+	// NETINPUT_TRACE(GetEntityId(), m_stats.inAir);
+	// NETINPUT_TRACE(GetEntityId(), m_stats.onGround);
+	// NETINPUT_TRACE(GetEntityId(), m_jumpParams.bFreeFall);
+	// NETINPUT_TRACE(GetEntityId(), m_jumpParams.velocity);
+	// NETINPUT_TRACE(GetEntityId(), m_jumpParams.curVelocity);
+	// NETINPUT_TRACE(GetEntityId(), m_jumpParams.state);
+	// NETINPUT_TRACE(GetEntityId(), m_jumpParams.duration);
+	// NETINPUT_TRACE(GetEntityId(), m_jumpParams.prevInAir);
+	// NETINPUT_TRACE(GetEntityId(), m_jumpParams.remainingTime);
+	// NETINPUT_TRACE(GetEntityId(), m_lastTimeOnGround.GetSeconds());
+
+	Vec3 world_position = GetEntity()->GetWorldPos();
+	NETINPUT_TRACE(GetEntityId(), world_position);
+	//tos::debug::DrawPosition(world_position, "world_position", ColorF(0.0f, 1.0f, 0.0f, 1.0f), 1.3f);
+
+	if (IPhysicalEntity* pPhysics = GetEntity()->GetPhysics())
+	{ 
+		auto physics_type = pPhysics->GetType();
+		NETINPUT_TRACE(GetEntityId(), physics_type);
+		
+		pe_status_pos pos;
+		if (pPhysics->GetStatus(&pos))
+		{
+			const Vec3 &physics_position = pos.pos;
+			NETINPUT_TRACE(GetEntityId(), physics_position);
+			//tos::debug::DrawPosition(physics_position, "physics_position", 1.3f);
+		}
+
+		pe_status_dynamics dyn;
+		if (pPhysics->GetStatus(&dyn))
+		{   
+			const auto physics_velocity = dyn.v;
+			const auto physics_mass = dyn.mass;
+
+			NETINPUT_TRACE(GetEntityId(), physics_velocity);
+			NETINPUT_TRACE(GetEntityId(), physics_mass);
+		} 
+	}
 
 	IEntityRenderProxy* pRenderProxy = (IEntityRenderProxy*)(GetEntity()->GetProxy(ENTITY_PROXY_RENDER));
 	if ((pRenderProxy == nullptr) || !pRenderProxy->IsCharactersUpdatedBeforePhysics())
 		PrePhysicsUpdate();
 
 	CTrooper::Update(ctx, updateSlot);
-
-	//IPhysicalEntity* pPhysEnt = GetEntity()->GetPhysics();
-	//if (pPhysEnt)
-	//{
-	//	pe_status_dynamics dynStat;
-	//	pe_status_living livStat;
-
-	//	int dynStatType = dynStat.type;
-	//	memset(&dynStat, 0, sizeof(pe_status_dynamics));
-	//	dynStat.type = dynStatType;
-
-	//	int livStatType = livStat.type;
-	//	memset(&livStat, 0, sizeof(pe_status_living));
-	//	livStat.groundSlope = Vec3(0, 0, 1);
-	//	livStat.type = livStatType;
-
-	//	pPhysEnt->GetStatus(&dynStat);
-	//	pPhysEnt->GetStatus(&livStat);
-
-	//	NETINPUT_TRACE(GetEntityId(), dynStat.mass);
-	//	NETINPUT_TRACE(GetEntityId(), dynStat.a);
-	//	NETINPUT_TRACE(GetEntityId(), dynStat.v);
-	//	NETINPUT_TRACE(GetEntityId(), livStat.bFlying);
-	//	NETINPUT_TRACE(GetEntityId(), livStat.bStuck);
-	//	NETINPUT_TRACE(GetEntityId(), livStat.timeFlying);
-	//	NETINPUT_TRACE(GetEntityId(), livStat.velRequested);
-	//	NETINPUT_TRACE(GetEntityId(), livStat.velUnconstrained);
-	//	NETINPUT_TRACE(GetEntityId(), livStat.groundHeight);
-	//}
 
 	NETINPUT_TRACE(GetEntityId(), InZeroG());
 	NETINPUT_TRACE(GetEntityId(), IsSlave());
@@ -374,8 +373,14 @@ void CTOSTrooper::UpdateStats(float frameTime)
 			NETINPUT_TRACE(GetEntityId(), paramsGet.kAirControl);
 			NETINPUT_TRACE(GetEntityId(), paramsGet.kAirResistance);
 			NETINPUT_TRACE(GetEntityId(), paramsGet.kInertia);
+			NETINPUT_TRACE(GetEntityId(), paramsGet.kInertiaAccel);
+			NETINPUT_TRACE(GetEntityId(), paramsGet.timeImpulseRecover);
 			NETINPUT_TRACE(GetEntityId(), charParams.inertia);
-			NETINPUT_TRACE(GetEntityId(), m_params.speedInertia);
+			NETINPUT_TRACE(GetEntityId(), charParams.inertiaAccel);
+			NETINPUT_TRACE(GetEntityId(), charParams.timeImpulseRecover);
+			NETINPUT_TRACE(GetEntityId(), m_params.inertia);
+			NETINPUT_TRACE(GetEntityId(), m_params.inertiaAccel);
+			NETINPUT_TRACE(GetEntityId(), m_params.timeImpulseRecover);
 			NETINPUT_TRACE(GetEntityId(), paramsGet.timeImpulseRecover);
 			NETINPUT_TRACE(GetEntityId(), paramsGet.type);
 			NETINPUT_TRACE(GetEntityId(), collideMode);
