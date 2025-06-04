@@ -559,10 +559,13 @@ IMPLEMENT_RMI(CWeapon, SvRequestShoot)
 {
 	CHECK_OWNER_REQUEST();
 
-	bool          ok = true;
-	const CActor* pActor = GetActorByNetChannel(pNetChannel);
-	if (!pActor || pActor->GetHealth() <= 0)
-		ok = false;
+	//TheOtherSide: fix нестреляющего оружия без владельца на удаленном клиенте
+	// теперь оружие стреляет несмотря на наличие владельца
+	bool ok=true;
+	CActor *pActor=GetActorByNetChannel(pNetChannel);
+	//if (!pActor || pActor->GetHealth()<=0)
+		//ok=false;
+	//~TheOtherSide
 
 	ok &= !OutOfAmmo(false);
 
