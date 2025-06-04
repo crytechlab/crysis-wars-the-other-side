@@ -1766,9 +1766,11 @@ void CWeapon::Reload(bool force)
 		else
 			m_fm->Reload(0);
 
-
-		if (!pOwner || pOwner->IsClient())
+		//TheOtherSide: fix ИИ не перезаряжает оружие на удаленном клиенте
+		//if (!pOwner || pOwner->IsClient())
+		if (pOwner && (pOwner->IsClient() || IS_AI_IN_MP(pOwner)))
 			RequestReload();
+		//~TheOtherSide
 	}
 }
 
