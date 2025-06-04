@@ -313,10 +313,11 @@ bool CPlayerMovementController::RequestMovement( CMovementRequest& request )
 	}
 */
 
-	if (request.HasActorTarget())
+	//Crysis Co-op
+	if (request.HasActorTarget() && (m_pPlayer->IsPlayer() || gEnv->bServer))
 	{
 		const SActorTargetParams& p = request.GetActorTarget();
-
+     
 		SAnimationTargetRequest req;
 		req.position = p.location;
 		req.positionRadius = std::max( p.locationRadius, DEG2RAD(0.05f) );
@@ -355,12 +356,12 @@ bool CPlayerMovementController::RequestMovement( CMovementRequest& request )
 			}
 		}
 	}
-	else if (request.RemoveActorTarget())
+	else if (request.RemoveActorTarget() && (m_pPlayer->IsPlayer() || gEnv->bServer))
 	{
 		if(m_pPlayer->GetAnimationGraphState())
 			m_pPlayer->GetAnimationGraphState()->ClearTrigger(eAGTU_AI);
 	}
-
+	//~Crysis Co-op
 	return ok;
 }
 
