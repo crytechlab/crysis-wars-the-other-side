@@ -256,7 +256,7 @@ void CWeapon::RequestFireMode(int fmId)
 	IActor *pActor = m_pGameFramework->GetClientActor();
 	if (!pActor || pActor->IsClient())
 	{
-		if (gEnv->bServer)
+		if (IsServer())
 			SetCurrentFireMode(fmId); // serialization will fix the rest.
 		else
 			GetGameObject()->InvokeRMI(SvRequestFireMode(), SvRequestFireModeParams(fmId), eRMI_ToServer);
@@ -269,7 +269,7 @@ void CWeapon::RequestLock(EntityId id, int partId)
 	IActor *pActor = m_pGameFramework->GetClientActor();
 	if (!pActor || pActor->IsClient())
 	{
-		if (gEnv->bServer)
+		if (IsServer())
 		{
 			if (m_fm)
 				m_fm->Lock(id, partId);
@@ -297,7 +297,7 @@ void CWeapon::RequestWeaponRaised(bool raise)
 		CActor *pActor = GetOwnerActor();
 		if (pActor && pActor->IsClient())
 		{
-			if (gEnv->bServer)
+			if (IsServer())
 				GetGameObject()->InvokeRMI(ClWeaponRaised(), WeaponRaiseParams(raise), eRMI_ToRemoteClients | eRMI_NoLocalCalls);
 			else
 				GetGameObject()->InvokeRMI(SvRequestWeaponRaised(), WeaponRaiseParams(raise), eRMI_ToServer);
