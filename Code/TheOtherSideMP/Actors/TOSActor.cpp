@@ -409,6 +409,29 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 	NETINPUT_TRACE(GetEntityId(), m_isMaster);
 	NETINPUT_TRACE(GetEntityId(), m_isSlave);
 	NETINPUT_TRACE(GetEntityId(), m_isZeus);
+
+	bool haveRightHandAttachment = false;  
+	string rightHandAttachedName;
+
+	ICharacterInstance *pCharacter = GetEntity()->GetCharacter(0);
+	if (pCharacter)
+	{
+		IAttachmentManager *pAttachmentManager = pCharacter->GetIAttachmentManager();
+		IAttachment *pAttachment = pAttachmentManager->GetInterfaceByName("right_item_attachment");
+		haveRightHandAttachment = pAttachment != nullptr;
+		if (pAttachment)
+		{
+			auto pEntityAttachment = static_cast<CEntityAttachment*>(pAttachment->GetIAttachmentObject());
+			if (pEntityAttachment)
+			{
+				auto pEntity = TOS_GET_ENTITY(pEntityAttachment->GetEntityId());
+				rightHandAttachedName = pEntity ? pEntity->GetName() : "NULL";
+			}
+		}
+	}
+
+	NETINPUT_TRACE(GetEntityId(), haveRightHandAttachment);
+	NETINPUT_TRACE(GetEntityId(), rightHandAttachedName); 
 }
 
 void CTOSActor::Release()
