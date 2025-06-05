@@ -53,7 +53,7 @@ bool CTOSGruntMovementController::RequestMovement(CMovementRequest& request)
 
 	if (gEnv->bServer && request.RemoveActorTarget() && m_bHadActorTarget)
 	{
-		this->m_pGrunt->SendSpecialMovementRequest(request.m_flags, request.GetActorTarget());
+		this->m_pGrunt->SendSpecialMovementRequest(request.m_flags, SActorTargetParams());
 		m_bHadActorTarget = false;
 	}
 
