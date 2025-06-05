@@ -3147,3 +3147,81 @@ SItemStrings::SItemStrings()
 
 };
 
+//TheOtherSide
+void CItem::DumpItemInfo()
+{
+	IEntity *pEntity = GetEntity();
+
+	CryLog("ItemInfo for %s", pEntity->GetName());
+	CryLog("=====================================");
+
+	Vec3 pos = pEntity->GetWorldPos();
+	CryLog("Entity Pos: %.f %.f %.f", pos.x, pos.y, pos.z);
+	CryLog("Parent: %s", pEntity->GetParent() ? pEntity->GetParent()->GetName() : "NULL");
+	CryLog("Active: %i", pEntity->IsActive());
+	CryLog("Hidden: %i", pEntity->IsHidden());
+	CryLog("Invisible: %i", pEntity->IsInvisible());
+
+	if (IPhysicalEntity *pPhysics = pEntity->GetPhysics())
+	{
+		CryLog("Physics type: %i", pPhysics->GetType());
+
+		pe_status_pos pos;
+		if (pPhysics->GetStatus(&pos))
+		{
+			CryLog("Physics pos: %.f %.f %.f", pos.pos.x, pos.pos.y, pos.pos.z);
+		}
+
+		pe_status_dynamics dyn;
+		if (pPhysics->GetStatus(&dyn))
+		{
+			CryLog("Mass: %.1f", dyn.mass);
+			CryLog("Vel: %.2f %.2f %.2f", dyn.v.x, dyn.v.y, dyn.v.z);
+		}
+	}
+
+	CryLog("Item class: %s", GetEntity()->GetClass()->GetName());
+	CryLog("Is Pickable: %i", m_params.pickable);
+	CryLog("Is Selectable: %i", m_params.selectable);
+	CryLog("Is Mountable: %i", m_params.mountable);
+	CryLog("Is Unique: %i", m_params.unique);
+	CryLog("Is Usable: %i", m_params.usable);
+	CryLog("Is Giveable: %i", m_params.giveable);
+	CryLog("Is Raiseable: %i", m_params.raiseable);
+	CryLog("Is Droppable: %i", m_params.droppable);
+
+	if (auto pOwner = GetOwnerActor())
+	{
+		CryLog("Owner: %s", pOwner->GetEntity()->GetName());
+		CryLog("Is selected by owner: %i", pOwner->GetInventory()->GetCurrentItem() == GetEntityId());
+		CryLog("Place in inventory: %i", pOwner->GetInventory()->FindItem(GetEntityId()));
+
+		// Лень :)
+		try
+		{
+			CryLog("Owner third-person item attachment point: %s", m_params.attachment[m_stats.hand].c_str());
+		}
+		catch (...)
+		{
+			CryLog("Owner third-person item attachment point: NULL");
+		}
+
+		ICharacterInstance *pOwnerCharacter = pOwner->GetEntity()->GetCharacter(0);
+		if (pOwnerCharacter)
+		{
+			IAttachmentManager *pAttachmentManager = pOwnerCharacter->GetIAttachmentManager();
+			if (IAttachment *pAttachment = pAttachmentManager->GetInterfaceByName(m_params.attachment[m_stats.hand].c_str()))
+			{
+				auto pEntityAttachment = static_cast<CEntityAttachment*>(pAttachment->GetIAttachmentObject());
+				if (pEntityAttachment)
+				{
+					auto pEntity = TOS_GET_ENTITY(pEntityAttachment->GetEntityId());
+					CryLog("Owner third-person item attachment entity name: %s", pEntity ? pEntity->GetName() : "NULL");
+				}
+			}
+		}
+	}
+
+	CryLog("=====================================");
+}
+//~TheOtherSide

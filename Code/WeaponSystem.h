@@ -8,7 +8,7 @@ Description: Weapon System
 
 -------------------------------------------------------------------------
 History:
-- 18:10:2005   17:41 : Created by M�rcio Martins
+- 18:10:2005   17:41 : Created by MпїЅrcio Martins
 
 *************************************************************************/
 #ifndef __WEAPONSYSTEM_H__
@@ -146,6 +146,11 @@ private:
 	bool								m_wetEnvironment;
 
 	bool                m_tokensUpdated;
+
+//TheOtherSide
+public:
+	void DumpWeaponsInfo();
+//~TheOtherSide
 };
 
 

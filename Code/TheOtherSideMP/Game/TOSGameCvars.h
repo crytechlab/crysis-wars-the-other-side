@@ -54,20 +54,18 @@ struct STOSCvars  // NOLINT(cppcoreguidelines-special-member-functions)
 
 	// SERVER CONSOLE COMMANDS
 	static void CmdNetChName(IConsoleCmdArgs* pArgs);
+	static void CmdDumpWeaponsInfo(IConsoleCmdArgs* pArgs);
 	static void CmdDumpActorInfo(IConsoleCmdArgs* pArgs);
 	static void CmdDumpEntityLua(IConsoleCmdArgs* pArgs);
 	static void CmdGetEntityScriptValue(IConsoleCmdArgs* pArgs);
 	static void CmdDumpEntityInfo(IConsoleCmdArgs* pArgs);
 	static void CmdGetEntitiesByClass(IConsoleCmdArgs* pArgs);
 	static void CmdDumpSynchronizers(IConsoleCmdArgs* pArgs);
-
 	static void CmdConsumerSetEnergy(IConsoleCmdArgs* pArgs);
 	static void CmdConsumerSetDrain(IConsoleCmdArgs* pArgs);
 
-
 	// CLIENT CONSOLE COMMANDS
 	static void CmdGetDudeName(IConsoleCmdArgs* pArgs);
-
 	static void CmdRMIRemoveInventory(IConsoleCmdArgs* pArgs);
 
 	// Правило написания консольных значений

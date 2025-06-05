@@ -916,6 +916,11 @@ private:
 	}
 
 	void CacheRaisePose();
+
+	//TheOtherSide
+public:
+	void DumpWeaponInfo();
+	//~TheOtherSide
 };
 
 #endif //__WEAPON_H__

@@ -9,6 +9,7 @@ Copyright (C), AlienKeeper, 2024.
 #include "TOSGameCvars.h"
 
 #include "Game.h"
+#include "WeaponSystem.h"
 #include "IConsole.h"
 #include "ScriptUtils.h"
 
@@ -60,6 +61,7 @@ void STOSCvars::InitCCommands(IConsole* pConsole)
 	pConsole->AddCommand("dumpsynchronizers", CmdDumpSynchronizers);
 	pConsole->AddCommand("dumpentityinfo", CmdDumpEntityInfo);
 	pConsole->AddCommand("dumpactorinfo", CmdDumpActorInfo);
+	pConsole->AddCommand("tos_dumpweaponsinfo", CmdDumpWeaponsInfo);
 
 	// Отладочные команды потребителя энергии
 	pConsole->AddCommand("consumersetenergy", CmdConsumerSetEnergy);
@@ -98,6 +100,7 @@ void STOSCvars::ReleaseCCommands()
 	pConsole->RemoveCommand("getdudename");
 
 	pConsole->RemoveCommand("rmi_removeinventory");
+	pConsole->RemoveCommand("tos_dumpweaponsinfo");
 
 	g_pTOSGame->m_pFGPluginLoader->UnregisterConsoleCommands();
 }
@@ -160,6 +163,10 @@ void STOSCvars::CmdNetChName(IConsoleCmdArgs* pArgs)
 	CryLogAlways("Result: (%s|%s)", playerEntityName, pChannel->GetName());
 }
 
+void STOSCvars::CmdDumpWeaponsInfo(IConsoleCmdArgs *pArgs)
+{
+	g_pGame->GetWeaponSystem()->DumpWeaponsInfo();
+}
 void STOSCvars::CmdDumpActorInfo(IConsoleCmdArgs* pArgs)
 {
 	//m_currentPhysProfile

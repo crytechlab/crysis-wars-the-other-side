@@ -762,3 +762,19 @@ void CWeaponSystem::GetMemoryStatistics(ICrySizer * s)
 		s->AddObject(&m_projectiles,nSize);
 	}
 }
+
+
+//TheOtherSide
+void CWeaponSystem::DumpWeaponsInfo()
+{
+	//Create entity iteration
+	auto it = gEnv->pEntitySystem->GetEntityIterator();
+	while (IEntity *pEntity = it->Next())
+	{
+		if (CWeapon *pWeapon = static_cast<CWeapon*>(m_pGame->GetIGameFramework()->GetIItemSystem()->GetItem(pEntity->GetId())))
+		{
+			pWeapon->DumpWeaponInfo();
+		}
+	}
+}
+//~TheOtherSide

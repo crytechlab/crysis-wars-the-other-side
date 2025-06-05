@@ -3810,3 +3810,18 @@ float CWeapon::GetRecoilAmount() const
 
 	return 0.0f;
 }
+
+//TheOtherSide
+void CWeapon::DumpWeaponInfo()
+{
+	IEntity *pEntity = GetEntity();
+
+	CryLog("WeaponInfo for %s", pEntity->GetName());
+	CryLog("=====================================");
+
+	if (CItem *pItem = static_cast<CItem*>(this))
+		pItem->DumpItemInfo();
+
+	CryLog("=====================================");
+}
+//~TheOtherSide

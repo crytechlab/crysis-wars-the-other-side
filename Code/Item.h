@@ -1477,6 +1477,11 @@ public:
 
 	// Expansion items
 	static IEntityClass* sGrenadeLauncherClass;
+
+	//TheOtherSide
+public:
+	void DumpItemInfo();
+	//~TheOtherSide
 };
 
 
