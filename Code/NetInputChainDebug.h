@@ -1,3 +1,4 @@
+
 /*************************************************************************
 Crytek Source File.
 Copyright (C), Crytek Studios, 2001-2004.
@@ -23,6 +24,10 @@ void NetInputChainInitCVars();
 #if ENABLE_NETINPUTCHAINDEBUG
 void NetInputChainPrint( const char * name, float val );
 void NetInputChainPrint( const char * name, Vec3 val );
+
+//TheOtherSide
+void NetInputChainPrint( const char * name, string val );
+//~TheOtherSide
 
 extern EntityId _netinputchain_debugentity;
 

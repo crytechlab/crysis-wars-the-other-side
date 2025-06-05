@@ -27,7 +27,7 @@ static int ypos = 0;
 static int dump = 0;
 static uint64 tstamp;
 
-typedef NTypelist::CConstruct<float, Vec3>::TType TNetInputValueTypes;
+typedef NTypelist::CConstruct<float, Vec3, string>::TType TNetInputValueTypes;
 typedef CConfigurableVariant<TNetInputValueTypes, NTypelist::MaximumSize<TNetInputValueTypes>::value> TNetInputValue;
 
 static const char * GetEntityName()
@@ -75,6 +75,16 @@ static void Put( const char * name, const TNetInputValue& value )
 			pTMC->PutText( 0, ypos/20, buf );
 		if (fout) fprintf(fout, "%I64d %s %s %f\n", tstamp, GetEntityName(), name, *pFloat);
 	}
+	//TheOtherSide
+	else if (const string * pString = value.GetPtr<string>())
+	{
+		sprintf(buf, "%s: %s", name, pString->c_str());
+		gEnv->pRenderer->Draw2dLabel(10, ypos+=20, 2, white, false, "%s", buf);
+		if (pTMC)
+			pTMC->PutText( 0, ypos/20, buf );
+		if (fout) fprintf(fout, "%I64d %s %s %s\n", tstamp, GetEntityName(), name, pString->c_str());
+	}
+	//~TheOtherSide
 	if (fout)
 		fclose(fout);
 }
@@ -97,6 +107,13 @@ void NetInputChainPrint( const char * name, float val )
 {
 	Put(name, TNetInputValue(val));
 }
+
+//TheOtherSide
+void NetInputChainPrint( const char * name, string val )
+{
+	Put(name, TNetInputValue(val));
+}
+//~TheOtherSide
 
 void NetInputChainInitCVars()
 {
