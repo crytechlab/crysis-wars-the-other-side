@@ -581,8 +581,10 @@ void CWeaponSystem::DebugGun(IConsoleCmdArgs *args)
   if (0 == itemId)        
   {
     // if actor doesn't have it, only give it in editor
-    if (!GetISystem()->IsEditor())
-      return;
+	//TheOtherSide
+    //if (!GetISystem()->IsEditor())
+      //return;
+	//~TheOtherSide
 
 		itemId = pItemSystem->GiveItem(pActor, CItem::sDebugGunClass->GetName(), false, true, true);
   }
