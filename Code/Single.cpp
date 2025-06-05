@@ -1055,8 +1055,12 @@ void CSingle::StartReload(int zoomed)
 	}
 	else
 	{
-		m_pWeapon->GetScheduler()->TimerAction(static_cast<uint>(m_fireparams.reload_time * 1000), CSchedulerAction<EndReloadAction>::Create(EndReloadAction(this, zoomed, m_reloadStartFrame)), false);
-		time = static_cast<int>((MAX(0, ((m_fireparams.reload_time*1000)-m_fireparams.slider_layer_time))));
+		//TheOtherSide: fix когда ии стреляет раньше окончания перезарядки на выд. сервере
+		const float timerMult = !gEnv->pSystem->IsDedicated() || m_pWeapon->GetOwnerActor()->IsPlayer() ? 1000.0f : 2100.0f; 
+		//~TheOtherSide
+
+		m_pWeapon->GetScheduler()->TimerAction(static_cast<uint>(m_fireparams.reload_time * timerMult), CSchedulerAction<EndReloadAction>::Create(EndReloadAction(this, zoomed, m_reloadStartFrame)), false);
+		time = static_cast<int>((MAX(0, ((m_fireparams.reload_time*timerMult)-m_fireparams.slider_layer_time))));
 	}
 
 	//Proper end reload timing for MP only (for clients, not host)
