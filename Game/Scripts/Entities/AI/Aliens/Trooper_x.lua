@@ -1,6 +1,6 @@
 Script.ReloadScript("SCRIPTS/Entities/AI/Shared/BasicAI.lua");
 Script.ReloadScript("scripts/entities/actor/basicalien.lua");
-System.LogAlways("<lua> load script 'Scripts/Entities/AI/Aliens/Trooper_x.lua'" )
+System.LogAlways("<lua> load script 'Scripts/Entities/AI/Aliens/Trooper_x.lua'")
 
 TrTimerVector1 = { x = 0, y = 0, z = 0 };
 TrTimerVector2 = { x = 0, y = 0, z = 0 };
@@ -143,8 +143,8 @@ Trooper_x = {
 	{
 		DamageEffects =
 		{
-			{ health = 0.75, effect = "alien_special.Trooper.WoundedPlasma",   attachment = "damage_effect_1" },
-			{ health = 0.45, effect = "alien_special.Trooper.wounded",         attachment = "damage_effect_1" },
+			{ health = 0.75, effect = "alien_special.Trooper.WoundedPlasma",     attachment = "damage_effect_1" },
+			{ health = 0.45, effect = "alien_special.Trooper.wounded",           attachment = "damage_effect_1" },
 			{ health = 0.25, effect = "alien_special.Trooper.WoundedPlasmaBody", attachment = "damage_effect_1" },
 			--{ health = 0.0, effect="alien_special.Trooper.WoundedPlasma_death", attachment="damage_effect_4" },
 		},
@@ -317,10 +317,10 @@ Trooper_x = {
 			},
 		},
 
-		damage = 80,            -- damage when doing melee from front
-		damageSmall = 40,       -- damage when doing melee from back
+		damage = 80,                      -- damage when doing melee from front
+		damageSmall = 40,                 -- damage when doing melee from back
 		damageOffset = { x = 0, y = 2, z = 0 }, -- Local offset of the damage box
-		damageRadius = 4.5,     -- size of the damage box.
+		damageRadius = 4.5,               -- size of the damage box.
 		approachLookat = 1,
 		alignTime = 0.5,
 		damageTime = 0.7,
@@ -436,15 +436,14 @@ function Trooper_x:OnResetClient()
 end
 
 function Trooper_x.Client:ClKill(bKill)
-	--System.LogAlways("ClKill")
-
+	-- Установка эффекта урона
 	self:SetAttachmentEffect(0, "damage_effect_1", "alien_special.Trooper.WoundedPlasma_death", g_Vectors.v000,
 		g_Vectors.v010, 1, 0);
 
-	--self:InitiateAutoDestruction();
-
+	-- Если тропер не может самоуничтожиться, устанавливаем таймер для проверки
 	if (self.Properties.bCanSelfDestruct == 0) then
 		self:SetTimer(TROOPER_CHECK_DEAD_SHELL_TIMER, 9000);
+		-- Если тропер не начал процесс самоуничтожения, инициируем его
 	elseif (not self.bAutoDestructing) then
 		self:InitiateAutoDestruction();
 	end
@@ -470,49 +469,49 @@ function Trooper_x:AICreateShockwave()
 	--Log("SHOCKWAVE TIME :@");
 
 	local curTime = _time;
-	
-	if(self.AI.lastShockwaveTime==nil) then 
+
+	if (self.AI.lastShockwaveTime == nil) then
 		self.AI.lastShockwaveTime = 0;
 	end
-	
+
 	local timePassed = curTime - self.AI.lastShockwaveTime;
-	
+
 	local reloadTime = 3;
 	-- if (self.actor:IsHaveOwner()) then
 	-- 	reloadTime = 150; -- 150sec = 2.5 min
 	-- end
 
-	if( timePassed > reloadTime ) then
+	if (timePassed > reloadTime) then
 		local pos = g_Vectors.temp_v1;
 		self:GetWorldPos(pos);
-		pos.z=pos.z+1.5;
-				
+		pos.z = pos.z + 1.5;
+
 		--Log("Shockwave :E");
-		g_gameRules.game:ServerExplosion(self.id, self.id, 50, pos, g_Vectors.up, 6, 0, 2000, 10, "expansion_fx.weapons.emp_grenade", 0.8, 21);
+		g_gameRules.game:ServerExplosion(self.id, self.id, 50, pos, g_Vectors.up, 6, 0, 2000, 10,
+			"expansion_fx.weapons.emp_grenade", 0.8, 21);
 		--self.actor:CreateCodeEvent({event="AICreateShockwave"});
 
 		self.AI.lastShockwaveTime = curTime;
-		
 	end
 end
 
 function Trooper_x:EnableLamLights(bEnable)
-	self.actor:CreateCodeEvent({event="lamLights", enable=bEnable});
+	self.actor:CreateCodeEvent({ event = "lamLights", enable = bEnable });
 	--System.LogAlways("Trooper_x:EnableLamLights");
 end
 
 function Trooper_x:ApplyGuardianStuff()
-	self.actor:CreateCodeEvent({event="applyGuardianStuff"});
+	self.actor:CreateCodeEvent({ event = "applyGuardianStuff" });
 	--System.LogAlways("Trooper_x:EnableLamLights");
 end
 
 function Trooper_x:ApplyLeaderStuff()
-	self.actor:CreateCodeEvent({event="applyLeaderStuff"});
+	self.actor:CreateCodeEvent({ event = "applyLeaderStuff" });
 end
 
 function Trooper_x:ApplyCloakStuff()
 	self.IsHaveCloak = true;
-	self.actor:CreateCodeEvent({event="applyCloakStuff"});
+	self.actor:CreateCodeEvent({ event = "applyCloakStuff" });
 end
 
 -----------------------------------------------------------------------------------------------------
@@ -529,14 +528,15 @@ end
 function Trooper_x:RequestCloakTurnOn(sender)
 	if (self.IsHaveCloak == true and self.cloaked == 0) then
 		self:Cloak(1);
-	end	
+	end
 end
 
 function Trooper_x:RequestCloakTurnOff(sender)
 	if (self.IsHaveCloak == true and self.cloaked == 1) then
 		self:Cloak(0);
-	end	
+	end
 end
+
 --~TheOtherSide
 
 
@@ -726,80 +726,78 @@ end
 
 -- Функция убийства тропера
 function Trooper_x:Kill(ragdoll, shooterId, weaponId)
-    -- Если тропер взорвался и должен стать тряпичной куклой, отменяем ragdoll
-    if (ragdoll and self.exploded) then
-        ragdoll = false;
-    end
-    -- Вызываем функцию убийства из базового класса
-    BasicAlien.Kill(self, ragdoll, shooterId, weaponId);
+	-- Если тропер взорвался и должен стать тряпичной куклой, отменяем ragdoll
+	if (ragdoll and self.exploded) then
+		ragdoll = false;
+	end
+	-- Вызываем функцию убийства из базового класса
+	BasicAlien.Kill(self, ragdoll, shooterId, weaponId);
 
-    -- Обработка смерти тропера
-    Trooper_Death(self); -- let AI do something with this corpse
-
-    --TheOtherSide
-    --System.LogAlways("Kill")
-    -- Отправляем всем клиентам сообщение о смерти
-    self.allClients:ClKill(true);
-    --TheOtherSide
-
-    -- Сброс всех таймеров
-    self:ResetTimers();
-
-    -- Установка эффекта урона
-    self:SetAttachmentEffect(0, "damage_effect_1", "alien_special.Trooper.WoundedPlasma_death", g_Vectors.v000,
-        g_Vectors.v010, 1, 0);
-
-    -- Если тропер не может самоуничтожиться, устанавливаем таймер для проверки
-    if (self.Properties.bCanSelfDestruct == 0) then
-        self:SetTimer(TROOPER_CHECK_DEAD_SHELL_TIMER, 9000);
-    -- Если тропер не начал процесс самоуничтожения, инициируем его
-    elseif (not self.bAutoDestructing) then
-        self:InitiateAutoDestruction();
-    end
-
-    -- Если тропер должен стать тряпичной куклой
-    if (ragdoll) then
-        -- Устанавливаем физический профиль "ragdoll"
-        self.actor:SetPhysicalizationProfile("ragdoll");
-        -- Устанавливаем таймер для дефизикализации
-        self:SetTimer(TROOPER_DEPHYSICALIZE_TIMER, 2000);
-    else
-        return;
-    end
-
-    -- Временные векторы для расчёта импульса
-    local vel = g_Vectors.temp_v1;
-    local pos = g_Vectors.temp_v2;
-
-    -- Копируем позицию тропера
-    CopyVector(pos, self:GetWorldPos());
-
-    -- Получаем сущность стрелявшего
-    local shooter = System.GetEntity(shooterId);
-    if (shooter) then
-        -- Рассчитываем вектор импульса от стрелявшего к троперу
-        FastDifferenceVectors(vel, self:GetPos(), shooter:GetPos());
-        NormalizeVector(vel);
-    else
-        vel = g_Vectors.v000;
-    end
-
-    -- Получаем физические характеристики тропера
-    local stats = self:GetPhysicalStats();
+	-- Обработка смерти тропера
+	Trooper_Death(self); -- let AI do something with this corpse
 
 	--TheOtherSide
-    -- Применяем импульс к троперу
-    self:AddImpulse(-1, pos, vel, stats.mass * 5, 1);
+	self.allClients:ClKill(true);
+	--TheOtherSide
+
+	-- Сброс всех таймеров
+	self:ResetTimers();
+
+	-- Установка эффекта урона
+	self:SetAttachmentEffect(0, "damage_effect_1", "alien_special.Trooper.WoundedPlasma_death", g_Vectors.v000,
+		g_Vectors.v010, 1, 0);
+
+	-- Если тропер не может самоуничтожиться, устанавливаем таймер для проверки
+	if (self.Properties.bCanSelfDestruct == 0) then
+		self:SetTimer(TROOPER_CHECK_DEAD_SHELL_TIMER, 9000);
+		-- Если тропер не начал процесс самоуничтожения, инициируем его
+	elseif (not self.bAutoDestructing) then
+		self:InitiateAutoDestruction();
+	end
+
+	-- Если тропер должен стать тряпичной куклой
+	if (ragdoll) then
+		-- Устанавливаем физический профиль "ragdoll"
+		self.actor:SetPhysicalizationProfile("ragdoll");
+		-- Устанавливаем таймер для дефизикализации
+		self:SetTimer(TROOPER_DEPHYSICALIZE_TIMER, 2000);
+	else
+		return;
+	end
+
+	-- Временные векторы для расчёта импульса
+	local vel = g_Vectors.temp_v1;
+	local pos = g_Vectors.temp_v2;
+
+	-- Копируем позицию тропера
+	CopyVector(pos, self:GetWorldPos());
+
+	-- Получаем сущность стрелявшего
+	local shooter = System.GetEntity(shooterId);
+	if (shooter) then
+		-- Рассчитываем вектор импульса от стрелявшего к троперу
+		FastDifferenceVectors(vel, self:GetPos(), shooter:GetPos());
+		NormalizeVector(vel);
+	else
+		vel = g_Vectors.v000;
+	end
+
+	-- Получаем физические характеристики тропера
+	local stats = self:GetPhysicalStats();
+
+	--TheOtherSide
+	-- Применяем импульс к троперу
+	self:AddImpulse(-1, pos, vel, stats.mass * 5, 1);
 	local isServer = CryAction.IsServer()
 
 	-- System.LogAlways("<lua> server: "..tostring(isServer).." trooper '"..self:GetName().."' add impulse pos: "..Vec2Str(pos).." vel: "..Vec2Str(vel))
 	--~TheOtherSide
 
-    -- Если установлен таймер звука, убиваем его
-    if (self.iSoundTimer) then
-        Script.KillTimer(self.iSoundTimer);
-        self.iSoundTimer = nil;
-    end
+	-- Если установлен таймер звука, убиваем его
+	if (self.iSoundTimer) then
+		Script.KillTimer(self.iSoundTimer);
+		self.iSoundTimer = nil;
+	end
 end
 
 function Trooper_x:ResetTimers()
@@ -1026,7 +1024,6 @@ end
 function Trooper_x:InitiateAutoDestruction()
 	--System.LogAlways("InitiateAutoDestruction")
 	self:SetTimer(TROOPER_WARMUP_AUTODESTRUCT_TIMER, self.WarmupAutoDestructionTime * 1000);
-	--self.iAutoDestructTimer = Script.SetTimer(self.WarmupAutoDestructionTime*1000,Trooper_x.WarmupAutoDestruct,self);
 	self.bAutoDestructing = true;
 end
 
@@ -1065,13 +1062,7 @@ function Trooper_x.AutoDestruct(entity) --,timerid)
 	entity:NotifyExplosion();
 	AI.SetSmartObjectState(entity.id, "Idle");
 
-	--	local pos = g_Vectors.temp;
-	--	CopyVector(pos,entity:GetPos());
-
-	--pos.z = pos.z + 2;
-
 	Particle.SpawnEffect("alien_special.Trooper.death_explosion", pos, g_Vectors.v000, entity.id);
-	--entity.warmupAutoDestructSound = entity:PlaySoundEvent("sounds/alien:trooper:self_destruct_charge", g_Vectors.v000, g_Vectors.v010, SOUND_DEFAULT_3D, SOUND_SEMANTIC_LIVING_ENTITY);
 
 	entity:RemoveActor();
 end
@@ -1081,14 +1072,12 @@ end
 --end
 
 function Trooper_x:SetGroupFireModes()
-	
 	local groupCount = AI.GetGroupCount(self.id);
 	if (groupCount > 1) then
-		
 		local i = random(0, 1);
-		
+
 		for k = 1, groupCount do
-			local member = AI.GetGroupMember(self.id, k, GROUP_ENABLED, AIOBJECT_PUPPET);		
+			local member = AI.GetGroupMember(self.id, k, GROUP_ENABLED, AIOBJECT_PUPPET);
 			if (member) then
 				local item = member.inventory:GetCurrentItem();
 				if (item.weapon) then
@@ -1109,7 +1098,7 @@ function Trooper_x:SetGroupFireModes()
 end
 
 function Trooper_x:MeleeAttack(entity)
-	System.LogAlways("<lua> Trooper '"..self:GetName().."' melee attack target '"..entity:GetName().."'")
+	System.LogAlways("<lua> Trooper '" .. self:GetName() .. "' melee attack target '" .. entity:GetName() .. "'")
 
 	if (not self.AI.meleeImpulse) then
 		self.AI.meleeImpulse = { x = 0, y = 0, z = 0 };
@@ -1121,308 +1110,309 @@ function Trooper_x:MeleeAttack(entity)
 end
 
 function Trooper_x:GetMeleeDamageImpulse(impulse, dirtype)
-    -- Направление импульса зависит от типа атаки (dirtype)
-    if dirtype == 1 then
-        -- Обратное направление с добавлением вертикального компонента
-        CopyVector(impulse, self:GetDirectionVector(0))
-        NegVector(impulse)
-        FastSumVectors(impulse, impulse, self:GetDirectionVector(1))
-    elseif dirtype == 2 then
-        -- Прямое направление с добавлением вертикального компонента
-        CopyVector(impulse, self:GetDirectionVector(0))
-        FastSumVectors(impulse, impulse, self:GetDirectionVector(1))
-    else
-        -- Только вертикальный компонент
-        CopyVector(impulse, self:GetDirectionVector(1))
-    end
+	-- Направление импульса зависит от типа атаки (dirtype)
+	if dirtype == 1 then
+		-- Обратное направление с добавлением вертикального компонента
+		CopyVector(impulse, self:GetDirectionVector(0))
+		NegVector(impulse)
+		FastSumVectors(impulse, impulse, self:GetDirectionVector(1))
+	elseif dirtype == 2 then
+		-- Прямое направление с добавлением вертикального компонента
+		CopyVector(impulse, self:GetDirectionVector(0))
+		FastSumVectors(impulse, impulse, self:GetDirectionVector(1))
+	else
+		-- Только вертикальный компонент
+		CopyVector(impulse, self:GetDirectionVector(1))
+	end
 
-    -- Добавляем небольшой подъемный компонент к импульсу
-    impulse.z = impulse.z + 0.7
-    NormalizeVector(impulse)
+	-- Добавляем небольшой подъемный компонент к импульсу
+	impulse.z = impulse.z + 0.7
+	NormalizeVector(impulse)
 
-    -- Если это прыжковая атака, увеличиваем импульс и множитель урона
-    if dirtype == 4 then
-        -- Усиление импульса для прыжковой атаки
-        ScaleVectorInPlace(impulse, 2)
-        self.melee.damageMultiplier = 1.2
-    else
-        -- Стандартный множитель урона для обычной атаки
-        self.melee.damageMultiplier = 1
-    end
+	-- Если это прыжковая атака, увеличиваем импульс и множитель урона
+	if dirtype == 4 then
+		-- Усиление импульса для прыжковой атаки
+		ScaleVectorInPlace(impulse, 2)
+		self.melee.damageMultiplier = 1.2
+	else
+		-- Стандартный множитель урона для обычной атаки
+		self.melee.damageMultiplier = 1
+	end
 end
 
-
 function Trooper_x:MeleeDamage(impulse, meleeType)
+	-- Получаем цель для ближнего боя
+	local entity = self.AI.meleeTarget
+	local radius
 
-    -- Получаем цель для ближнего боя
-    local entity = self.AI.meleeTarget
-    local radius
 
+	-- Если цель существует
+	if entity then
+		-- Если цель находится в транспортном средстве
+		if entity.vehicle then
+			-- Используем предварительно вычисленный радиус, если он есть
+			if entity.AI.vehicleRadius then
+				radius = entity.AI.vehicleRadius + 2
+			else
+				-- Вычисляем радиус на основе размеров транспортного средства
+				local bbmin, bbmax = entity:GetLocalBBox(Trooper_bbmin_cache, Trooper_bbmax_cache)
+				FastDifferenceVectors(bbmax, bbmax, bbmin)
+				local size = math.max(bbmax.x, bbmax.y) / 2
+				entity.AI.vehicleRadius = size
+				radius = size + 2
+			end
+		else
+			-- Стандартный радиус для ближнего боя
+			radius = 2.5
+		end
 
-    -- Если цель существует
-    if entity then
-        -- Если цель находится в транспортном средстве
-        if entity.vehicle then
-            -- Используем предварительно вычисленный радиус, если он есть
-            if entity.AI.vehicleRadius then
-                radius = entity.AI.vehicleRadius + 2
-            else
-                -- Вычисляем радиус на основе размеров транспортного средства
-                local bbmin, bbmax = entity:GetLocalBBox(Trooper_bbmin_cache, Trooper_bbmax_cache)
-                FastDifferenceVectors(bbmax, bbmax, bbmin)
-                local size = math.max(bbmax.x, bbmax.y) / 2
-                entity.AI.vehicleRadius = size
-                radius = size + 2
-            end
-        else
-            -- Стандартный радиус для ближнего боя
-            radius = 2.5
-        end
+		-- Получаем позицию сущности и проверяем возможность нанесения урона
+		local pos = self:GetWorldPos()
+		local distance, angle = AI.CheckMeleeDamage(self.id, entity.id, radius, -1.3, 1.3, 150)
 
-        -- Получаем позицию сущности и проверяем возможность нанесения урона
-        local pos = self:GetWorldPos()
-        local distance, angle = AI.CheckMeleeDamage(self.id, entity.id, radius, -1.3, 1.3, 150)
+		-- Если урон возможен
+		if distance then
+			-- Получаем направление удара
+			local headDir = self.actor:GetHeadDir()
+			local dirX = self:GetDirectionVector(0)
+			local dirY = self:GetDirectionVector(1)
+			local dirZ = self:GetDirectionVector(2)
+			local hitDir = self.melee.meleeDir and FastSumVectors(g_Vectors.temp_v1, headDir, self.melee.meleeDir) or
+			headDir
+			NormalizeVector(hitDir)
 
-        -- Если урон возможен
-        if distance then
-            -- Получаем направление удара
-            local headDir = self.actor:GetHeadDir()
-            local dirX = self:GetDirectionVector(0)
-            local dirY = self:GetDirectionVector(1)
-            local dirZ = self:GetDirectionVector(2)
-            local hitDir = self.melee.meleeDir and FastSumVectors(g_Vectors.temp_v1, headDir, self.melee.meleeDir) or headDir
-            NormalizeVector(hitDir)
+			-- Рассчитываем позицию удара с учетом смещения
+			local offset = self.melee.damageOffset
+			pos.x = pos.x + dirX.x * offset.x + dirY.x * offset.y + dirZ.x * offset.z
+			pos.y = pos.y + dirX.y * offset.x + dirY.y * offset.y + dirZ.y * offset.z
+			pos.z = pos.z + dirX.z * offset.x + dirY.z * offset.y + dirZ.z * offset.z
 
-            -- Рассчитываем позицию удара с учетом смещения
-            local offset = self.melee.damageOffset
-            pos.x = pos.x + dirX.x * offset.x + dirY.x * offset.y + dirZ.x * offset.z
-            pos.y = pos.y + dirX.y * offset.x + dirY.y * offset.y + dirZ.y * offset.z
-            pos.z = pos.z + dirX.z * offset.x + dirY.z * offset.y + dirZ.z * offset.z
+			-- Если правила игры позволяют обработку удара
+			if g_gameRules and g_gameRules.Client then
+				local hit = self.temp_hit
+				hit.pos = pos
+				hit.partId = -1
+				hit.dir = hitDir
+				hit.shooter = self
+				hit.shooterId = self.id
+				hit.weapon = self
+				hit.radius = 0
+				hit.weaponId = self.id
+				hit.type = "melee"
 
-            -- Если правила игры позволяют обработку удара
-            if g_gameRules and g_gameRules.Client then
-                local hit = self.temp_hit
-                hit.pos = pos
-                hit.partId = -1
-                hit.dir = hitDir
-                hit.shooter = self
-                hit.shooterId = self.id
-                hit.weapon = self
-                hit.radius = 0
-                hit.weaponId = self.id
-                hit.type = "melee"
+				-- Рассчитываем урон в зависимости от типа цели
+				local melee = self.melee
+				if entity.vehicle then
+					hit.damage = melee.damage * melee.damageMultiplier *
+					self.Properties.Damage.DamageMultipliers.MeleeVehicle
+				elseif entity.Properties and entity.Properties.bNanoSuit == 0 then
+					hit.damage = melee.damage * 4 -- Смертельный урон без нанокостюма
+				elseif entity == g_localActor then
+					-- Урон по игроку с учетом его положения
+					FastDifferenceVectors(g_Vectors.temp, self:GetWorldPos(), entity:GetWorldPos())
+					local playerDir = g_localActor.actor:GetHeadDir(g_Vectors.temp)
+					local dot = dotproduct2d(g_Vectors.temp, playerDir)
+					hit.damage = CalculatePlayerDamage(dot, melee, hit.damage)
+				end
 
-                -- Рассчитываем урон в зависимости от типа цели
-                local melee = self.melee
-                if entity.vehicle then
-                    hit.damage = melee.damage * melee.damageMultiplier * self.Properties.Damage.DamageMultipliers.MeleeVehicle
-                elseif entity.Properties and entity.Properties.bNanoSuit == 0 then
-                    hit.damage = melee.damage * 4 -- Смертельный урон без нанокостюма
-                elseif entity == g_localActor then
-                    -- Урон по игроку с учетом его положения
-                    FastDifferenceVectors(g_Vectors.temp, self:GetWorldPos(), entity:GetWorldPos())
-                    local playerDir = g_localActor.actor:GetHeadDir(g_Vectors.temp)
-                    local dot = dotproduct2d(g_Vectors.temp, playerDir)
-                    hit.damage = CalculatePlayerDamage(dot, melee, hit.damage)
-                end
+				-- Устанавливаем цель и идентификатор цели
+				hit.target = entity
+				hit.targetId = entity.id
 
-                -- Устанавливаем цель и идентификатор цели
-                hit.target = entity
-                hit.targetId = entity.id
+				-- Устанавливаем нормаль удара
+				hit.normal = hit.normal or {}
+				CopyVector(hit.normal, hitDir)
+				NegVector(hit.normal)
 
-                -- Устанавливаем нормаль удара
-                hit.normal = hit.normal or {}
-                CopyVector(hit.normal, hitDir)
-                NegVector(hit.normal)
+				-- Обрабатываем удар
+				g_gameRules.Server.OnHit(g_gameRules, hit, false)
+				g_gameRules.Client.OnHit(g_gameRules, hit, false)
 
-                -- Обрабатываем удар
-                g_gameRules.Server.OnHit(g_gameRules, hit, false)
-                g_gameRules.Client.OnHit(g_gameRules, hit, false)
+				-- Воспроизводим звук удара и вызываем эффекты
+				self:PlayMeleeSoundAndEffects(entity, impulse, radius, distance)
 
-                -- Воспроизводим звук удара и вызываем эффекты
-                self:PlayMeleeSoundAndEffects(entity, impulse, radius, distance)
+				-- Завершаем атаку
+				self:SelectPipe(0, "tr_end_melee")
 
-                -- Завершаем атаку
-                self:SelectPipe(0, "tr_end_melee")
-
-				System.LogAlways("<lua> Trooper '"..self:GetName().."' damage with'"..hit.damage.."' target '"..entity:GetName().."'")
-            end
-        end
-    end
+				System.LogAlways("<lua> Trooper '" ..
+				self:GetName() .. "' damage with'" .. hit.damage .. "' target '" .. entity:GetName() .. "'")
+			end
+		end
+	end
 end
 
 -- Вспомогательная функция для расчета урона по игроку
 function CalculatePlayerDamage(dot, melee, baseDamage)
-    if dot < 0 then
-        return melee.damageSmall
-    elseif dot > 0.7 then
-        return melee.damage * melee.damageMultiplier
-    else
-        return melee.damage * (melee.damageSmall + (melee.damage - melee.damageSmall) * dot / 0.7) * melee.damageMultiplier
-    end
+	if dot < 0 then
+		return melee.damageSmall
+	elseif dot > 0.7 then
+		return melee.damage * melee.damageMultiplier
+	else
+		return melee.damage * (melee.damageSmall + (melee.damage - melee.damageSmall) * dot / 0.7) *
+		melee.damageMultiplier
+	end
 end
 
 -- Вспомогательная функция для воспроизведения звука и эффектов удара
 function Trooper_x:PlayMeleeSoundAndEffects(entity, impulse, radius, distance)
-    if entity == g_localActor then
-        self:PlaySoundEvent("sounds/physics:bullet_impact:mat_armor_fp", g_Vectors.v000, g_Vectors.v010, SOUND_2D, SOUND_SEMANTIC_PLAYER_FOLEY)
-    end
+	if entity == g_localActor then
+		self:PlaySoundEvent("sounds/physics:bullet_impact:mat_armor_fp", g_Vectors.v000, g_Vectors.v010, SOUND_2D,
+			SOUND_SEMANTIC_PLAYER_FOLEY)
+	end
 
-    if entity.actor and entity.actor:IsPlayer() then
-        ApplyPlayerImpulse(entity, impulse, radius, distance)
-    elseif entity.vehicle and entity:IsEntityOnVehicle(g_localActor.id) then
-        g_localActor.actor:CameraShake(random(20, 30), 0.2, 0.13, g_Vectors.v000)
-    end
+	if entity.actor and entity.actor:IsPlayer() then
+		ApplyPlayerImpulse(entity, impulse, radius, distance)
+	elseif entity.vehicle and entity:IsEntityOnVehicle(g_localActor.id) then
+		g_localActor.actor:CameraShake(random(20, 30), 0.2, 0.13, g_Vectors.v000)
+	end
 end
 
 -- Вспомогательная функция для применения импульса к игроку
 function ApplyPlayerImpulse(entity, impulse, radius, distance)
-    local targetPos = entity:GetPos(g_Vectors.temp_v2)
-    entity:AddImpulse(-1, targetPos, impulse, 300 + (radius - distance) * 100, 1)
+	local targetPos = entity:GetPos(g_Vectors.temp_v2)
+	entity:AddImpulse(-1, targetPos, impulse, 300 + (radius - distance) * 100, 1)
 
-    local dotSide = dotproduct2d(impulse, entity:GetDirectionVector(0))
-    local angImp = g_Vectors.temp_v3
-    angImp.x = randomF(-0.3, -0.2)
-    angImp.y = 0
-    angImp.z = -dotSide * math.pi * (0.35 + 0.1 * distance / radius)
-    entity.actor:AddAngularImpulse(angImp, 0.0, 0.4)
+	local dotSide = dotproduct2d(impulse, entity:GetDirectionVector(0))
+	local angImp = g_Vectors.temp_v3
+	angImp.x = randomF(-0.3, -0.2)
+	angImp.y = 0
+	angImp.z = -dotSide * math.pi * (0.35 + 0.1 * distance / radius)
+	entity.actor:AddAngularImpulse(angImp, 0.0, 0.4)
 
-    entity.actor:CameraShake(45, 0.3, 0.13, g_Vectors.v000)
+	entity.actor:CameraShake(45, 0.3, 0.13, g_Vectors.v000)
 
-    local energy = entity.actor:GetNanoSuitEnergy()
-    if energy ~= 0 then
-        entity.actor:SetNanoSuitEnergy(energy - 0.2 * NANOSUIT_ENERGY)
-    end
+	local energy = entity.actor:GetNanoSuitEnergy()
+	if energy ~= 0 then
+		entity.actor:SetNanoSuitEnergy(energy - 0.2 * NANOSUIT_ENERGY)
+	end
 end
-
 
 -- Функция вызывается при срабатывании таймера
 function Trooper_x.Client:OnTimer(timerId, mSec)
-    -- Обработка различных таймеров
-    if (timerId == PAIN_TIMER) then
-        -- Если у актёра есть здоровье, воспроизводим звуки боли
-        if (self.actor:GetHealth() > 0) then
-            self:DoPainSounds();
-        end
-        -- Сброс флага воспроизведения звука боли
-        self.painSoundTriggered = nil;
-    elseif (timerId == TROOPER_JUMP_TIMER) then
-        -- Выполнение второго прыжка в ближнем бою
-        Trooper_PerformSecondMeleeJump(self);
-    elseif (timerId == TROOPER_END_JUMP_DODGE_TIMER) then
-        -- Выполнение прыжка-уклонения
-        local r = g_Vectors.temp;
-        CopyVector(r, AI.GetRefPointPosition(self.id));
-        Trooper_Jump(self, r, false, false, -15, true);
-    elseif (timerId == TROOPER_DEPHYSICALIZE_TIMER) then
+	-- Обработка различных таймеров
+	if (timerId == PAIN_TIMER) then
+		-- Если у актёра есть здоровье, воспроизводим звуки боли
+		if (self.actor:GetHealth() > 0) then
+			self:DoPainSounds();
+		end
+		-- Сброс флага воспроизведения звука боли
+		self.painSoundTriggered = nil;
+	elseif (timerId == TROOPER_JUMP_TIMER) then
+		-- Выполнение второго прыжка в ближнем бою
+		Trooper_PerformSecondMeleeJump(self);
+	elseif (timerId == TROOPER_END_JUMP_DODGE_TIMER) then
+		-- Выполнение прыжка-уклонения
+		local r = g_Vectors.temp;
+		CopyVector(r, AI.GetRefPointPosition(self.id));
+		Trooper_Jump(self, r, false, false, -15, true);
+	elseif (timerId == TROOPER_DEPHYSICALIZE_TIMER) then
 		--TheOtherSide
 		if (self.actor:IsSlave()) then
 			return
 		end
 		--TheOtherSide
 
-        -- Дефизикализация актёра, если он двигается медленно
-        if (self:GetSpeed() < 0.3) then
-            -- Условие для помещений или навигации по точкам
-            if (self.Properties.bIndoor == 1 or AI.GetNavigationType(self.id) == NAV_WAYPOINT_HUMAN) then
-                self.actor:SetPhysicalizationProfile("unragdoll");
-				System.LogAlways("<lua> trooper '"..self:GetName().."' DEPHYSICALIZED")
-            end
-        else
-            -- Перезапуск таймера дефизикализации
-            self:SetTimer(TROOPER_DEPHYSICALIZE_TIMER, 2000);
-        end
-    elseif (timerId == TROOPER_MELEE_SPECIAL_TIMER) then
-        -- Сигнал начала специальной атаки в ближнем бою
-        AI.Signal(SIGNALFILTER_SENDER, 0, "MELEE_SPECIAL_START_TIMEOUT", self.id);
-    elseif (timerId == TROOPER_END_MELEE_TIMER) then
-        -- Установка возможности захвата актёра
-        self:SetGrabbable(1);
-        -- Закомментированный код выбора поведения после таймаута спец. атаки
-        --self:SelectPipe(0,"tr_melee_special_timeout");
-    elseif (timerId == TROOPER_CONVERSATION_REQUEST_TIMER) then
-        -- Запрос на начало разговора
-        AI.Signal(SIGNALFILTER_GROUPONLY_EXCEPT, 0, "REQUEST_CONVERSATION", self.id);
-        -- Установка таймера проверки разговора
-        self:SetTimer(TROOPER_CONVERSATION_CHECK_TIMER, 1000);
-    elseif (timerId == TROOPER_CONVERSATION_CHECK_TIMER) then
-        -- Проверка состояния разговора
-        if (AIBlackBoard.trooper_ConversationState == TROOPER_CONV_REQUESTING) then
-            -- Если все ещё в состоянии запроса и нет ответа - сброс
-            AIBlackBoard.trooper_ConversationState = TROOPER_CONV_IDLE;
-            AI.Signal(SIGNALFILTER_SENDER, 0, "REQUEST_CONVERSATION", self.id);
-        end
-    elseif (timerId == TROOPER_CONVERSATION_ANSWER_TIMER) then
-        -- Ответ на разговор
-        AI.Signal(SIGNALFILTER_SENDER, 0, "CONVERSATION_ANSWER", self.id);
-    elseif (timerId == TROOPER_PLAYERGRABBED_TIMER) then
-        -- Воспроизведение звука захвата игрока
-        local sndFlags = SOUND_DEFAULT_3D;
-        self.grabbedSound = self:PlaySoundEvent("sounds/alien:trooper:choke", g_Vectors.v000, g_Vectors.v010, sndFlags,
-            SOUND_SEMANTIC_LIVING_ENTITY);
-        -- Перезапуск таймера захвата игрока
-        self:SetTimer(TROOPER_PLAYERGRABBED_TIMER, 5000 + random(1, 1000));
-    elseif (timerId == TROOPER_CHECK_DEAD_SHELL_TIMER) then
-
+		-- Дефизикализация актёра, если он двигается медленно
+		if (self:GetSpeed() < 0.3) then
+			-- Условие для помещений или навигации по точкам
+			if (self.Properties.bIndoor == 1 or AI.GetNavigationType(self.id) == NAV_WAYPOINT_HUMAN) then
+				self.actor:SetPhysicalizationProfile("unragdoll");
+				System.LogAlways("<lua> trooper '" .. self:GetName() .. "' DEPHYSICALIZED")
+			end
+		else
+			-- Перезапуск таймера дефизикализации
+			self:SetTimer(TROOPER_DEPHYSICALIZE_TIMER, 2000);
+		end
+	elseif (timerId == TROOPER_MELEE_SPECIAL_TIMER) then
+		-- Сигнал начала специальной атаки в ближнем бою
+		AI.Signal(SIGNALFILTER_SENDER, 0, "MELEE_SPECIAL_START_TIMEOUT", self.id);
+	elseif (timerId == TROOPER_END_MELEE_TIMER) then
+		-- Установка возможности захвата актёра
+		self:SetGrabbable(1);
+		-- Закомментированный код выбора поведения после таймаута спец. атаки
+		--self:SelectPipe(0,"tr_melee_special_timeout");
+	elseif (timerId == TROOPER_CONVERSATION_REQUEST_TIMER) then
+		-- Запрос на начало разговора
+		AI.Signal(SIGNALFILTER_GROUPONLY_EXCEPT, 0, "REQUEST_CONVERSATION", self.id);
+		-- Установка таймера проверки разговора
+		self:SetTimer(TROOPER_CONVERSATION_CHECK_TIMER, 1000);
+	elseif (timerId == TROOPER_CONVERSATION_CHECK_TIMER) then
+		-- Проверка состояния разговора
+		if (AIBlackBoard.trooper_ConversationState == TROOPER_CONV_REQUESTING) then
+			-- Если все ещё в состоянии запроса и нет ответа - сброс
+			AIBlackBoard.trooper_ConversationState = TROOPER_CONV_IDLE;
+			AI.Signal(SIGNALFILTER_SENDER, 0, "REQUEST_CONVERSATION", self.id);
+		end
+	elseif (timerId == TROOPER_CONVERSATION_ANSWER_TIMER) then
+		-- Ответ на разговор
+		AI.Signal(SIGNALFILTER_SENDER, 0, "CONVERSATION_ANSWER", self.id);
+	elseif (timerId == TROOPER_PLAYERGRABBED_TIMER) then
+		-- Воспроизведение звука захвата игрока
+		local sndFlags = SOUND_DEFAULT_3D;
+		self.grabbedSound = self:PlaySoundEvent("sounds/alien:trooper:choke", g_Vectors.v000, g_Vectors.v010, sndFlags,
+			SOUND_SEMANTIC_LIVING_ENTITY);
+		-- Перезапуск таймера захвата игрока
+		self:SetTimer(TROOPER_PLAYERGRABBED_TIMER, 5000 + random(1, 1000));
+	elseif (timerId == TROOPER_CHECK_DEAD_SHELL_TIMER) then
 		--TheOtherSide
 		if self.actor:GetHealth() > 0 then
 			return
 		end
 		--TheOtherSide
-		
+
 		-- if g_localActor.actor:GetSlaveId() == self.id then
 		-- 	System.LogAlways("Stop timer TROOPER_CHECK_DEAD_SHELL_TIMER")
 		-- 	return
 		-- end
 
-        -- Проверка исчезновения трупера
-        if (not AIBlackBoard.lastTrooperDisappearTime) then
-            AIBlackBoard.lastTrooperDisappearTime = 0;
-        end
+		-- Проверка исчезновения трупера
+		if (not AIBlackBoard.lastTrooperDisappearTime) then
+			AIBlackBoard.lastTrooperDisappearTime = 0;
+		end
 
-        local curTime = _time;
+		local curTime = _time;
 
-        -- Если прошло более 2 секунд с последнего исчезновения
-        if (curTime - AIBlackBoard.lastTrooperDisappearTime > 2) then
-            local playerViewDir = TrTimerVector1;
-            local dir = TrTimerVector2;
+		-- Если прошло более 2 секунд с последнего исчезновения
+		if (curTime - AIBlackBoard.lastTrooperDisappearTime > 2) then
+			local playerViewDir = TrTimerVector1;
+			local dir = TrTimerVector2;
 
-            -- Получение направления взгляда игрока
-            g_localActor.actor:GetHeadDir(playerViewDir);
-            -- Вычисление направления от игрока к труперу
-            FastDifferenceVectors(dir, self:GetPos(), g_localActor:GetPos());
-            -- Расстояние от игрока до трупера
-            local dist = LengthVector(dir);
+			-- Получение направления взгляда игрока
+			g_localActor.actor:GetHeadDir(playerViewDir);
+			-- Вычисление направления от игрока к труперу
+			FastDifferenceVectors(dir, self:GetPos(), g_localActor:GetPos());
+			-- Расстояние от игрока до трупера
+			local dist = LengthVector(dir);
 
-            -- Если расстояние больше 2 метров
-            if (dist > 2) then
-                -- Нормализация направления
-                ScaleVectorInPlace(dir, 1 / dist);
+			-- Если расстояние больше 2 метров
+			if (dist > 2) then
+				-- Нормализация направления
+				ScaleVectorInPlace(dir, 1 / dist);
 
-                -- Если трупер вне поля зрения игрока
-                if (dotproduct3d(playerViewDir, dir) < 0.2) then
-                    -- Исчезновение трупера из видимости игрока
-                    AIBlackBoard.lastTrooperDisappearTime = curTime;
-                    AI.SetSmartObjectState(self.id, "Idle");
-                    self:RemoveActor();
-                    return;
-                end
-            end
-        end
+				-- Если трупер вне поля зрения игрока
+				if (dotproduct3d(playerViewDir, dir) < 0.2) then
+					-- Исчезновение трупера из видимости игрока
+					AIBlackBoard.lastTrooperDisappearTime = curTime;
+					AI.SetSmartObjectState(self.id, "Idle");
+					self:RemoveActor();
+					return;
+				end
+			end
+		end
 
-        -- Перезапуск таймера проверки исчезновения трупера
-        self:SetTimer(TROOPER_CHECK_DEAD_SHELL_TIMER, 2000);
-    elseif (timerId == TROOPER_WARMUP_AUTODESTRUCT_TIMER) then
-        -- Подготовка к автодеструкции
-        self:WarmupAutoDestruct();
-    elseif (timerId == TROOPER_AUTODESTRUCT_TIMER) then
-        -- Автодеструкция
-        self:AutoDestruct();
-    elseif (timerId == TROOPER_GRABBEDFX_TIMER) then
-        -- Сброс эффекта захвата
-        self:ResetAttachment(0, "Grapped");
-        self.AI.bGrabbedFx = false;
-    end
+		-- Перезапуск таймера проверки исчезновения трупера
+		self:SetTimer(TROOPER_CHECK_DEAD_SHELL_TIMER, 2000);
+	elseif (timerId == TROOPER_WARMUP_AUTODESTRUCT_TIMER) then
+		-- Подготовка к автодеструкции
+		self:WarmupAutoDestruct();
+	elseif (timerId == TROOPER_AUTODESTRUCT_TIMER) then
+		-- Автодеструкция
+		self:AutoDestruct();
+	elseif (timerId == TROOPER_GRABBEDFX_TIMER) then
+		-- Сброс эффекта захвата
+		self:ResetAttachment(0, "Grapped");
+		self.AI.bGrabbedFx = false;
+	end
 end
 
 function Trooper_x:SetFireMode()
@@ -1487,8 +1477,12 @@ end
 function Trooper_x:Beam(target)
 	if (target) then
 		--		System.Log(self:GetName().." FIRING BEAM at "..target:GetName());
-		self.actor:CreateCodeEvent({ event = "beamStart", effect = "Alien_Weapons.Freeze_Beam.Trooper_MOAR_firing", targetId =
-		target.id });
+		self.actor:CreateCodeEvent({
+			event = "beamStart",
+			effect = "Alien_Weapons.Freeze_Beam.Trooper_MOAR_firing",
+			targetId =
+				target.id
+		});
 	else
 		--		System.Log(self:GetName().." STOPPING BEAM");
 		self.actor:CreateCodeEvent({ event = "beamStop" });
@@ -1537,8 +1531,12 @@ function Trooper_x:Event_Jump(params, pos)
 end
 
 function Trooper_x:SetJumpSpecialAnim(animType, inputType, inputValue)
-	self.actor:SetParams({ specialAnimType = animType, specialAnimAGInput = AGInputType, specialAnimAGInputValue =
-	inputValue });
+	self.actor:SetParams({
+		specialAnimType = animType,
+		specialAnimAGInput = AGInputType,
+		specialAnimAGInputValue =
+			inputValue
+	});
 end
 
 function Trooper_x:Event_EnableCloaked(params)
@@ -1554,6 +1552,7 @@ end
 function Trooper_x:Event_TurnAlive()
 	self.actor:SetPhysicalizationProfile("alive");
 end
+
 --~TheOtherSide
 
 function Trooper_x:AnimationEvent(event, value)
@@ -1594,15 +1593,19 @@ function Trooper_x:AnimationEvent(event, value)
 		pos.z = pos.z + 1.2;
 		Particle.SpawnEffect("alien_special.Trooper.doubleJumpAttack", pos, dir, 0.5);
 		self:PlaySoundEvent("Sounds/alien:trooper:jump_burst", g_Vectors.v000, dir, SOUND_DEFAULT_3D,
-			SOUND_SEMANTIC_LIVING_ENTITY);
+		SOUND_SEMANTIC_LIVING_ENTITY);
 
 		if (t) then
 			self.actor:SetParams({ jumpTo = targetPos, jumpVelocity = vel, jumpTime = t });
 			AI.SetRefPointPosition(self.id, targetPos);
 		else
 			local entityAI = self.AI;
-			self.actor:SetParams({ jumpTo = entityAI.jumpPos, jumpVelocity = entityAI.jumpVel, jumpTime = entityAI
-			.jumpTime });
+			self.actor:SetParams({
+				jumpTo = entityAI.jumpPos,
+				jumpVelocity = entityAI.jumpVel,
+				jumpTime = entityAI
+					.jumpTime
+			});
 		end
 	elseif (event == "jumpToSOExitPoint") then
 		local exitPos = g_Vectors.temp;
