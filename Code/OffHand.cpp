@@ -1462,7 +1462,10 @@ bool COffHand::PreExecuteAction(int requestedAction, int activationMode, bool fo
 
 void COffHand::NetStartFire()
 {
-	if (GetEntity()->IsHidden()) // this is need for network triggered grenade throws to trigger updates and what not..
+	//TheOtherSide: fix Select(true) у ИИ вызывает отсоединение оружия, которое он сейчас держит в руках
+	//if (GetEntity()->IsHidden()) // this is need for network triggered grenade throws to trigger updates and what not..
+	if (GetOwnerActor() && GetOwnerActor()->IsPlayer() && GetEntity()->IsHidden())
+	//~TheOtherSide
 	{
 		m_stats.fp=!m_stats.fp;
 
