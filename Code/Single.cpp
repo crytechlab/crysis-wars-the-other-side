@@ -1551,8 +1551,13 @@ bool CSingle::InternalShoot(IEntityClass* spawn_ammo, bool resetAnimation, bool 
 		}
 	}
 
-	if (pAmmo && pAmmo->IsPredicted() && gEnv->bClient && gEnv->bServer && pActor && pActor->IsClient())
+	//TheOtherSide: fix на удаленном клиенте не дублируется граната
+	// Убрал проверку на локального игрока, т.к. кинуть гранату может каждый актер
+	// Убрал проверку на клиент, т.к. важно чтобы это работало ещё и на выделенном сервере где клиента нет
+	//if (pAmmo && pAmmo->IsPredicted() && gEnv->bClient && gEnv->bServer && pActor && pActor->IsClient())
+	if (pAmmo && pAmmo->IsPredicted() && gEnv->bServer && pActor)
 		pAmmo->GetGameObject()->BindToNetwork();
+	//~TheOtherSide
 
 	if (m_pWeapon->IsServer())
 		g_pGame->GetIGameFramework()->GetIGameplayRecorder()->Event(m_pWeapon->GetOwner(), GameplayEvent(eGE_WeaponShot, ammo->GetName(), 1, (void*)m_pWeapon->GetEntityId()));
@@ -2847,12 +2852,6 @@ void CSingle::InternalNetShootEx(IEntityClass* spawn_ammo, const Vec3& pos, cons
 	{
 		if (m_fireparams.track_projectiles && gEnv->bServer)
 			pAmmo->SetTracked(true);
-			
-		//TheOtherSide fix ai unreplicated grenades
-		// Force network binding for AI grenades
-		if (IS_AI_IN_MP(m_pWeapon->GetOwnerActor()) && gEnv->bServer && pAmmo->GetEntity())
-			pAmmo->GetGameObject()->BindToNetwork();
-		//~TheOtherSide
 
 		int hitTypeId = g_pGame->GetGameRules()->GetHitTypeId(m_fireparams.hit_type.c_str());
 		pAmmo->SetParams(m_pWeapon->GetOwnerId(), m_pWeapon->GetHostId(), m_pWeapon->GetEntityId(), m_pWeapon->GetFireModeIdx(GetName()), m_fireparams.damage, hitTypeId);
