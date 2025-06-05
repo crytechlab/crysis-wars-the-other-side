@@ -18,23 +18,23 @@ const bool mustDrawDesc = (eventDesc).length() > 1;\
 const bool mustDrawEnt = (entName).length() > 1 || (entId) > 0;\
 if (mustDrawDesc && mustDrawEnt)\
 {\
-	CryLogAlways("[TOS] [%s] %s %s %s",\
-		tos::debug::GetEnv(), (entName).c_str(), (eventName).c_str(), (eventDesc).c_str());\
+	CryLogAlways("%i [TOS] [%s] %s %s %s",\
+		gEnv->pRenderer->GetFrameID(), tos::debug::GetEnv(), (entName).c_str(), (eventName).c_str(), (eventDesc).c_str());\
 }\
 else if (mustDrawEnt && !mustDrawDesc)\
 {\
-	CryLogAlways("[TOS] [%s] %s %s",\
-		tos::debug::GetEnv(), (entName).c_str(), (eventName).c_str());\
+	CryLogAlways("%i [TOS] [%s] %s %s",\
+		gEnv->pRenderer->GetFrameID(), tos::debug::GetEnv(), (entName).c_str(), (eventName).c_str());\
 }\
 else if (mustDrawDesc && !mustDrawEnt)\
 {\
-	CryLogAlways("[TOS] [%s] - %s %s",\
-		tos::debug::GetEnv(), (eventName).c_str(), (eventDesc).c_str());\
+	CryLogAlways("%i [TOS] [%s] - %s %s",\
+		gEnv->pRenderer->GetFrameID(), tos::debug::GetEnv(), (eventName).c_str(), (eventDesc).c_str());\
 }\
 else\
 {\
-	CryLogAlways("[TOS] [%s] - %s",\
-		tos::debug::GetEnv(), (eventName).c_str());\
+	CryLogAlways("%i [TOS] [%s] - %s",\
+		gEnv->pRenderer->GetFrameID(), tos::debug::GetEnv(), (eventName).c_str());\
 }\
 
 
