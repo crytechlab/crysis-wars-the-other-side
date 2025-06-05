@@ -8,7 +8,7 @@ Description: Projectile
 
 -------------------------------------------------------------------------
 History:
-- 12:10:2005   11:15 : Created by Mбrcio Martins
+- 12:10:2005   11:15 : Created by M�rcio Martins
 
 *************************************************************************/
 #ifndef __PROJECTILE_H__
@@ -105,6 +105,10 @@ public:
 
 	float GetSpeed() const;
 	inline float GetLifeTime() const { return m_pAmmoParams? m_pAmmoParams->lifetime : 0.0f; }
+
+	/// @brief Возвращает true, если снаряд будет предсказан на клиентах по информации от сервера.
+	/// @brief Если true, то это значит, что сущность не будет воссоздана заново на клиенте через SpawnEntity,
+	/// @brief а будет сдублирована через метод BindToNetwork.
 	bool IsPredicted() const { return m_pAmmoParams? m_pAmmoParams->predictSpawn != 0 : false; }
 
 	//IHitListener
