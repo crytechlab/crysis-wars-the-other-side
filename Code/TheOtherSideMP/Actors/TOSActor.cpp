@@ -425,7 +425,15 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 			if (pEntityAttachment)
 			{
 				auto pEntity = TOS_GET_ENTITY(pEntityAttachment->GetEntityId());
-				rightHandAttachedName = pEntity ? pEntity->GetName() : "NULL";
+				rightHandAttachedName = pEntity ? string(pEntity->GetName()) : "NULL";
+				if (pEntity)
+				{
+					CWeapon *pWeapon = static_cast<CWeapon*>(g_pGame->GetIGameFramework()->GetIItemSystem()->GetItem(pEntity->GetId()));
+					if (pWeapon)
+					{
+						auto id = pWeapon->GetEntityId();
+					}
+				}
 			}
 		}
 	}
