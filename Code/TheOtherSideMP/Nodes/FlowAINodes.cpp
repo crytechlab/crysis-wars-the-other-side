@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 
 #include "Game.h"
 #include "Nodes/G2FlowBaseNode.h"
@@ -163,4 +163,4 @@ public:
 	}
 };
 
-REGISTER_FLOW_NODE("AI:AISelectGoalPipe", CFlowNode_AISelectGoalPipe);
+REGISTER_FLOW_NODE("TOS:AISelectGoalPipe", CFlowNode_AISelectGoalPipe);

@@ -1,4 +1,4 @@
-/*************************************************************************
+﻿/*************************************************************************
 AlienKeeper Source File.
 Copyright (C), AlienKeeper, 2024.
 **************************************************************************/
@@ -620,9 +620,9 @@ public:
 	}
 };
 
-REGISTER_FLOW_NODE("Vehicle:GetFreeSeat", CFlowNode_VehicleGetFreeSeat);
-REGISTER_FLOW_NODE("Vehicle:EnterNew", CFlowNode_VehicleEnterNew);
+REGISTER_FLOW_NODE("TOS:VehicleGetFreeSeat", CFlowNode_VehicleGetFreeSeat);
+REGISTER_FLOW_NODE("TOS:VehicleEnter", CFlowNode_VehicleEnterNew);
 //REGISTER_FLOW_NODE("Vehicle:Status", CFlowNode_VehicleStatus);
-REGISTER_FLOW_NODE("Vehicle:ExitNew", CFlowNode_VehicleExitNew);
-REGISTER_FLOW_NODE("Vehicle:ChangeSeat", CFlowNode_VehicleChangeSeat);
-REGISTER_FLOW_NODE("Vehicle:IsInVehicle", CFlowNode_IsInVehicle);
+REGISTER_FLOW_NODE("TOS:VehicleExitNew", CFlowNode_VehicleExitNew);
+REGISTER_FLOW_NODE("TOS:VehicleChangeSeat", CFlowNode_VehicleChangeSeat);
+REGISTER_FLOW_NODE("TOS:VehicleIsInside", CFlowNode_IsInVehicle);

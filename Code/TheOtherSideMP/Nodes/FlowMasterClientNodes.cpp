@@ -1,4 +1,4 @@
-/*************************************************************************
+﻿/*************************************************************************
 AlienKeeper Source File.
 Copyright (C), AlienKeeper, 2024.
 **************************************************************************/
@@ -225,4 +225,4 @@ public:
 	//~INanoSuitListener
 };
 
-REGISTER_FLOW_NODE("TOSMasterClient:StartControl", CFlowNode_MCStartControl);
+REGISTER_FLOW_NODE("TOS:StartControl", CFlowNode_MCStartControl);

@@ -1,4 +1,4 @@
-/*************************************************************************
+﻿/*************************************************************************
 AlienKeeper Source File.
 Copyright (C), AlienKeeper, 2024.
 **************************************************************************/
@@ -122,4 +122,4 @@ public:
 	}
 };
 
-REGISTER_FLOW_NODE("Entity:CallScriptFunction", CFlowNode_CallScriptFunction);
+REGISTER_FLOW_NODE("TOS:EntityCallScriptFunction", CFlowNode_CallScriptFunction);
