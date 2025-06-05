@@ -118,9 +118,7 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor *pActor, bool bMake, 
 
 	CTOSPlayer *pPlayer = static_cast<CTOSPlayer *>(pActor);
 
-	if (bMake == false 
-		&& pModule->GetLocal().GetFlag(CTOSZeusModule::EFlag::Zeusing) 
-		&& pPlayer->GetSpectatorMode() != CActor::eASM_None)
+	if (bMake == false && pModule->GetLocal().GetFlag(CTOSZeusModule::EFlag::Zeusing) && pPlayer->GetSpectatorMode() != CActor::eASM_None)
 	{
 		// Если выходим из режима Зевса, то переключаемся в режим зрителя
 		pGameRules->ChangeSpectatorMode(pPlayer, CActor::eASM_Fixed, 0, true);
@@ -327,13 +325,13 @@ bool CTOSZeusModule::ClientServer::ServerEnterVehicle(IActor *pActor, IVehicle *
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 {
-	//TODO: Через меню паузы можно кликнуть по объектам...
+	// TODO: Через меню паузы можно кликнуть по объектам...
 
 	CryLog("<C++>[%s][%s][SvRequestMakeZeus]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	return CTOSZeusModule::ClientServer::ServerMakeZeus(
-		params.playerChannelId, 
+		params.playerChannelId,
 		params.bMake,
 		params.desiredTeam);
 }
@@ -342,7 +340,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClMakeZeus)
 {
 	CryLog("<C++>[%s][%s][ClMakeZeus]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	return CTOSZeusModule::ClientServer::ClientMakeZeus(params.bMake);
 }
@@ -353,7 +351,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 	if (gEnv->bServer)
 	{
 		CryLog("<C++>[%s][%s][SvRequestSpawnEntity]",
-			tos::debug::GetEnv(), tos::debug::GetAct(3));
+			   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 		auto pZeusModule = g_pTOSGame->GetZeusModule();
 		assert(pZeusModule != nullptr);
@@ -364,20 +362,18 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 		spawnParams.spawnDelay = 1.0f;
 		spawnParams.saveParams = false;
 		spawnParams.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)
-		spawnParams.vanilla.bIgnoreLock = false; // spawn lock игнор
-		spawnParams.callback = [clientServer = &pZeusModule->GetClientServer()]
-		(EntityId id, const Vec3& pos, int clientChannelId)
-			{
-				clientServer->ServerOnEntitySpawned(id, pos, clientChannelId);
-			};
+		spawnParams.vanilla.bIgnoreLock = false;	 // spawn lock игнор
+		spawnParams.callback = [clientServer = &pZeusModule->GetClientServer()](EntityId id, const Vec3 &pos, int clientChannelId)
+		{
+			clientServer->ServerOnEntitySpawned(id, pos, clientChannelId);
+		};
 
+		// auto pPlayer = TOS_GET_ACTOR_CHANNELID(params.playerChannelId);
+		// if (pPlayer)
+		// spawnParams.authorityPlayerName = pPlayer->GetEntity()->GetName();
 
-		//auto pPlayer = TOS_GET_ACTOR_CHANNELID(params.playerChannelId);
-		//if (pPlayer)
-			//spawnParams.authorityPlayerName = pPlayer->GetEntity()->GetName();
-
-		const string* const psClassName = &params.className;
-		IEntityClass* pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(psClassName->c_str());
+		const string *const psClassName = &params.className;
+		IEntityClass *pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(psClassName->c_str());
 
 		const string name = string("zeus_") + psClassName->c_str();
 		spawnParams.name = name;
@@ -412,8 +408,8 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClSpawnEntity)
 	// Здесь пишем всё, что должно выполниться на клиенте
 
 	CryLog("<C++>[%s][%s][ClSpawnEntity] %s",
-		tos::debug::GetEnv(), tos::debug::GetAct(3), TOS_GET_ENTITY(params.spawnedId)->GetName());
-	 
+		   tos::debug::GetEnv(), tos::debug::GetAct(3), TOS_GET_ENTITY(params.spawnedId)->GetName());
+
 	auto pZeusModule = g_pTOSGame->GetZeusModule();
 	assert(pZeusModule != nullptr);
 
@@ -422,7 +418,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClSpawnEntity)
 	pZeusModule->GetLocal().m_dragging = true;
 	pZeusModule->GetHUD().m_menuSpawnHandling = true;
 
-	//TODO: не выделяется сущность после спавна
+	// TODO: не выделяется сущность после спавна
 	pZeusModule->GetLocal().SelectEntity(params.spawnedId);
 	pZeusModule->GetLocal().ClickEntity(params.spawnedId, params.spawnedPos);
 
@@ -435,8 +431,8 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClCopyEntity)
 	// Здесь пишем всё, что должно выполниться на клиенте
 
 	CryLog("<C++>[%s][%s][ClCopyEntity] %s",
-		tos::debug::GetEnv(), tos::debug::GetAct(3), TOS_GET_ENTITY(params.copiedId)->GetName());
-	 
+		   tos::debug::GetEnv(), tos::debug::GetAct(3), TOS_GET_ENTITY(params.copiedId)->GetName());
+
 	auto pZeusModule = g_pTOSGame->GetZeusModule();
 	assert(pZeusModule != nullptr);
 
@@ -452,7 +448,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClCopyEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestTransformEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestTransformEntity]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (!pEntity)
@@ -480,7 +476,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestTransformEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClTransformEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestTransformEntity]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (!pEntity)
@@ -506,7 +502,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClTransformEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestRemoveEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestRemoveEntity]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pActor = TOS_GET_ACTOR(params.id);
 	if (pActor)
@@ -534,7 +530,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestRemoveEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestKillEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestKillEntity]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	string hitType = "event";
 
@@ -550,7 +546,6 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestKillEntity)
 	if (pVehicle)
 		tos::vehicle::Destroy(pVehicle);
 
-
 	return true;
 }
 
@@ -558,9 +553,9 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestKillEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestExecuteOrder)
 {
 	CryLog("<C++>[%s][%s][SvRequestExecuteOrder]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
-	IScriptSystem* pSS = gEnv->pScriptSystem;
+	IScriptSystem *pSS = gEnv->pScriptSystem;
 	if (pSS->ExecuteFile("Scripts/AI/TOS/TOSHandleOrder.lua", true, true))
 	{
 		SmartScriptTable executorInfo;
@@ -571,8 +566,8 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestExecuteOrder)
 
 		executorInfo->SetValue("entityId", params.id);
 		executorInfo->SetValue("maxCount", params.maxCount); // макс. кол-во исполнителей
-		executorInfo->SetValue("index", params.index); // текущий номер исполнителя
-		
+		executorInfo->SetValue("index", params.index);		 // текущий номер исполнителя
+
 		orderInfo->SetValue("goalPipeId", params.id); // так надо
 		orderInfo->SetValue("pos", params.pos);
 		orderInfo->SetValue("targetId", params.targetId);
@@ -590,14 +585,13 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestExecuteOrder)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestHideEntity)
 {
 	CryLog("<C++>[%s][%s][SvRequestHideEntity]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (pEntity)
 	{
 		pEntity->Hide(params.bHide);
 	}
-		
 
 	RMISend(ClHideEntity(), params, eRMI_ToAllClients | eRMI_NoLocalCalls);
 
@@ -608,14 +602,14 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestHideEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClHideEntity)
 {
 	CryLog("<C++>[%s][%s][ClHideEntity]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (pEntity)
 	{
 		pEntity->Hide(params.bHide);
 		pEntity->EnablePhysics(!params.bHide);
-	}// TODO: физика не отключается при копировании и коллайдит с сузествующей сущностью
+	} // TODO: физика не отключается при копировании и коллайдит с сузествующей сущностью
 
 	return true;
 }
@@ -624,7 +618,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClHideEntity)
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestAIMakeHostile)
 {
 	CryLog("<C++>[%s][%s][SvRequestAIMakeHostile]",
-		tos::debug::GetEnv(), tos::debug::GetAct(3));
+		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
 	if (pEntity)
@@ -643,7 +637,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 	if (gEnv->bServer)
 	{
 		CryLog("<C++>[%s][%s][SvRequestCopyEntity]",
-			tos::debug::GetEnv(), tos::debug::GetAct(3));
+			   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 		auto pZeusModule = g_pTOSGame->GetZeusModule();
 		assert(pZeusModule != nullptr);
@@ -654,12 +648,12 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 		spawnParams.spawnDelay = 1.0f;
 		spawnParams.saveParams = false;
 		spawnParams.vanilla.bStaticEntityId = false; // true - вылетает в редакторе и медленно работает O(n), false O(1)
-		spawnParams.vanilla.bIgnoreLock = false; // spawn lock игнор
+		spawnParams.vanilla.bIgnoreLock = false;	 // spawn lock игнор
 		spawnParams.callback = [clientServer = &pZeusModule->GetClientServer(),
-			copiedId = params.copiedId](EntityId id, const Vec3& pos, int clientChannelId)
-			{
-				clientServer->ServerOnEntityCopied(id, pos, clientChannelId, copiedId);
-			};
+								copiedId = params.copiedId](EntityId id, const Vec3 &pos, int clientChannelId)
+		{
+			clientServer->ServerOnEntityCopied(id, pos, clientChannelId, copiedId);
+		};
 
 		auto pCopiedEntity = TOS_GET_ENTITY(params.copiedId);
 		if (!pCopiedEntity)
@@ -690,9 +684,9 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestVehicleEnter)
 {
-	IVehicle* pVehicle = TOS_GET_VEHICLE(params.vehicleId);
-	IActor* pActor = TOS_GET_ACTOR(params.actorId);
-											
+	IVehicle *pVehicle = TOS_GET_VEHICLE(params.vehicleId);
+	IActor *pActor = TOS_GET_ACTOR(params.actorId);
+
 	if (!pVehicle || !pActor)
 		return true;
 
