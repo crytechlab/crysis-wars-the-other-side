@@ -55,21 +55,21 @@ void STOSCvars::InitCVars(IConsole* pConsole)
 void STOSCvars::InitCCommands(IConsole* pConsole)
 {
 	//SERVER COMMANDS
-	pConsole->AddCommand("netchname", CmdNetChName);
-	pConsole->AddCommand("getentitiesbyclass", CmdGetEntitiesByClass);
-	pConsole->AddCommand("getentityscriptvalue", CmdGetEntityScriptValue);
-	pConsole->AddCommand("dumpsynchronizers", CmdDumpSynchronizers);
-	pConsole->AddCommand("dumpentityinfo", CmdDumpEntityInfo);
-	pConsole->AddCommand("dumpactorinfo", CmdDumpActorInfo);
+	pConsole->AddCommand("tos_netchname", CmdNetChName);
+	pConsole->AddCommand("tos_getentitiesbyclass", CmdGetEntitiesByClass);
+	pConsole->AddCommand("tos_getentityscriptvalue", CmdGetEntityScriptValue);
+	pConsole->AddCommand("tos_dumpsynchronizers", CmdDumpSynchronizers);
+	pConsole->AddCommand("tos_dumpentityinfo", CmdDumpEntityInfo);
+	pConsole->AddCommand("tos_dumpactorinfo", CmdDumpActorInfo);
 	pConsole->AddCommand("tos_dumpweaponsinfo", CmdDumpWeaponsInfo);
 
 	// Отладочные команды потребителя энергии
-	pConsole->AddCommand("consumersetenergy", CmdConsumerSetEnergy);
-	pConsole->AddCommand("consumersetdrain", CmdConsumerSetDrain);
+	pConsole->AddCommand("tos_consumersetenergy", CmdConsumerSetEnergy);
+	pConsole->AddCommand("tos_consumersetdrain", CmdConsumerSetDrain);
 
 	//CLIENT COMMANDS
-	pConsole->AddCommand("getdudename", CmdGetDudeName);
-	pConsole->AddCommand("rmi_removeinventory", CmdRMIRemoveInventory);
+	pConsole->AddCommand("tos_getdudename", CmdGetDudeName);
+	pConsole->AddCommand("tos_rmi_removeinventory", CmdRMIRemoveInventory);
 
 	for (std::vector<ITOSGameModule*>::iterator it = g_pTOSGame->m_modules.begin(); it != g_pTOSGame->m_modules.end(); ++it)
 		(*it)->InitCCommands(pConsole);
@@ -82,24 +82,23 @@ void STOSCvars::ReleaseCCommands()
 
 	const auto pConsole = gEnv->pConsole;
 
-	pConsole->RemoveCommand("netchname");
-	pConsole->RemoveCommand("getlocalname");
-	pConsole->RemoveCommand("consumersetenergy");
-	pConsole->RemoveCommand("consumersetdrain");
-	pConsole->RemoveCommand("consumersetdebugentname");
-	pConsole->RemoveCommand("dumpactorinfo");
-	pConsole->RemoveCommand("netchname");
-	pConsole->RemoveCommand("getentitiesbyclass");
-	pConsole->RemoveCommand("getentityscriptvalue");
-	pConsole->RemoveCommand("dumpsynchronizers");
-	pConsole->RemoveCommand("dumpentityinfo");
-	pConsole->RemoveCommand("dumpactorinfo");
-	pConsole->RemoveCommand("consumersetenergy");
-	pConsole->RemoveCommand("consumersetdrain");
-	pConsole->RemoveCommand("consumersetdebugentname");
-	pConsole->RemoveCommand("getdudename");
-
-	pConsole->RemoveCommand("rmi_removeinventory");
+	pConsole->RemoveCommand("tos_netchname");
+	pConsole->RemoveCommand("tos_getlocalname");
+	pConsole->RemoveCommand("tos_consumersetenergy");
+	pConsole->RemoveCommand("tos_consumersetdrain");
+	pConsole->RemoveCommand("tos_consumersetdebugentname");
+	pConsole->RemoveCommand("tos_dumpactorinfo");
+	pConsole->RemoveCommand("tos_netchname");
+	pConsole->RemoveCommand("tos_getentitiesbyclass");
+	pConsole->RemoveCommand("tos_getentityscriptvalue");
+	pConsole->RemoveCommand("tos_dumpsynchronizers");
+	pConsole->RemoveCommand("tos_dumpentityinfo");
+	pConsole->RemoveCommand("tos_dumpactorinfo");
+	pConsole->RemoveCommand("tos_consumersetenergy");
+	pConsole->RemoveCommand("tos_consumersetdrain");
+	pConsole->RemoveCommand("tos_consumersetdebugentname");
+	pConsole->RemoveCommand("tos_getdudename");
+	pConsole->RemoveCommand("tos_rmi_removeinventory");
 	pConsole->RemoveCommand("tos_dumpweaponsinfo");
 
 	g_pTOSGame->m_pFGPluginLoader->UnregisterConsoleCommands();
@@ -167,11 +166,10 @@ void STOSCvars::CmdDumpWeaponsInfo(IConsoleCmdArgs *pArgs)
 {
 	g_pGame->GetWeaponSystem()->DumpWeaponsInfo();
 }
+
 void STOSCvars::CmdDumpActorInfo(IConsoleCmdArgs* pArgs)
 {
 	//m_currentPhysProfile
-
-	ONLY_SERVER_CMD;
 
 	GET_ENTITY_FROM_FIRST_ARG;
 
@@ -265,8 +263,6 @@ void STOSCvars::CmdGetEntityScriptValue(IConsoleCmdArgs* pArgs)
 
 void STOSCvars::CmdDumpEntityInfo(IConsoleCmdArgs* pArgs)
 {
-	ONLY_SERVER_CMD;
-
 	GET_ENTITY_FROM_FIRST_ARG;
 
 	const string playerName = pArgs->GetArg(2);
