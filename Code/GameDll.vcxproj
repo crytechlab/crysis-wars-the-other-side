@@ -511,7 +511,6 @@
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusLocal.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusModule.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusNodes.cpp" />
-    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusSynchronizer.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_Custom.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_ItemSystem.cpp" />
     <ClCompile Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_Zeus.cpp" />

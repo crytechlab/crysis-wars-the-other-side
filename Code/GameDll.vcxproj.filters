@@ -918,9 +918,6 @@
     <ClCompile Include="TheOtherSideMP\Nodes\FlowAINodes.cpp">
       <Filter>TheOtherSideMP\Nodes</Filter>
     </ClCompile>
-    <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusSynchronizer.cpp">
-      <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
-    </ClCompile>
     <ClCompile Include="TheOtherSideMP\Actors\TOSActorRMI.cpp">
       <Filter>TheOtherSideMP\Actors</Filter>
     </ClCompile>
