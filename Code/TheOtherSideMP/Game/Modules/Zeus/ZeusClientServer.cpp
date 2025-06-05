@@ -325,8 +325,6 @@ bool CTOSZeusModule::ClientServer::ServerEnterVehicle(IActor *pActor, IVehicle *
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 {
-	// TODO: Через меню паузы можно кликнуть по объектам...
-
 	CryLog("<C++>[%s][%s][SvRequestMakeZeus]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
@@ -418,7 +416,6 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClSpawnEntity)
 	pZeusModule->GetLocal().m_dragging = true;
 	pZeusModule->GetHUD().m_menuSpawnHandling = true;
 
-	// TODO: не выделяется сущность после спавна
 	pZeusModule->GetLocal().SelectEntity(params.spawnedId);
 	pZeusModule->GetLocal().ClickEntity(params.spawnedId, params.spawnedPos);
 
@@ -609,7 +606,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClHideEntity)
 	{
 		pEntity->Hide(params.bHide);
 		pEntity->EnablePhysics(!params.bHide);
-	} // TODO: физика не отключается при копировании и коллайдит с сузествующей сущностью
+	}
 
 	return true;
 }
