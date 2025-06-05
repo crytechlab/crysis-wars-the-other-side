@@ -38,6 +38,7 @@
 #include "TheOtherSideMP/Helpers/TOS_Screen.h"
 #include <TheOtherSideMP\Helpers\TOS_Entity.h>
 #include <TheOtherSideMP\Helpers\TOS_Console.h>
+#include "TheOtherSideMP/Game/TOSGameEventRecorder.h"
 //~TheOtherSide
 
 #pragma warning(disable: 4355)	// ґthisґ used in base member initializer list
@@ -2377,6 +2378,9 @@ bool CItem::AttachToHand(bool attach, bool checkAttachment)
 		}
 
 		pAttachment->ClearBinding();
+
+		string s = string("from ") + pAttachment->GetName() + " of " + pOwner->GetName();
+		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnItemDetachedFromHand, s, true));
 	}
 	else
 	{
@@ -2385,6 +2389,9 @@ bool CItem::AttachToHand(bool attach, bool checkAttachment)
 
 		pAttachment->AddBinding(pEntityAttachment);
 		pAttachment->HideAttachment(0);
+
+		string s = string("to ") + pAttachment->GetName() + " of " + pOwner->GetName();
+		TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_OnItemAttachedToHand, s, true));
 	}
 
 	return true;

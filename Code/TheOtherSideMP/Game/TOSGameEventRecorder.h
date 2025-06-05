@@ -128,6 +128,9 @@ enum EExtraGameplayEvent
 	eEGE_OnEntitySetTeam, //Смена команды у сущности
 	eEGE_OnPlayerPreChangeTeam, //Смена команды у игрока с учетом игровых правил
 
+	eEGE_OnItemAttachedToHand,
+	eEGE_OnItemDetachedFromHand,
+
 	eEGE_Last,
 };
 
@@ -398,6 +401,10 @@ public:
 				return "EntitySetTeam";
 			case eEGE_OnPlayerPreChangeTeam:
 				return "PlayerChangeTeam";
+			case eEGE_OnItemAttachedToHand:
+				return "ItemAttachedToHand";
+			case eEGE_OnItemDetachedFromHand:
+				return "ItemDetachedFromHand";
 			case eEGE_Last:
 				return "Last";
 			default:
