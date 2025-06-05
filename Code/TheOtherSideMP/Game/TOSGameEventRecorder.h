@@ -298,7 +298,7 @@ public:
 			case eEGE_OnPlayerJoinedGame:
 				return "PlayerJoinedGame";
 			case eEGE_OnPlayerLeftZeus:
-				return "PlayerLeftSpectator";
+				return "PlayerLeftZeus";
 			case eEGE_OnPlayerJoinedSpectator:
 				return "PlayerJoinedSpectator";
 			case eEGE_OnPlayerJoinedCutscene:

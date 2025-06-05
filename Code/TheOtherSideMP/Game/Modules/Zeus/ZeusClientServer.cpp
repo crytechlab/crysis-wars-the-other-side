@@ -125,7 +125,7 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor *pActor, bool bMake, 
 	}
 	else
 		// Если не были в режиме Зевса, то переключаемся в режим Зрителя Зевса в зависимости от параметра
-		pGameRules->ChangeSpectatorMode(static_cast<CActor *>(pPlayer), bMake ? CActor::eASM_Zeus : CActor::eASM_None, 0, true);
+		pGameRules->ChangeSpectatorMode(pPlayer, bMake ? CActor::eASM_Zeus : CActor::eASM_None, 0, true);
 
 	if (gEnv->bServer)
 	{
@@ -134,86 +134,47 @@ bool CTOSZeusModule::ClientServer::DispatchMakeZeus(IActor *pActor, bool bMake, 
 			bMake,
 			desiredTeam);
 	}
-	else
+	else if (pPlayer->IsClient())
 	{
-		// pSync->GetGameObject()->InvokeRMI(
-		// 	CTOSZeusSynchronizer::SvRequestMakeZeus(),
-		// 	CTOSZeusSynchronizer::NetMakeParams(pPlayer->GetChannelId(), bMake, desiredTeam),
-		// 	eRMI_ToServer);
-
 		return CTOSZeusModule::ClientServer::ClientMakeZeus(bMake);
 	}
-
-	// CTOSZeusSynchronizer::NetMakeParams params;
-	// params.bMake = bMake;
-	// params.playerChannelId = pTOSPlayer->GetChannelId();
-	// params.desiredTeam = desiredTeam;
-
-	// if (gEnv->bClient)
-	// {
-	// 	if (params.bMake && pTOSPlayer->GetHealth() <= 0)
-	// 	{
-	// 		CGameRules* pGameRules = g_pGame->GetGameRules();
-	// 		if (pGameRules)
-	// 		{
-	// 			const int teamCount = pGameRules->GetTeamCount();
-	// 			if (teamCount > 0)
-	// 			{
-	// 				pGameRules->ChangeTeam(pPlayer, "zeus");
-	// 			}
-	// 			else
-	// 			{
-	// 				pGameRules->ChangeSpectatorMode(pTOSPlayer, 0, 0, true);
-	// 			}
-	// 		}
-	// 	}
-
-	// 	pSync->GetGameObject()->InvokeRMI(
-	// 		CTOSZeusSynchronizer::SvRequestMakeZeus(),
-	// 		params,
-	// 		eRMI_ToServer);
-
-	// 	return true;
-	// }
-	// else
-	// {
-	// 	return CTOSZeusModule::ClientServer::ServerMakeZeus(
-	// 		params.playerChannelId,
-	// 		params.bMake,
-	// 		desiredTeam);
-	// }
 }
 
 bool CTOSZeusModule::ClientServer::ServerMakeZeus(int playerChannelId, bool make, const char *desiredTeam)
 {
-	auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
+	const auto pSync = g_pTOSGame->GetZeusModule()->GetSynchronizer();
 	if (!pSync)
 		return false;
 
-	auto pTOSPlayer = static_cast<CTOSPlayer *>(TOS_GET_ACTOR_CHANNELID(playerChannelId));
+	const auto pTOSPlayer = static_cast<CTOSPlayer *>(TOS_GET_ACTOR_CHANNELID(playerChannelId));
 	if (!gEnv->bServer || !pTOSPlayer)
 		return false;
 
-	if (make)
-	{
-		pSync->GetGameObject()->InvokeRMIWithDependentObject(
-			CTOSZeusSynchronizer::ClMakeZeus(),
-			CTOSZeusSynchronizer::NetMakeParams(playerChannelId, make, desiredTeam),
-			eRMI_ToClientChannel,
-			pTOSPlayer->GetEntityId(),
-			playerChannelId);
+	const auto params = CTOSZeusSynchronizer::NetMakeParams(playerChannelId, make, desiredTeam);
+	const auto playerId = pTOSPlayer->GetEntityId();
+	const bool isLocalClient = pTOSPlayer->IsClient();
 
-		tos::inventory::GiveItem(pTOSPlayer, "NightVision", false, false, false);
+	if (isLocalClient)
+	{
+		pSync->GetGameObject()->InvokeRMI(
+			CTOSZeusSynchronizer::ClMakeZeus(),
+			params,
+			eRMI_ToClientChannel,
+			playerChannelId);
 	}
 	else
 	{
+		// Если есть Sv+CL и игрок локальный, то почему то этот RMI не срабатывает
 		pSync->GetGameObject()->InvokeRMIWithDependentObject(
 			CTOSZeusSynchronizer::ClMakeZeus(),
-			CTOSZeusSynchronizer::NetMakeParams(playerChannelId, make, desiredTeam),
+			params,
 			eRMI_ToClientChannel,
-			pTOSPlayer->GetEntityId(),
+			playerId,
 			playerChannelId);
 	}
+
+	if (make)
+		tos::inventory::GiveItem(pTOSPlayer, "NightVision", false, false, false);
 
 	return true;
 }

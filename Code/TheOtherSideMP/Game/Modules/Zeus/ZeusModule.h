@@ -436,6 +436,9 @@ public:
 	//ITOSGameModule
     bool 		OnInputEvent(const SInputEvent &event) override;
     bool        OnInputEventUI(const SInputEvent& event) override;
+	/// @brief Вызывается при срабатывании событий через TOS_RECORD_EVENT
+	/// @param pEntity сущность с которой случилось событие
+	/// @param event данные события
 	void        OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event) override;
 	void        GetMemoryStatistics(ICrySizer* s) override;
 	const char* GetName() const override;

@@ -237,7 +237,8 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity *pEntity, const STOSGameEvent 
 	}
 	case eEGE_OnPlayerLeftZeus:
 	{
-		if (!pLocalPlayer)
+		// Если локальный игрок вышел из режима зевса
+		if (!pLocalPlayer || pLocalPlayer->GetEntityId() != pEntity->GetId())  
 			return;
 
 		// Если игрок вышел из режима наблюдателя зевса, то мы должны выйти из режима зевса
@@ -249,7 +250,7 @@ void CTOSZeusModule::OnExtraGameplayEvent(IEntity *pEntity, const STOSGameEvent 
 	{
 		if (!pLocalPlayer)
 			return;
-			
+
 		// Если игра после sv_restart перешла в режим InGame, 
 		// то мы должны сделать зевса если он был зевсом раньше
 		EContextViewState state = static_cast<EContextViewState>(event.int_value);
