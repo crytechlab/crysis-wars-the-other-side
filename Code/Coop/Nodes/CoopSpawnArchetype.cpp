@@ -3,6 +3,7 @@
 #include <IEntitySystem.h>
 //TheOtherSide
 #include <TheOtherSideMP/Actors/Player/TOSPlayer.h>
+#include <TheOtherSideMP/Helpers/TOS_Entity.h>
 //~TheOtherSide
 //#include "Coop/Actors/CoopPlayer.h"
 
@@ -70,7 +71,10 @@ public:
 			spawnParams.qRotation = Quat::CreateRotationXYZ(Ang3(GetPortVec3(pActInfo, EIP_Rotation)));
 			spawnParams.nFlags = ENTITY_FLAG_SPAWNED | ENTITY_FLAG_NET_PRESENT | ENTITY_FLAG_CASTSHADOW;
 			
-			IEntity* pEntity = gEnv->pEntitySystem->SpawnEntity(spawnParams);
+			// TheOtherSide
+			IEntity* pEntity = tos::entity::Spawn(STOSEntitySpawnParams(spawnParams), false);
+			//~TheOtherSide
+
 			if (!pEntity)
 			{
 				ActivateOutput(pActInfo, EOP_Failed, 0);
