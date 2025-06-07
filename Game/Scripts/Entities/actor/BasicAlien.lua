@@ -290,12 +290,16 @@ function BasicAlien:Kill(ragdoll, shooterId, weaponId)
 	
 	self:DropObject();
 	
+	--TheOtherSide
+	local shooter = System.GetEntity(shooterId);
+	--TheOtherSide
+
 	if(shooter) then
 		AI.LogEvent("Shooter position:"..Vec2Str(shooter:GetWorldPos()));
 		AI.SetRefPointPosition(self.id,shooter:GetWorldPos());	
 		AI.SetBeaconPosition(self.id, shooter:GetWorldPos());		
 	end
-	
+
 	self.actor:ResetVulnerabilityEffects(0);
 			
 	-- Call the destructor directly, since the following AIEVENT_TARGETDEAD will
