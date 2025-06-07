@@ -434,6 +434,12 @@ IEntity* CTOSEntitySpawnModule::SpawnAndInit(IEntitySystem* pEntitySystem, STOSE
     if (propsInstance.GetPtr()) tos::script::SetEntityValue(pSpawned, "PropertiesInstance", propsInstance);
 
     gEnv->pEntitySystem->InitEntity(pSpawned, params.vanilla);
+
+    CryLog("[CTOSEntitySpawnModule::SpawnAndInit] Spawned: %s, ArchetypeName: %s, ArchetypeVanillaName: %s", 
+        pSpawned->GetName(), 
+        params.archetypeName.c_str(),
+        params.vanilla.pArchetype ? params.vanilla.pArchetype->GetName() : "null");
+
     return pSpawned;
 }
 

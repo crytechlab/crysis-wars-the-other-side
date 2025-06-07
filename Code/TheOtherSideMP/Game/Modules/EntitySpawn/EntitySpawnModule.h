@@ -56,6 +56,10 @@ struct STOSEntitySpawnParams : public STOSSmartStruct
     explicit STOSEntitySpawnParams(const SEntitySpawnParams& p)
         : vanilla(p)
     {
+        if (vanilla.pArchetype)
+        {
+            archetypeName = vanilla.pArchetype->GetName();
+        }
     }
     STOSEntitySpawnParams(const STOSEntitySpawnParams&) = default;
     STOSEntitySpawnParams& operator=(const STOSEntitySpawnParams&) = default;
