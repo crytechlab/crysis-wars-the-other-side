@@ -574,8 +574,8 @@ end
 
 function TeamInstantAction.Server:OnChangeTeam(playerId, teamId)
 
-	LogAlways("<lua> [TeamInstantAction.Server:OnChangeTeam] playerId = %s, teamName = %s",
-		tostring(EntityName(System.GetEntity(playerId))), tostring(self.game:GetTeamName(teamId)));
+	--LogAlways("<lua> [TeamInstantAction.Server:OnChangeTeam] playerId = %s, teamName = %s",
+		--tostring(EntityName(System.GetEntity(playerId))), tostring(self.game:GetTeamName(teamId)));
 
 	--TheOtherSide
 	local isZeusTeam = self.game:GetTeamName(teamId) == ZEUS_TEAM_NAME;

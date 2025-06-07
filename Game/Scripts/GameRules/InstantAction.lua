@@ -14,7 +14,7 @@
 --
 ----------------------------------------------------------------------------------------------------
 Script.LoadScript("scripts/gamerules/singleplayer.lua", 1, 1);
-System.LogAlways("<lua> loading scripts/gamerules/instantaction.lua")
+System.LogAlways("loading scripts/gamerules/instantaction.lua")
 
 --------------------------------------------------------------------------
 InstantAction = new(SinglePlayer);
@@ -442,7 +442,7 @@ function InstantAction.Client:OnActorAction(player, action, activation, value)
 					else
 						self.game:ChangeSpectatorMode(player.id, mode, NULL_ENTITY);
 					end
-					LogAlways("<lua> [InstantAction.Client:OnActorAction] mode = %s", tostring(mode));
+					-- LogAlways("<lua> [InstantAction.Client:OnActorAction] mode = %s", tostring(mode));
 				end
 			end
 		end
@@ -542,8 +542,8 @@ function InstantAction.Server:OnChangeSpectatorMode(playerId, mode, targetId, re
 		return;
 	end
 
-	LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] player = %s, mode = %s, targetId = %s, resetAll = %s, norevive = %s", 
-		tostring(System.GetEntity(playerId)), tostring(mode), tostring(targetId), tostring(resetAll), tostring(norevive));
+	-- LogAlways("<lua> [InstantAction.Server:OnChangeSpectatorMode] player = %s, mode = %s, targetId = %s, resetAll = %s, norevive = %s", 
+		--tostring(System.GetEntity(playerId)), tostring(mode), tostring(targetId), tostring(resetAll), tostring(norevive));
 
 	if (mode>0) then
 		if(resetAll) then
@@ -847,8 +847,8 @@ end
 ----------------------------------------------------------------------------------------------------
 function InstantAction:RevivePlayer(channelId, player, keepEquip)
 
-	LogAlways("<lua> [InstantAction:RevivePlayer] playerName = %s, channelId = %s, keepEquip = %s",
-		tostring(player:GetName()), tostring(channelId), tostring(keepEquip));
+	-- LogAlways("<lua> [InstantAction:RevivePlayer] playerName = %s, channelId = %s, keepEquip = %s",
+		-- tostring(player:GetName()), tostring(channelId), tostring(keepEquip));
 
 	local result=false;
 	local groupId=player.spawnGroupId;
@@ -1074,6 +1074,7 @@ function InstantAction:ProcessActorDamage(hit)
 	health = math.floor(health - hit.damage*(1-self:GetDamageAbsorption(target, hit)));
 	
 	target.actor:SetHealth(health);
+	--LogAlways("InstantAction:ProcessActorDamage %s health %s hit.damage: %s", target:GetName(), tostring(health), tostring(hit.damage))
 	
 	--if (shooter ~= nil) then
 		--Log("** %s hit %s for %d (%d absorbed) **", shooter:GetName(), target:GetName(), damage, math.floor(damage*target:GetDamageAbsorption(damageType)));
@@ -1473,7 +1474,7 @@ function InstantAction:ProcessScores(hit)
 			self:Award(shooter, 0, 1, h);
 
 			--TheOtherSide
-			System.LogAlways("<lua> Add +1 to '"..shooter:GetName().."' kills")
+			-- System.LogAlways("<lua> Add +1 to '"..shooter:GetName().."' kills")
 			--~TheOtherSide
 
 		else
