@@ -92,7 +92,7 @@ AIBehaviour.TrooperAttackSwitchPosition = {
 			local target = AI.GetAttentionTargetEntity(entity.id, true);
 			--~TheOtherSide
 
-			if (entity:GetDistance(target.id) > entity.melee.damageRadius + 1) then
+			if (target and entity:GetDistance(target.id) > entity.melee.damageRadius + 1) then
 				if (Trooper_Dodge(entity)) then
 					AI.Signal(SIGNALFILTER_SENDER, 1, "GO_TO_DODGE", entity.id);
 					return;

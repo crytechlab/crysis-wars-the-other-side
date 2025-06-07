@@ -1605,8 +1605,8 @@ AIBehaviour.TROOPERDEFAULT = {
 		-- player is staying close to the ai since <entity.Properties.awarenessOfPlayer> seconds
 		
 		-- Elite troopers can use shockwaves
-		if (entity.actor:CanLaunchShockwave()) then
-			entity:AICreateShockwave();
-		end
+		-- if (entity.actor:CanLaunchShockwave()) then
+		-- 	entity:AICreateShockwave();
+		-- end
 	end,
 }

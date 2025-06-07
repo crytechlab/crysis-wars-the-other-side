@@ -51,11 +51,11 @@ AIBehaviour.Trooper2AttackT = {
 			-- As troopers switch here on close anyway, don't waste time!
 			local targetType = AI.GetTargetType(entity.id);
 			if(targetType==AITARGET_ENEMY) then -- and AI.GetAttentionTargetDistance(entity.id) < 1.0) then 
-				if (entity.actor:CanLaunchShockwave()) then
-					entity:AICreateShockwave();
-				else
+				--if (entity.actor:CanLaunchShockwave()) then
+				--	entity:AICreateShockwave();
+				--else
 					Trooper_CheckMeleeFinal(entity);
-				end
+				--end
 	--			Trooper_CheckMeleeNoTaunt(entity);
 			end
 			
