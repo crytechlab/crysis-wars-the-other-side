@@ -414,6 +414,7 @@ function Trooper_x:Expose()
 		{
 			ClKill = { RELIABLE_UNORDERED, POST_ATTACH, BOOL },
 			ClMeleeHit = { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID },
+			ClWarmupAutoDestruct = { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID },
 		},
 		ServerMethods =
 		{
@@ -421,7 +422,7 @@ function Trooper_x:Expose()
 		},
 		ServerProperties =
 		{
-
+			--myExampleValue = BOOL
 		}
 	};
 end
@@ -435,18 +436,37 @@ function Trooper_x:OnResetClient()
 	self:PlayIdleSound(self.voiceTable.idle);
 end
 
-function Trooper_x.Client:ClKill(bKill)
-	-- Установка эффекта урона
+function Trooper_x:TryInitiateAutoDestruction(canSelfDestruct)
+	-- LogAlways("[%s] [%s] Trooper_x:TryInitiateAutoDestruction canSelfDestruct: %s, bAutoDestructing: %s", 
+		-- self:GetName(), 
+		-- CryAction.IsServer() and "server" or "client", 
+		-- tostring(canSelfDestruct),
+		-- tostring(self.bAutoDestructing))
+
 	self:SetAttachmentEffect(0, "damage_effect_1", "alien_special.Trooper.WoundedPlasma_death", g_Vectors.v000,
 		g_Vectors.v010, 1, 0);
 
-	-- Если тропер не может самоуничтожиться, устанавливаем таймер для проверки
-	if (self.Properties.bCanSelfDestruct == 0) then
+	if (canSelfDestruct == 0) then
 		self:SetTimer(TROOPER_CHECK_DEAD_SHELL_TIMER, 9000);
-		-- Если тропер не начал процесс самоуничтожения, инициируем его
 	elseif (not self.bAutoDestructing) then
 		self:InitiateAutoDestruction();
 	end
+
+	BasicAlien.StopSounds(self);
+end
+
+function Trooper_x.Client:ClWarmupAutoDestruct(entityId)
+	local entity = System.GetEntity(entityId);
+	if (entity) then
+		entity:WarmupAutoDestruct();
+	end
+end
+
+function Trooper_x.Client:ClKill(canSelfDestruct)
+	self:SetAttachmentEffect(0, "damage_effect_1", "alien_special.Trooper.WoundedPlasma_death", g_Vectors.v000,
+		g_Vectors.v010, 1, 0);
+
+	self:TryInitiateAutoDestruction(canSelfDestruct);
 
 	BasicAlien.StopSounds(self);
 end
@@ -736,24 +756,13 @@ function Trooper_x:Kill(ragdoll, shooterId, weaponId)
 	-- Обработка смерти тропера
 	Trooper_Death(self); -- let AI do something with this corpse
 
-	--TheOtherSide
-	self.allClients:ClKill(true);
-	--TheOtherSide
-
 	-- Сброс всех таймеров
 	self:ResetTimers();
 
-	-- Установка эффекта урона
-	self:SetAttachmentEffect(0, "damage_effect_1", "alien_special.Trooper.WoundedPlasma_death", g_Vectors.v000,
-		g_Vectors.v010, 1, 0);
-
-	-- Если тропер не может самоуничтожиться, устанавливаем таймер для проверки
-	if (self.Properties.bCanSelfDestruct == 0) then
-		self:SetTimer(TROOPER_CHECK_DEAD_SHELL_TIMER, 9000);
-		-- Если тропер не начал процесс самоуничтожения, инициируем его
-	elseif (not self.bAutoDestructing) then
-		self:InitiateAutoDestruction();
-	end
+	--TheOtherSide
+	self:TryInitiateAutoDestruction(self.Properties.bCanSelfDestruct);
+	self.allClients:ClKill(self.Properties.bCanSelfDestruct);
+	--TheOtherSide
 
 	-- Если тропер должен стать тряпичной куклой
 	if (ragdoll) then
@@ -788,8 +797,6 @@ function Trooper_x:Kill(ragdoll, shooterId, weaponId)
 	--TheOtherSide
 	-- Применяем импульс к троперу
 	self:AddImpulse(-1, pos, vel, stats.mass * 5, 1);
-	local isServer = CryAction.IsServer()
-
 	-- System.LogAlways("<lua> server: "..tostring(isServer).." trooper '"..self:GetName().."' add impulse pos: "..Vec2Str(pos).." vel: "..Vec2Str(vel))
 	--~TheOtherSide
 
@@ -983,15 +990,20 @@ function Trooper_x.WarmupAutoDestruct(entity) --,timerid)
 		bPrime        = 0,
 	}
 
-	local pos = entity:GetPos();
+	local pos = entity:GetWorldPos();
 	if (pos) then
 		entity.explosionPos = {};
 		CopyVector(entity.explosionPos, pos);
 	end
 
-	entity:LoadParticleEffect(-1, "alien_special.Trooper.death_chargeup", params);
-	entity:SetTimer(TROOPER_AUTODESTRUCT_TIMER, entity.AutoDestructionTime * 1000);
-	entity:SetTimer(TROOPER_WARNING_TIMER, 500);
+	if not entity.alreadyWarmup then
+		entity.alreadyWarmup = true;
+		entity:LoadParticleEffect(-1, "alien_special.Trooper.death_chargeup", params);
+		entity:SetTimer(TROOPER_AUTODESTRUCT_TIMER, entity.AutoDestructionTime * 1000);
+		entity:SetTimer(TROOPER_WARNING_TIMER, 500);
+	end
+
+	-- LogAlways("[%s] [%s] Trooper_x.WarmupAutoDestruct", entity:GetName(), CryAction.IsServer() and "server" or "client")
 end
 
 function Trooper_x.SendWarning(entity, timerid)
@@ -1022,32 +1034,38 @@ function Trooper_x.PlayFightSound(entity, timerid)
 end
 
 function Trooper_x:InitiateAutoDestruction()
-	--System.LogAlways("InitiateAutoDestruction")
 	self:SetTimer(TROOPER_WARMUP_AUTODESTRUCT_TIMER, self.WarmupAutoDestructionTime * 1000);
+	-- LogAlways("[%s] [%s] Trooper_x:InitiateAutoDestruction WarmupAutoDestructionTime: %s ms", 
+		-- self:GetName(), 
+		-- CryAction.IsServer() and "server" or "client", 
+		-- tostring(self.WarmupAutoDestructionTime * 1000))
+
 	self.bAutoDestructing = true;
 end
 
-function Trooper_x.AutoDestruct(entity) --,timerid)
-	entity.iAutoDestructTimer = nil;
+function Trooper_x:AutoDestruct()
+	-- LogAlways("[%s] [%s] Trooper_x:AutoDestruct", self:GetName(), CryAction.IsServer() and "server" or "client")
 
-	entity.exploded = true;
+	self.iAutoDestructTimer = nil;
+
+	self.exploded = true;
 
 
-	local pos = entity:GetWorldPos();
+	local pos = self:GetWorldPos();
 	if (not pos) then
-		if (not entity.explosionPos) then
+		if (not self.explosionPos) then
 			return;
 		end
 		pos = g_Vectors.temp_v1;
-		CopyVector(pos, entity.explosionPos);
+		CopyVector(pos, self.explosionPos);
 	end
-	pos.z = pos.z + 1.0;
+	pos.z = pos.z + 2.0;
 
-	local damage = entity.Properties.Explosion.Damage;
-	local radius = entity.Properties.Explosion.Radius;
-	local navtype = AI.GetNavigationType(entity.id);
+	local damage = self.Properties.Explosion.Damage;
+	local radius = self.Properties.Explosion.Radius;
+	local navtype = AI.GetNavigationType(self.id);
 	if (navtype == NAV_WAYPOINT_HUMAN) then
-		local roomSize = AI.GetEnclosingSpace(entity.id, g_Vectors.temp, 20, CHECKTYPE_MIN_ROOMSIZE);
+		local roomSize = AI.GetEnclosingSpace(self.id, g_Vectors.temp, 20, CHECKTYPE_MIN_ROOMSIZE);
 		if (roomSize < radius) then
 			if (roomSize < 3) then
 				roomSize = 3;
@@ -1056,15 +1074,18 @@ function Trooper_x.AutoDestruct(entity) --,timerid)
 			radius = roomSize;
 		end
 	end
-	g_gameRules:CreateExplosion(entity.id, entity.id, damage, pos, nil, radius);
+
+	--LogAlways("[%s] [%s] Trooper_x:AutoDestruct damage: %s, radius: %s", self:GetName(), CryAction.IsServer() and "server" or "client", tostring(damage), tostring(radius))
+
+	g_gameRules:CreateExplosion(self.id, self.id, damage, pos, nil, radius);
 	g_gameRules:ClientViewShake(pos, 10, 2, 0.25, 0.0075);
-	CopyVector(g_SignalData.point, entity:GetWorldPos());
-	entity:NotifyExplosion();
-	AI.SetSmartObjectState(entity.id, "Idle");
+	CopyVector(g_SignalData.point, self:GetWorldPos());
+	self:NotifyExplosion();
+	AI.SetSmartObjectState(self.id, "Idle");
 
-	Particle.SpawnEffect("alien_special.Trooper.death_explosion", pos, g_Vectors.v000, entity.id);
+	Particle.SpawnEffect("alien_special.Trooper.death_explosion", pos, g_Vectors.v000, self.id);
 
-	entity:RemoveActor();
+	self:RemoveActor();
 end
 
 --function Trooper_x:Cloak(cloak)
@@ -1098,7 +1119,7 @@ function Trooper_x:SetGroupFireModes()
 end
 
 function Trooper_x:MeleeAttack(entity)
-	System.LogAlways("<lua> Trooper '" .. self:GetName() .. "' melee attack target '" .. entity:GetName() .. "'")
+	-- System.LogAlways("<lua> Trooper '" .. self:GetName() .. "' melee attack target '" .. entity:GetName() .. "'")
 
 	if (not self.AI.meleeImpulse) then
 		self.AI.meleeImpulse = { x = 0, y = 0, z = 0 };
@@ -1234,8 +1255,8 @@ function Trooper_x:MeleeDamage(impulse, meleeType)
 				-- Завершаем атаку
 				self:SelectPipe(0, "tr_end_melee")
 
-				System.LogAlways("<lua> Trooper '" ..
-				self:GetName() .. "' damage with'" .. hit.damage .. "' target '" .. entity:GetName() .. "'")
+				-- System.LogAlways("<lua> Trooper '" ..
+				--self:GetName() .. "' damage with'" .. hit.damage .. "' target '" .. entity:GetName() .. "'")
 			end
 		end
 	end
@@ -1289,7 +1310,11 @@ end
 
 -- Функция вызывается при срабатывании таймера
 function Trooper_x.Client:OnTimer(timerId, mSec)
-	-- Обработка различных таймеров
+
+	-- LogAlways("[%s] [%s] Trooper_x.Client:OnTimer timerId: %s", self:GetName(), CryAction.IsServer() and "server" or "client", timerId)
+	
+	self:OnDestructTimer(timerId, mSec);
+
 	if (timerId == PAIN_TIMER) then
 		-- Если у актёра есть здоровье, воспроизводим звуки боли
 		if (self.actor:GetHealth() > 0) then
@@ -1297,14 +1322,32 @@ function Trooper_x.Client:OnTimer(timerId, mSec)
 		end
 		-- Сброс флага воспроизведения звука боли
 		self.painSoundTriggered = nil;
-	elseif (timerId == TROOPER_JUMP_TIMER) then
-		-- Выполнение второго прыжка в ближнем бою
-		Trooper_PerformSecondMeleeJump(self);
-	elseif (timerId == TROOPER_END_JUMP_DODGE_TIMER) then
-		-- Выполнение прыжка-уклонения
-		local r = g_Vectors.temp;
-		CopyVector(r, AI.GetRefPointPosition(self.id));
-		Trooper_Jump(self, r, false, false, -15, true);
+	-- Не используется, см 	TROOPERDEFAULT.lua:OnFallAndPlay
+
+	-- elseif (timerId == TROOPER_PLAYERGRABBED_TIMER) then
+	-- 	-- Воспроизведение звука захвата игрока
+	-- 	local sndFlags = SOUND_DEFAULT_3D;
+	-- 	self.grabbedSound = self:PlaySoundEvent("sounds/alien:trooper:choke", g_Vectors.v000, g_Vectors.v010, sndFlags,
+	-- 		SOUND_SEMANTIC_LIVING_ENTITY);
+	-- 	-- Перезапуск таймера захвата игрока
+	-- 	self:SetTimer(TROOPER_PLAYERGRABBED_TIMER, 5000 + random(1, 1000));
+	end
+end
+
+function Trooper_x.Server:OnTimer(timerId, mSec)
+
+	-- ("[%s] [%s] Trooper_x.Server:OnTimer timerId: %s", self:GetName(), CryAction.IsServer() and "server" or "client", timerId)
+
+	self:OnAITimer(timerId, mSec);
+	self:OnDestructTimer(timerId, mSec);
+
+	if (timerId == TROOPER_END_MELEE_TIMER) then
+		-- Установка возможности захвата актёра
+		self:SetGrabbable(1);
+	elseif (timerId == TROOPER_GRABBEDFX_TIMER) then
+		-- Сброс эффекта захвата
+		self:ResetAttachment(0, "Grapped");
+		self.AI.bGrabbedFx = false;
 	elseif (timerId == TROOPER_DEPHYSICALIZE_TIMER) then
 		--TheOtherSide
 		if (self.actor:IsSlave()) then
@@ -1317,53 +1360,22 @@ function Trooper_x.Client:OnTimer(timerId, mSec)
 			-- Условие для помещений или навигации по точкам
 			if (self.Properties.bIndoor == 1 or AI.GetNavigationType(self.id) == NAV_WAYPOINT_HUMAN) then
 				self.actor:SetPhysicalizationProfile("unragdoll");
-				System.LogAlways("<lua> trooper '" .. self:GetName() .. "' DEPHYSICALIZED")
+				-- System.LogAlways("<lua> trooper '" .. self:GetName() .. "' DEPHYSICALIZED")
 			end
 		else
 			-- Перезапуск таймера дефизикализации
 			self:SetTimer(TROOPER_DEPHYSICALIZE_TIMER, 2000);
 		end
-	elseif (timerId == TROOPER_MELEE_SPECIAL_TIMER) then
-		-- Сигнал начала специальной атаки в ближнем бою
-		AI.Signal(SIGNALFILTER_SENDER, 0, "MELEE_SPECIAL_START_TIMEOUT", self.id);
-	elseif (timerId == TROOPER_END_MELEE_TIMER) then
-		-- Установка возможности захвата актёра
-		self:SetGrabbable(1);
-		-- Закомментированный код выбора поведения после таймаута спец. атаки
-		--self:SelectPipe(0,"tr_melee_special_timeout");
-	elseif (timerId == TROOPER_CONVERSATION_REQUEST_TIMER) then
-		-- Запрос на начало разговора
-		AI.Signal(SIGNALFILTER_GROUPONLY_EXCEPT, 0, "REQUEST_CONVERSATION", self.id);
-		-- Установка таймера проверки разговора
-		self:SetTimer(TROOPER_CONVERSATION_CHECK_TIMER, 1000);
-	elseif (timerId == TROOPER_CONVERSATION_CHECK_TIMER) then
-		-- Проверка состояния разговора
-		if (AIBlackBoard.trooper_ConversationState == TROOPER_CONV_REQUESTING) then
-			-- Если все ещё в состоянии запроса и нет ответа - сброс
-			AIBlackBoard.trooper_ConversationState = TROOPER_CONV_IDLE;
-			AI.Signal(SIGNALFILTER_SENDER, 0, "REQUEST_CONVERSATION", self.id);
-		end
-	elseif (timerId == TROOPER_CONVERSATION_ANSWER_TIMER) then
-		-- Ответ на разговор
-		AI.Signal(SIGNALFILTER_SENDER, 0, "CONVERSATION_ANSWER", self.id);
-	elseif (timerId == TROOPER_PLAYERGRABBED_TIMER) then
-		-- Воспроизведение звука захвата игрока
-		local sndFlags = SOUND_DEFAULT_3D;
-		self.grabbedSound = self:PlaySoundEvent("sounds/alien:trooper:choke", g_Vectors.v000, g_Vectors.v010, sndFlags,
-			SOUND_SEMANTIC_LIVING_ENTITY);
-		-- Перезапуск таймера захвата игрока
-		self:SetTimer(TROOPER_PLAYERGRABBED_TIMER, 5000 + random(1, 1000));
-	elseif (timerId == TROOPER_CHECK_DEAD_SHELL_TIMER) then
+	end
+end
+
+function Trooper_x:OnDestructTimer(timerId, mSec)
+	if (timerId == TROOPER_CHECK_DEAD_SHELL_TIMER) then
 		--TheOtherSide
 		if self.actor:GetHealth() > 0 then
 			return
 		end
 		--TheOtherSide
-
-		-- if g_localActor.actor:GetSlaveId() == self.id then
-		-- 	System.LogAlways("Stop timer TROOPER_CHECK_DEAD_SHELL_TIMER")
-		-- 	return
-		-- end
 
 		-- Проверка исчезновения трупера
 		if (not AIBlackBoard.lastTrooperDisappearTime) then
@@ -1405,13 +1417,40 @@ function Trooper_x.Client:OnTimer(timerId, mSec)
 	elseif (timerId == TROOPER_WARMUP_AUTODESTRUCT_TIMER) then
 		-- Подготовка к автодеструкции
 		self:WarmupAutoDestruct();
+		self.allClients:ClWarmupAutoDestruct(self.id);
 	elseif (timerId == TROOPER_AUTODESTRUCT_TIMER) then
 		-- Автодеструкция
 		self:AutoDestruct();
-	elseif (timerId == TROOPER_GRABBEDFX_TIMER) then
-		-- Сброс эффекта захвата
-		self:ResetAttachment(0, "Grapped");
-		self.AI.bGrabbedFx = false;
+	end
+end
+
+function Trooper_x:OnAITimer(timerId, mSec)
+	if (timerId == TROOPER_MELEE_SPECIAL_TIMER) then
+		-- Сигнал начала специальной атаки в ближнем бою
+		AI.Signal(SIGNALFILTER_SENDER, 0, "MELEE_SPECIAL_START_TIMEOUT", self.id);
+	elseif (timerId == TROOPER_JUMP_TIMER) then
+		-- Выполнение второго прыжка в ближнем бою
+		Trooper_PerformSecondMeleeJump(self);
+	elseif (timerId == TROOPER_END_JUMP_DODGE_TIMER) then
+		-- Выполнение прыжка-уклонения
+		local r = g_Vectors.temp;
+		CopyVector(r, AI.GetRefPointPosition(self.id));
+		Trooper_Jump(self, r, false, false, -15, true);
+	elseif (timerId == TROOPER_CONVERSATION_ANSWER_TIMER) then
+		-- Ответ на разговор
+		AI.Signal(SIGNALFILTER_SENDER, 0, "CONVERSATION_ANSWER", self.id);
+	elseif (timerId == TROOPER_CONVERSATION_REQUEST_TIMER) then
+		-- Запрос на начало разговора
+		AI.Signal(SIGNALFILTER_GROUPONLY_EXCEPT, 0, "REQUEST_CONVERSATION", self.id);
+		-- Установка таймера проверки разговора
+		self:SetTimer(TROOPER_CONVERSATION_CHECK_TIMER, 1000);
+	elseif (timerId == TROOPER_CONVERSATION_CHECK_TIMER) then
+		-- Проверка состояния разговора
+		if (AIBlackBoard.trooper_ConversationState == TROOPER_CONV_REQUESTING) then
+			-- Если все ещё в состоянии запроса и нет ответа - сброс
+			AIBlackBoard.trooper_ConversationState = TROOPER_CONV_IDLE;
+			AI.Signal(SIGNALFILTER_SENDER, 0, "REQUEST_CONVERSATION", self.id);
+		end
 	end
 end
 
