@@ -4,7 +4,8 @@
 			<thirdperson name="objects/weapons/alien/moac/bullet/bullet_long.cgf" />
 	</geometry>
 	<flags>
-		<param name="clientonly" value="1" />
+		<param name="serverspawn" value="1" />
+		<param name="predictspawn" value="1" />
 	</flags>
 	<whiz>
 		<param name="sound" value="sounds/physics:bullet_whiz:moac_whiz" />

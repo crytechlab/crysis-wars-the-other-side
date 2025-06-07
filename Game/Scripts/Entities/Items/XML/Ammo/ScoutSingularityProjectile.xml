@@ -1,4 +1,4 @@
-<ammo name="scoutsingularityprojectile_play" class="Rocket">	
+<ammo name="scoutsingularityprojectile" class="Rocket">	
 	<flags>
 		<param name="serverspawn" value="1" />
 		<param name="predictspawn" value="1" />
