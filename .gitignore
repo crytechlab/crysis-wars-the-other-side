@@ -382,4 +382,3 @@ healthchecksdb
 *.pdb
 *.dll
 *.png
-/Game/Scripts/Network
