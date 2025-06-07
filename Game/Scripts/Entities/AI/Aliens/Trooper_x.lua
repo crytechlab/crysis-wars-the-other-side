@@ -124,7 +124,7 @@ Trooper_x = {
 		distanceToHideFrom = 3,
 
 		Explosion = {
-			Damage = 400,
+			Damage = 200,
 			Radius = 15,
 		},
 
