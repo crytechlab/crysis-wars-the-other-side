@@ -1164,8 +1164,9 @@ end
 function Trooper_x:MeleeDamage(impulse, meleeType)
 	-- Получаем цель для ближнего боя
 	local entity = self.AI.meleeTarget
-	local radius
+	local radius = 2.5
 
+	LogAlways("Trooper_x:MeleeDamage 1 entity: %s impulse: %s meleeType: %s", tostring(entity), tostring(impulse), tostring(meleeType))
 
 	-- Если цель существует
 	if entity then
@@ -1191,6 +1192,8 @@ function Trooper_x:MeleeDamage(impulse, meleeType)
 		local pos = self:GetWorldPos()
 		local distance, angle = AI.CheckMeleeDamage(self.id, entity.id, radius, -1.3, 1.3, 150)
 
+		LogAlways("Trooper_x:MeleeDamage 2 distance: %s angle: %s", tostring(distance), tostring(angle))
+
 		-- Если урон возможен
 		if distance then
 			-- Получаем направление удара
@@ -1198,8 +1201,7 @@ function Trooper_x:MeleeDamage(impulse, meleeType)
 			local dirX = self:GetDirectionVector(0)
 			local dirY = self:GetDirectionVector(1)
 			local dirZ = self:GetDirectionVector(2)
-			local hitDir = self.melee.meleeDir and FastSumVectors(g_Vectors.temp_v1, headDir, self.melee.meleeDir) or
-			headDir
+			local hitDir = self.melee.meleeDir and FastSumVectors(g_Vectors.temp_v1, headDir, self.melee.meleeDir) or headDir
 			NormalizeVector(hitDir)
 
 			-- Рассчитываем позицию удара с учетом смещения
@@ -1220,21 +1222,29 @@ function Trooper_x:MeleeDamage(impulse, meleeType)
 				hit.radius = 0
 				hit.weaponId = self.id
 				hit.type = "melee"
+				hit.typeId = g_gameRules.game:GetHitTypeId(hit.type)
+				hit.materialId = 0
+
+				--LogAlways("Trooper_x:MeleeDamage 2.5 hit.damage: %s", tostring(hit.damage))
 
 				-- Рассчитываем урон в зависимости от типа цели
 				local melee = self.melee
+
+				--LogAlways("Trooper_x:MeleeDamage 2.6 melee.damage: %s", tostring(melee.damage))	
 				if entity.vehicle then
 					hit.damage = melee.damage * melee.damageMultiplier *
 					self.Properties.Damage.DamageMultipliers.MeleeVehicle
 				elseif entity.Properties and entity.Properties.bNanoSuit == 0 then
 					hit.damage = melee.damage * 4 -- Смертельный урон без нанокостюма
-				elseif entity == g_localActor then
+				elseif entity.actor then
 					-- Урон по игроку с учетом его положения
 					FastDifferenceVectors(g_Vectors.temp, self:GetWorldPos(), entity:GetWorldPos())
-					local playerDir = g_localActor.actor:GetHeadDir(g_Vectors.temp)
+					local playerDir = entity.actor:GetHeadDir(g_Vectors.temp)
 					local dot = dotproduct2d(g_Vectors.temp, playerDir)
 					hit.damage = CalculatePlayerDamage(dot, melee, hit.damage)
 				end
+
+				--LogAlways("Trooper_x:MeleeDamage 3 hit.damage: %s", tostring(hit.damage))
 
 				-- Устанавливаем цель и идентификатор цели
 				hit.target = entity
@@ -1249,8 +1259,26 @@ function Trooper_x:MeleeDamage(impulse, meleeType)
 				g_gameRules.Server.OnHit(g_gameRules, hit, false)
 				g_gameRules.Client.OnHit(g_gameRules, hit, false)
 
+				-- TODO: отправить на клиент
 				-- Воспроизводим звук удара и вызываем эффекты
-				self:PlayMeleeSoundAndEffects(entity, impulse, radius, distance)
+				self:PlayMeleeSoundAndEffects(entity)
+
+				if entity.actor then
+
+					--TODO: отправить на клиент
+					--LogAlways("Trooper_x:MeleeDamage 4 entity.id: %s impulse: %s radius: %s distance: %s", tostring(entity.id), tostring(impulse), tostring(radius), tostring(distance))
+					self:ApplyActorImpulse(entity.id, impulse, radius, distance)
+
+				elseif entity.vehicle then
+					for i,seat in pairs(entity.Seats) do
+						if( seat.passengerId ) then
+							local passenger = System.GetEntity( seat.passengerId );
+							if passenger.actor and passenger.actor:IsPlayer() then
+								passenger.actor:CameraShake(random(20, 30), 0.2, 0.13, g_Vectors.v000)
+							end
+						end
+					end
+				end			
 
 				-- Завершаем атаку
 				self:SelectPipe(0, "tr_end_melee")
@@ -1275,22 +1303,25 @@ function CalculatePlayerDamage(dot, melee, baseDamage)
 end
 
 -- Вспомогательная функция для воспроизведения звука и эффектов удара
-function Trooper_x:PlayMeleeSoundAndEffects(entity, impulse, radius, distance)
+function Trooper_x:PlayMeleeSoundAndEffects(entity)
 	if entity == g_localActor then
 		self:PlaySoundEvent("sounds/physics:bullet_impact:mat_armor_fp", g_Vectors.v000, g_Vectors.v010, SOUND_2D,
 			SOUND_SEMANTIC_PLAYER_FOLEY)
 	end
-
-	if entity.actor and entity.actor:IsPlayer() then
-		ApplyPlayerImpulse(entity, impulse, radius, distance)
-	elseif entity.vehicle and entity:IsEntityOnVehicle(g_localActor.id) then
-		g_localActor.actor:CameraShake(random(20, 30), 0.2, 0.13, g_Vectors.v000)
-	end
 end
 
 -- Вспомогательная функция для применения импульса к игроку
-function ApplyPlayerImpulse(entity, impulse, radius, distance)
-	local targetPos = entity:GetPos(g_Vectors.temp_v2)
+function Trooper_x:ApplyActorImpulse(entityId, impulse, radius, distance)
+	local entity = System.GetEntity(entityId);
+	if not entity or not entity.actor then
+		return
+	end
+
+	LogAlways("Trooper_x:ApplyActorImpulse 1 entity: %s impulse: %s radius: %s distance: %s", tostring(entity), tostring(impulse), tostring(radius), tostring(distance))
+
+	local targetPos = g_Vectors.temp_v1;
+	CopyVector(targetPos, entity:GetWorldPos());
+
 	entity:AddImpulse(-1, targetPos, impulse, 300 + (radius - distance) * 100, 1)
 
 	local dotSide = dotproduct2d(impulse, entity:GetDirectionVector(0))
@@ -1300,12 +1331,14 @@ function ApplyPlayerImpulse(entity, impulse, radius, distance)
 	angImp.z = -dotSide * math.pi * (0.35 + 0.1 * distance / radius)
 	entity.actor:AddAngularImpulse(angImp, 0.0, 0.4)
 
-	entity.actor:CameraShake(45, 0.3, 0.13, g_Vectors.v000)
-
-	local energy = entity.actor:GetNanoSuitEnergy()
-	if energy ~= 0 then
-		entity.actor:SetNanoSuitEnergy(energy - 0.2 * NANOSUIT_ENERGY)
+	if entity.actor:IsPlayer() then
+		entity.actor:CameraShake(45, 0.3, 0.13, g_Vectors.v000)
 	end
+
+	-- local energy = entity.actor:GetNanoSuitEnergy()
+	-- if energy ~= 0 then
+	-- 	entity.actor:SetNanoSuitEnergy(energy - 0.2 * NANOSUIT_ENERGY)
+	-- end
 end
 
 -- Функция вызывается при срабатывании таймера
