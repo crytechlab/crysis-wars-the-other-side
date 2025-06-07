@@ -568,8 +568,11 @@ void CGameRules::ClientExplosion(const ExplosionInfo& explosionInfo)
 	ProcessExplosionMaterialFX(explosionInfo);
 
 	IEntity* pShooter = m_pEntitySystem->GetEntity(explosionInfo.shooterId);
-	if (gEnv->pAISystem && !gEnv->bMultiplayer)
+	// Crysis Co-op
+	//if (gEnv->pAISystem && !gEnv->bMultiplayer)
+	if (gEnv->pAISystem)
 	{
+	// ~Crysis Co-op
 		IAIObject* pShooterAI(pShooter != NULL ? pShooter->GetAI() : NULL);
 		gEnv->pAISystem->ExplosionEvent(explosionInfo.pos, explosionInfo.radius, pShooterAI);
 	}
