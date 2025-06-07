@@ -93,6 +93,22 @@ g_SpawnParams = {
     end
 }
 
+g_HitExample = {
+	dir=g_Vectors.v000;
+	radius = 0;	
+	partId = -1;
+	target = nil;
+	targetId = nil;
+	weapon = nil;
+	weaponId = nil;
+	shooter = nil;
+	shooterId = nil;
+	materialId = 0;
+	damage = 0;
+	typeId = 0;
+	type = "normal";
+}
+
 function LogAlways(fmt, ...)
     System.LogAlways(string.format(fmt, ...));
 end
