@@ -96,6 +96,11 @@ Scout_x =
 			},
 
 		},
+
+		Explosion = {
+			Damage = 400,
+			Radius = 15,
+		},
 		
 		Beam =
 		{
@@ -1033,11 +1038,17 @@ function Scout_x:AutoDestruct()
 
 	if ( self.iAutoDestructTimer == 2 ) then
 
+		--TheOtherSide
+		local damage = self.Properties.Explosion.Damage;
+		local radius = self.Properties.Explosion.Radius;
+
 		local pos = g_Vectors.temp_v1;
-		self:GetWorldPos(pos);
-		
+		CopyVector(pos, self:GetWorldPos());
+		pos.z = pos.z + 3.0;
+		--~TheOtherSide
+
 		g_gameRules:ClientViewShake(pos,75,2,0.25,0.0075);
-		g_gameRules:CreateExplosion(self.id,self.id,200,pos,nil,10);
+		g_gameRules:CreateExplosion(self.id,self.id,damage,pos,nil,radius);
 		Sound.Play(self.gameParams.destruct_explode_sound, pos, 0, SOUND_SEMANTIC_EXPLOSION);
 		
 		--self.actor:CreateCodeEvent { event="spawnDebris" }
