@@ -412,8 +412,8 @@ function Trooper_x:Expose()
 		Class = self,
 		ClientMethods =
 		{
-			ClKill = { RELIABLE_UNORDERED, POST_ATTACH, BOOL },
-			ClApplyMelee = { RELIABLE_ORDERED, POST_ATTACH, ENTITYID, VEC3, FLOAT, FLOAT },
+			ClKill = { RELIABLE_UNORDERED, POST_ATTACH },
+			ClApplyMelee = { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID, VEC3, FLOAT, FLOAT },
 			ClWarmupAutoDestruct = { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID },
 		},
 		ServerMethods =
@@ -437,12 +437,6 @@ function Trooper_x:OnResetClient()
 end
 
 function Trooper_x:TryInitiateAutoDestruction(canSelfDestruct)
-	-- LogAlways("[%s] [%s] Trooper_x:TryInitiateAutoDestruction canSelfDestruct: %s, bAutoDestructing: %s", 
-		-- self:GetName(), 
-		-- CryAction.IsServer() and "server" or "client", 
-		-- tostring(canSelfDestruct),
-		-- tostring(self.bAutoDestructing))
-
 	self:SetAttachmentEffect(0, "damage_effect_1", "alien_special.Trooper.WoundedPlasma_death", g_Vectors.v000,
 		g_Vectors.v010, 1, 0);
 
@@ -465,8 +459,6 @@ end
 function Trooper_x.Client:ClKill(canSelfDestruct)
 	self:SetAttachmentEffect(0, "damage_effect_1", "alien_special.Trooper.WoundedPlasma_death", g_Vectors.v000,
 		g_Vectors.v010, 1, 0);
-
-	self:TryInitiateAutoDestruction(canSelfDestruct);
 
 	BasicAlien.StopSounds(self);
 end
@@ -761,7 +753,7 @@ function Trooper_x:Kill(ragdoll, shooterId, weaponId)
 
 	--TheOtherSide
 	self:TryInitiateAutoDestruction(self.Properties.bCanSelfDestruct);
-	self.allClients:ClKill(self.Properties.bCanSelfDestruct);
+	self.allClients:ClKill();
 	--TheOtherSide
 
 	-- Если тропер должен стать тряпичной куклой
@@ -1035,10 +1027,6 @@ end
 
 function Trooper_x:InitiateAutoDestruction()
 	self:SetTimer(TROOPER_WARMUP_AUTODESTRUCT_TIMER, self.WarmupAutoDestructionTime * 1000);
-	-- LogAlways("[%s] [%s] Trooper_x:InitiateAutoDestruction WarmupAutoDestructionTime: %s ms", 
-		-- self:GetName(), 
-		-- CryAction.IsServer() and "server" or "client", 
-		-- tostring(self.WarmupAutoDestructionTime * 1000))
 
 	self.bAutoDestructing = true;
 end
