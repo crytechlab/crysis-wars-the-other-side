@@ -4,7 +4,7 @@
  -------------------------------------------------------------------------
   $Id$
   $DateTime$
-  
+
  -------------------------------------------------------------------------
   History:
   - 6:12:2004: Created by Filippo De Luca
@@ -31,7 +31,7 @@
 #include "GameUtils.h"
 #include "IDebrisMgr.h"
 
-//TheOtherSide feature
+// TheOtherSide feature
 #include <NetInputChainDebug.h>
 //~TheOtherSide
 
@@ -47,7 +47,7 @@ CDebrisSpawner::~CDebrisSpawner() { Reset(); }
  * (and a Lua table, maybe?) to a nice vector of IEntities, each of which
  * represents an individual piece of debris ready to be spawned.
  */
-bool CDebrisSpawner::Init(CAlien* alien /*, const SmartScriptTable & table*/)
+bool CDebrisSpawner::Init(CAlien *alien /*, const SmartScriptTable & table*/)
 {
 	m_pAlien = alien;
 
@@ -69,7 +69,7 @@ bool CDebrisSpawner::Init(CAlien* alien /*, const SmartScriptTable & table*/)
 		if (!spawnParams.pClass)
 			return false;
 
-		IEntity* pSpawnedDebris = gEnv->pEntitySystem->SpawnEntity(spawnParams, true);
+		IEntity *pSpawnedDebris = gEnv->pEntitySystem->SpawnEntity(spawnParams, true);
 
 		if (!pSpawnedDebris)
 			return false;
@@ -84,12 +84,15 @@ bool CDebrisSpawner::Init(CAlien* alien /*, const SmartScriptTable & table*/)
 
 void CDebrisSpawner::Reset()
 {
-	if (GetISystem()->IsSerializingFile()) //gameserialize will do that 
+	if (GetISystem()->IsSerializingFile()) // gameserialize will do that
 		return;
 
 	// clean up own pieces
-	if (IDebrisMgr* pDebrisMgr = g_pGame->GetIGameFramework()->GetDebrisMgr())
-		for (std::vector<EntityId>::const_iterator it = m_debrisParts.begin(), end = m_debrisParts.end(); it != end; ++it) { pDebrisMgr->RemovePiece(*it); }
+	if (IDebrisMgr *pDebrisMgr = g_pGame->GetIGameFramework()->GetDebrisMgr())
+		for (std::vector<EntityId>::const_iterator it = m_debrisParts.begin(), end = m_debrisParts.end(); it != end; ++it)
+		{
+			pDebrisMgr->RemovePiece(*it);
+		}
 
 	m_debrisParts.erase(m_debrisParts.begin(), m_debrisParts.end());
 }
@@ -132,9 +135,9 @@ void CDebrisSpawner::OnKillEvent()
 	if (gEnv->pSystem->IsSerializingFile())
 		return;
 
-	const Matrix34& alienTM = m_pAlien->GetEntity()->GetWorldTM();
+	const Matrix34 &alienTM = m_pAlien->GetEntity()->GetWorldTM();
 
-	std::vector<EntityId>::const_iterator       it = m_debrisParts.begin();
+	std::vector<EntityId>::const_iterator it = m_debrisParts.begin();
 	const std::vector<EntityId>::const_iterator end = m_debrisParts.end();
 
 	Vec3 dir(0, 0, -1);
@@ -143,7 +146,7 @@ void CDebrisSpawner::OnKillEvent()
 	{
 		const int i = it - m_debrisParts.begin();
 
-		IEntity* pSpawnedDebris = gEnv->pEntitySystem->GetEntity(*it);
+		IEntity *pSpawnedDebris = gEnv->pEntitySystem->GetEntity(*it);
 		if (!pSpawnedDebris)
 			continue;
 
@@ -163,11 +166,17 @@ void CDebrisSpawner::OnKillEvent()
 		// give it an impulse
 		pe_action_impulse imp;
 
-		if (i % 2) { dir = Vec3::CreateReflection(dir, Vec3(0, 0, 1.0f)); }
+		if (i % 2)
+		{
+			dir = Vec3::CreateReflection(dir, Vec3(0, 0, 1.0f));
+		}
 		else
 		{
 			dir = Vec3(0, 0, -1);
-			while (dir.z < 0.2f) { dir.SetRandomDirection(); }
+			while (dir.z < 0.2f)
+			{
+				dir.SetRandomDirection();
+			}
 		}
 
 		imp.impulse = dir;
@@ -176,27 +185,27 @@ void CDebrisSpawner::OnKillEvent()
 		imp.angImpulse = Vec3(0.0f, 0.0f, 1.0f);
 		imp.angImpulse *= 10000.0f;
 
-		IPhysicalEntity* pDebrisPhys = pSpawnedDebris->GetPhysics();
+		IPhysicalEntity *pDebrisPhys = pSpawnedDebris->GetPhysics();
 		if (pDebrisPhys)
 			pDebrisPhys->Action(&imp);
 
-		IDebrisMgr* debrisMgr = g_pGame->GetIGameFramework()->GetDebrisMgr();
+		IDebrisMgr *debrisMgr = g_pGame->GetIGameFramework()->GetDebrisMgr();
 		if (debrisMgr)
 			debrisMgr->AddPiece(pSpawnedDebris);
 	}
 }
 
-void CDebrisSpawner::GetMemoryStatistics(ICrySizer* s) const { s->Add(*this); }
+void CDebrisSpawner::GetMemoryStatistics(ICrySizer *s) const { s->Add(*this); }
 
 // ----------------------------------------------------------------------
 
 //--------------------
-void CAlienBeam::Start(const char* effect, const EntityId targetId, const Ang3 rotOffset, const char* attachToBone)
+void CAlienBeam::Start(const char *effect, const EntityId targetId, const Ang3 rotOffset, const char *attachToBone)
 {
-	//if (m_active)
+	// if (m_active)
 	Stop();
 
-	IEntity* pTarget = gEnv->pEntitySystem->GetEntity(targetId);
+	IEntity *pTarget = gEnv->pEntitySystem->GetEntity(targetId);
 	if (pTarget)
 	{
 		AABB bbox;
@@ -207,9 +216,12 @@ void CAlienBeam::Start(const char* effect, const EntityId targetId, const Ang3 r
 		if (attachToBone && pTarget->GetCharacter(0))
 			m_followBoneID = pTarget->GetCharacter(0)->GetISkeletonPose()->GetJointIDByName(attachToBone);
 	}
-	else { return; }
+	else
+	{
+		return;
+	}
 
-	IParticleEffect* pEffect = gEnv->p3DEngine->FindParticleEffect(effect);
+	IParticleEffect *pEffect = gEnv->p3DEngine->FindParticleEffect(effect);
 	if (pEffect)
 	{
 		m_active = true;
@@ -228,7 +240,7 @@ void CAlienBeam::Start(const char* effect, const EntityId targetId, const Ang3 r
 
 void CAlienBeam::Stop()
 {
-	IParticleEmitter* pEmitter = m_pAlien->GetEntity()->GetParticleEmitter(m_effectSlot);
+	IParticleEmitter *pEmitter = m_pAlien->GetEntity()->GetParticleEmitter(m_effectSlot);
 	if (pEmitter)
 		gEnv->p3DEngine->DeleteParticleEmitter(pEmitter);
 
@@ -242,10 +254,10 @@ void CAlienBeam::Update(float frameTime)
 	if (!m_active)
 		return;
 
-	IParticleEmitter* pEmitter = m_pAlien->GetEntity()->GetParticleEmitter(m_effectSlot);
+	IParticleEmitter *pEmitter = m_pAlien->GetEntity()->GetParticleEmitter(m_effectSlot);
 	if (pEmitter)
 	{
-		IEntity* pTarget = gEnv->pEntitySystem->GetEntity(m_beamTargetId);
+		IEntity *pTarget = gEnv->pEntitySystem->GetEntity(m_beamTargetId);
 		if (pTarget)
 		{
 			ParticleTarget targetOptions;
@@ -255,7 +267,7 @@ void CAlienBeam::Update(float frameTime)
 			targetOptions.bExtendSpeed = true;
 			targetOptions.bPriority = true;
 
-			//follow the bone if necessary
+			// follow the bone if necessary
 			if (m_followBoneID > -1 && pTarget->GetCharacter(0))
 				m_lCenter = pTarget->GetCharacter(0)->GetISkeletonPose()->GetAbsJointByID(m_followBoneID).t;
 
@@ -267,19 +279,19 @@ void CAlienBeam::Update(float frameTime)
 }
 
 //--------------------
-//this function will be called from the engine at the right time, since bones editing must be placed at the right time.
-int AlienProcessBones(ICharacterInstance* pCharacter, void* pAlien)
+// this function will be called from the engine at the right time, since bones editing must be placed at the right time.
+int AlienProcessBones(ICharacterInstance *pCharacter, void *pAlien)
 {
-	//FIXME: do something to remove gEnv->pTimer->GetFrameTime()
-	//process bones specific stuff (IK, torso rotation, etc)
-	static_cast<CAlien*>(pAlien)->ProcessBonesRotation(pCharacter, gEnv->pTimer->GetFrameTime());
+	// FIXME: do something to remove gEnv->pTimer->GetFrameTime()
+	// process bones specific stuff (IK, torso rotation, etc)
+	static_cast<CAlien *>(pAlien)->ProcessBonesRotation(pCharacter, gEnv->pTimer->GetFrameTime());
 
 	return 1;
 }
 
-int AlienPostPhysicsSkeletonCallbk(ICharacterInstance* pCharacter, void* pAlien)
+int AlienPostPhysicsSkeletonCallbk(ICharacterInstance *pCharacter, void *pAlien)
 {
-	static_cast<CAlien*>(pAlien)->UpdateGrab(gEnv->pTimer->GetFrameTime());
+	static_cast<CAlien *>(pAlien)->UpdateGrab(gEnv->pTimer->GetFrameTime());
 
 	return 1;
 }
@@ -290,13 +302,13 @@ int AlienPostPhysicsSkeletonCallbk(ICharacterInstance* pCharacter, void* pAlien)
  * Tries to initialize as much of SMovementRequestParams' data
  * as possible from a CMovementRequest instance.
  */
-CAlien::SMovementRequestParams::SMovementRequestParams(const CMovementRequest& request)
+CAlien::SMovementRequestParams::SMovementRequestParams(const CMovementRequest &request)
 	: aimLook(false),
-	// NOTE Nov 9, 2006: <pvl> default values taken from SOBJECTSTATE constructor
-	bodystate(0),
-	fDesiredSpeed(1.0f),
-	eActorTargetPhase(eATP_None),
-	bExactPositioning(false)
+	  // NOTE Nov 9, 2006: <pvl> default values taken from SOBJECTSTATE constructor
+	  bodystate(0),
+	  fDesiredSpeed(1.0f),
+	  eActorTargetPhase(eATP_None),
+	  bExactPositioning(false)
 {
 	aimLook = false;
 
@@ -337,7 +349,7 @@ CAlien::SMovementRequestParams::SMovementRequestParams(const CMovementRequest& r
 			break;
 		}
 
-	//TheOtherSide
+	// TheOtherSide
 	vDeltaMovement.zero();
 	//~TheOtherSide
 }
@@ -346,30 +358,30 @@ CAlien::SMovementRequestParams::SMovementRequestParams(const CMovementRequest& r
 
 CAlien::CAlien()
 	: m_pItemSystem(nullptr),
-	m_weaponOffset(ZERO),
-	m_eyeOffset(ZERO),
-	m_curSpeed(0),
-	m_turnSpeed(0),
-	m_turnSpeedGoal(0),
-	m_requestedStance(0),
-	m_tentacleBlendRatio(0),
-	m_forceOrient(false),
-	m_isFiring(false),
-	m_endOfThePathTime(-1.0f),
-	m_inputSpeed(0),
-	m_inputDesiredSpeed(0),
-	m_inputAiming(0),
-	m_followEyesTime(0.f),
-	m_roll(0),
-	m_pGroundEffect(nullptr),
-	m_pTrailAttachment(nullptr),
-	m_pHealthTrailAttachment(nullptr),
-	m_trailSpeedScale(0.f),
-	m_healthTrailScale(0.f),
-	m_pTurnSound(NULL),
-	m_pBeamEffect(nullptr),
-	m_oldGravity(0, 0, -9.81f),
-	m_pDebugHistoryManager(nullptr)
+	  m_weaponOffset(ZERO),
+	  m_eyeOffset(ZERO),
+	  m_curSpeed(0),
+	  m_turnSpeed(0),
+	  m_turnSpeedGoal(0),
+	  m_requestedStance(0),
+	  m_tentacleBlendRatio(0),
+	  m_forceOrient(false),
+	  m_isFiring(false),
+	  m_endOfThePathTime(-1.0f),
+	  m_inputSpeed(0),
+	  m_inputDesiredSpeed(0),
+	  m_inputAiming(0),
+	  m_followEyesTime(0.f),
+	  m_roll(0),
+	  m_pGroundEffect(nullptr),
+	  m_pTrailAttachment(nullptr),
+	  m_pHealthTrailAttachment(nullptr),
+	  m_trailSpeedScale(0.f),
+	  m_healthTrailScale(0.f),
+	  m_pTurnSound(NULL),
+	  m_pBeamEffect(nullptr),
+	  m_oldGravity(0, 0, -9.81f),
+	  m_pDebugHistoryManager(nullptr)
 {
 	m_tentaclesProxy.clear();
 	m_tentaclesProxyFullAnimation.clear();
@@ -384,7 +396,7 @@ CAlien::~CAlien()
 
 	GetGameObject()->ReleaseActions(this);
 
-	ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0);
+	ICharacterInstance *pCharacter = GetEntity()->GetCharacter(0);
 	if (pCharacter)
 	{
 		pCharacter->GetISkeletonPose()->SetPostProcessCallback0(nullptr, nullptr);
@@ -397,7 +409,7 @@ CAlien::~CAlien()
 	SAFE_DELETE(m_pDebugHistoryManager);
 }
 
-void CAlien::BindInputs(IAnimationGraphState* pAGState)
+void CAlien::BindInputs(IAnimationGraphState *pAGState)
 {
 	CTOSActor::BindInputs(pAGState);
 
@@ -409,16 +421,16 @@ void CAlien::BindInputs(IAnimationGraphState* pAGState)
 	}
 }
 
-void CAlien::ProcessEvent(SEntityEvent& event)
+void CAlien::ProcessEvent(SEntityEvent &event)
 {
-	//TheOtherSide
-	//CTOSActor::ProcessEvent(event);
+	// TheOtherSide
+	// CTOSActor::ProcessEvent(event);
 	CTOSActor::ProcessEvent(event);
 	//~TheOtherSide
 
-	if (event.event == ENTITY_EVENT_HIDE || event.event == ENTITY_EVENT_UNHIDE) 
-	{ 
-		CreateScriptEvent("hide", event.event == ENTITY_EVENT_HIDE ? 1 : 0); 
+	if (event.event == ENTITY_EVENT_HIDE || event.event == ENTITY_EVENT_UNHIDE)
+	{
+		CreateScriptEvent("hide", event.event == ENTITY_EVENT_HIDE ? 1 : 0);
 	}
 	else if (event.event == ENTITY_EVENT_XFORM)
 	{
@@ -426,16 +438,16 @@ void CAlien::ProcessEvent(SEntityEvent& event)
 		if (flags & ENTITY_XFORM_ROT && !(flags & (ENTITY_XFORM_USER | ENTITY_XFORM_PHYSICS_STEP)))
 			m_baseMtx = m_viewMtx = m_eyeMtx = Matrix33(GetEntity()->GetRotation());
 	}
-	else if (event.event == ENTITY_EVENT_PREPHYSICSUPDATE) 
+	else if (event.event == ENTITY_EVENT_PREPHYSICSUPDATE)
 	{
-		//TheOtherSide
-		IEntityRenderProxy* pRenderProxy = (IEntityRenderProxy*)(GetEntity()->GetProxy(ENTITY_PROXY_RENDER));
+		// TheOtherSide
+		IEntityRenderProxy *pRenderProxy = (IEntityRenderProxy *)(GetEntity()->GetProxy(ENTITY_PROXY_RENDER));
 		if ((pRenderProxy != NULL) && pRenderProxy->IsCharactersUpdatedBeforePhysics()) //~TheOtherSide
-			PrePhysicsUpdate();	
+			PrePhysicsUpdate();
 	}
 }
 
-bool CAlien::CreateCodeEvent(SmartScriptTable& rTable)
+bool CAlien::CreateCodeEvent(SmartScriptTable &rTable)
 {
 	/*const char *event = NULL;
 	rTable->GetValue("event",event);
@@ -457,7 +469,7 @@ bool CAlien::CreateCodeEvent(SmartScriptTable& rTable)
 	return CTOSActor::CreateCodeEvent(rTable);
 }
 
-bool CAlien::Init(IGameObject* pGameObject)
+bool CAlien::Init(IGameObject *pGameObject)
 {
 	if (!CTOSActor::Init(pGameObject))
 		return false;
@@ -485,7 +497,7 @@ void CAlien::PostPhysicalize()
 {
 	CTOSActor::PostPhysicalize();
 
-	ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0);
+	ICharacterInstance *pCharacter = GetEntity()->GetCharacter(0);
 
 	if (!pCharacter)
 		return;
@@ -497,28 +509,28 @@ void CAlien::PostPhysicalize()
 	pCharacter->GetISkeletonPose()->SetPostPhysicsCallback(AlienPostPhysicsSkeletonCallbk, this);
 	pCharacter->EnableStartAnimation(true);
 
-	//collect all the tentacle proxies from the attachments
-	IAttachmentManager* pIAttachmentManager = pCharacter->GetIAttachmentManager();
-	const uint32        numAttachmnets = pIAttachmentManager ? pIAttachmentManager->GetAttachmentCount() : 0;
+	// collect all the tentacle proxies from the attachments
+	IAttachmentManager *pIAttachmentManager = pCharacter->GetIAttachmentManager();
+	const uint32 numAttachmnets = pIAttachmentManager ? pIAttachmentManager->GetAttachmentCount() : 0;
 
 	for (uint32 i = 0; i < numAttachmnets; ++i)
 	{
-		IAttachment*       pIAttachment = pIAttachmentManager->GetInterfaceByIndex(i);
-		IAttachmentObject* pIAttachmentObject = pIAttachment->GetIAttachmentObject();
+		IAttachment *pIAttachment = pIAttachmentManager->GetInterfaceByIndex(i);
+		IAttachmentObject *pIAttachmentObject = pIAttachment->GetIAttachmentObject();
 
 		if (pIAttachmentObject)
 		{
-			ICharacterInstance* pITentacleInstance = pIAttachmentObject->GetICharacterInstance();
+			ICharacterInstance *pITentacleInstance = pIAttachmentObject->GetICharacterInstance();
 			PushCharacterTentacles(pITentacleInstance);
 		}
 	}
 
-	//and from the main character
+	// and from the main character
 	PushCharacterTentacles(pCharacter);
 
-	//CryLogAlways("%s has %i tentacles",m_pEntity->GetName(),m_tentaclesProxy.size());
+	// CryLogAlways("%s has %i tentacles",m_pEntity->GetName(),m_tentaclesProxy.size());
 
-	//set tentacles params
+	// set tentacles params
 	pe_params_flags pf;
 	pf.flagsOR = rope_findiff_attached_vel | rope_no_solver | pef_traceable;
 	if (m_params.tentaclesCollide)
@@ -540,10 +552,10 @@ void CAlien::PostPhysicalize()
 	else
 		pRope.jointLimit = DEG2RAD(m_params.tentaclesJointLimit);
 
-	std::vector<IPhysicalEntity*>::iterator it;
+	std::vector<IPhysicalEntity *>::iterator it;
 	for (it = m_tentaclesProxy.begin(); it != m_tentaclesProxy.end(); ++it)
 	{
-		IPhysicalEntity* pT = *it;
+		IPhysicalEntity *pT = *it;
 		if (pT)
 		{
 			pT->SetParams(&pRope);
@@ -552,8 +564,8 @@ void CAlien::PostPhysicalize()
 		}
 	}
 
-	//FIXME:this disable the impulse, remove it
-	//IPhysicalEntity* pPhysEnt = pCharacter->GetISkeletonPose()->GetCharacterPhysics(-1);
+	// FIXME:this disable the impulse, remove it
+	// IPhysicalEntity* pPhysEnt = pCharacter->GetISkeletonPose()->GetCharacterPhysics(-1);
 
 	/*if (pPhysEnt)
 	{
@@ -562,39 +574,39 @@ void CAlien::PostPhysicalize()
 		//pPhysEnt->SetParams(&pFlags);
 	}*/
 
-	//set a default offset for the character, so in the editor the bbox is correct
+	// set a default offset for the character, so in the editor the bbox is correct
 	m_charLocalMtx.SetIdentity();
 	m_charLocalMtx.SetTranslation(GetStanceInfo(STANCE_STAND)->modelOffset);
 
 	GetAnimatedCharacter()->SetExtraAnimationOffset(m_charLocalMtx);
 }
 
-void CAlien::DetachTentacle(ICharacterInstance* pCharacter, const char* tentacle) const
+void CAlien::DetachTentacle(ICharacterInstance *pCharacter, const char *tentacle) const
 {
-	IAttachmentManager* pIAttachmentManager = pCharacter->GetIAttachmentManager();
+	IAttachmentManager *pIAttachmentManager = pCharacter->GetIAttachmentManager();
 
-	IAttachment*             pIAttachment = pIAttachmentManager->GetInterfaceByName(tentacle);
-	const IAttachmentObject* pIAttachmentObject = pIAttachment->GetIAttachmentObject();
+	IAttachment *pIAttachment = pIAttachmentManager->GetInterfaceByName(tentacle);
+	const IAttachmentObject *pIAttachmentObject = pIAttachment->GetIAttachmentObject();
 
 	if (pIAttachmentObject)
 	{
- 
-		//detach tentacle from methagen 
+
+		// detach tentacle from methagen
 		pIAttachment->ClearBinding();
 	}
 }
 
-void CAlien::PushCharacterTentacles(ICharacterInstance* pCharacter)
+void CAlien::PushCharacterTentacles(ICharacterInstance *pCharacter)
 {
 	if (!pCharacter)
 		return;
 
-	ISkeletonPose* pISkeletonPose = pCharacter->GetISkeletonPose();
+	ISkeletonPose *pISkeletonPose = pCharacter->GetISkeletonPose();
 	if (pISkeletonPose == nullptr)
-		return; //if the character is a skin-attachment, it will have no skeleton
+		return; // if the character is a skin-attachment, it will have no skeleton
 
-	int              tNum(0);
-	IPhysicalEntity* pTentacle = pISkeletonPose->GetCharacterPhysics(tNum);
+	int tNum(0);
+	IPhysicalEntity *pTentacle = pISkeletonPose->GetCharacterPhysics(tNum);
 
 	while (pTentacle)
 	{
@@ -604,8 +616,8 @@ void CAlien::PushCharacterTentacles(ICharacterInstance* pCharacter)
 
 	if (m_params.fullAnimTentacles[0])
 	{
-		char* pBone;
-		char  boneList[256];
+		char *pBone;
+		char boneList[256];
 
 		strcpy(boneList, m_params.fullAnimTentacles);
 		pBone = boneList;
@@ -622,7 +634,7 @@ void CAlien::PushCharacterTentacles(ICharacterInstance* pCharacter)
 	}
 }
 
-void CAlien::UpdateAnimGraph(IAnimationGraphState* pState)
+void CAlien::UpdateAnimGraph(IAnimationGraphState *pState)
 {
 	CTOSActor::UpdateAnimGraph(pState);
 
@@ -635,11 +647,11 @@ void CAlien::UpdateAnimGraph(IAnimationGraphState* pState)
 
 void CAlien::PrePhysicsUpdate()
 {
-	//TheOtherSide
+	// TheOtherSide
 	if (!m_pAnimatedCharacter)
 		return;
 
-	IEntity* pEnt = GetEntity();
+	IEntity *pEnt = GetEntity();
 	if (pEnt->IsHidden() && !(GetEntity()->GetFlags() & ENTITY_FLAG_UPDATE_HIDDEN))
 		return;
 	//~TheOtherSide
@@ -653,11 +665,11 @@ void CAlien::PrePhysicsUpdate()
 		// pvl Probably obsolete more or less.
 
 		// marcok: moved out
-		Vec3  desiredMovement(m_input.posTarget - pEnt->GetWorldPos());
+		Vec3 desiredMovement(m_input.posTarget - pEnt->GetWorldPos());
 		float distance = desiredMovement.len();
 
-		//FIXME:maybe find a better position for this?
-		//when the player is supposed to reach some precise position/direction
+		// FIXME:maybe find a better position for this?
+		// when the player is supposed to reach some precise position/direction
 		if (m_input.posTarget.len2() > 0.0f)
 		{
 			desiredMovement = Vec3(m_input.posTarget - pEnt->GetWorldPos());
@@ -667,15 +679,15 @@ void CAlien::PrePhysicsUpdate()
 		if (m_input.dirTarget.len2() > 0.0f)
 		{
 			const float t = distance > 3.f ? 0 : (3.f - distance) / 3.f;
-			Vec3  desiredDir = m_input.viewDir.IsZero() ? Vec3::CreateSlerp(m_input.movementVector.GetNormalizedSafe(m_input.dirTarget), m_input.dirTarget, t) : Vec3::CreateSlerp(m_input.viewDir, m_input.dirTarget, t);
+			Vec3 desiredDir = m_input.viewDir.IsZero() ? Vec3::CreateSlerp(m_input.movementVector.GetNormalizedSafe(m_input.dirTarget), m_input.dirTarget, t) : Vec3::CreateSlerp(m_input.viewDir, m_input.dirTarget, t);
 			desiredDir.NormalizeSafe();
 			SetDesiredDirection(desiredDir);
 		}
 
-		//TheOtherSide
+		// TheOtherSide
 		if (m_pMovementController)
 		{
-			// Обновляется 
+			// Обновляется
 			SActorFrameMovementParams params;
 			if (!m_pMovementController->Update(frameTime, params))
 				return;
@@ -685,14 +697,14 @@ void CAlien::PrePhysicsUpdate()
 		assert(m_moveRequest.rotation.IsValid());
 		assert(m_moveRequest.velocity.IsValid());
 
-		//rotation processing
+		// rotation processing
 		if (m_linkStats.CanRotate())
 			ProcessRotation(frameTime);
 
 		assert(m_moveRequest.rotation.IsValid());
 		assert(m_moveRequest.velocity.IsValid());
 
-		//movement processing
+		// movement processing
 		if (m_linkStats.CanMove())
 		{
 			if (m_stats.inWaterTimer > 0.1f)
@@ -714,7 +726,7 @@ void CAlien::PrePhysicsUpdate()
 			else
 				SetStance(STANCE_STAND);
 
-			//send the movement request to the animated character
+			// send the movement request to the animated character
 			if (m_pAnimatedCharacter)
 			{
 				// synthesize a prediction
@@ -724,8 +736,8 @@ void CAlien::PrePhysicsUpdate()
 				m_moveRequest.prediction.states[0].position = pEnt->GetWorldPos();
 				m_moveRequest.prediction.states[0].orientation = pEnt->GetWorldRotation();
 
-				//assert(m_moveRequest.rotation.IsValid());
-				//assert(m_moveRequest.velocity.IsValid());
+				// assert(m_moveRequest.rotation.IsValid());
+				// assert(m_moveRequest.velocity.IsValid());
 
 				NETINPUT_TRACE(GetEntityId(), m_moveRequest.velocity);
 
@@ -745,16 +757,16 @@ void CAlien::PrePhysicsUpdate()
 	UpdateDebugGraphs();
 }
 
-void CAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
+void CAlien::Update(SEntityUpdateContext &ctx, const int updateSlot)
 {
 	FUNCTION_PROFILER(GetISystem(), PROFILE_GAME);
 
-	//TheOtherSide
-	IEntityRenderProxy* pRenderProxy = (IEntityRenderProxy*)(GetEntity()->GetProxy(ENTITY_PROXY_RENDER));
+	// TheOtherSide
+	IEntityRenderProxy *pRenderProxy = (IEntityRenderProxy *)(GetEntity()->GetProxy(ENTITY_PROXY_RENDER));
 	if ((pRenderProxy == NULL) || !pRenderProxy->IsCharactersUpdatedBeforePhysics())
 		PrePhysicsUpdate();
-	
-	IEntity* pEnt = GetEntity();
+
+	IEntity *pEnt = GetEntity();
 	if (pEnt->IsHidden() && !(GetEntity()->GetFlags() & ENTITY_FLAG_UPDATE_HIDDEN))
 		return;
 
@@ -765,16 +777,16 @@ void CAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
 
 	if (!m_stats.isRagDoll /*&& GetHealth() > 0*/)
 	{
-		//animation processing
+		// animation processing
 		ProcessAnimation(pEnt->GetCharacter(0), frameTime);
 
-		//TheOtherSide feature
-		//reset the input for the next frame
+		// TheOtherSide feature
+		// reset the input for the next frame
 		if (IsClient() || IsSlave())
 			m_input.ResetDeltas();
 		//~TheOtherSide feature
-		
-		//update tentacles blending
+
+		// update tentacles blending
 		Vec3 refVec(-m_viewMtx.GetColumn(1) * max(0.1f, m_params.forceView) + -m_desiredVelocity);
 		refVec.NormalizeSafe();
 
@@ -783,24 +795,24 @@ void CAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
 			Interpolate(m_tentacleBlendRatio, m_params.blendingRatio, 20.0f, frameTime);
 		}
 
-		//SetTentacles(pCharacter,animStiff);
-		//CryLogAlways("%.1f",animStiff);
+		// SetTentacles(pCharacter,animStiff);
+		// CryLogAlways("%.1f",animStiff);
 		if (gEnv->bClient)
 		{
 			const float dist2 = (gEnv->pRenderer->GetCamera().GetPosition() - GetEntity()->GetWorldPos()).GetLengthSquared();
 
-			//update ground effects, if any
+			// update ground effects, if any
 			if (m_pGroundEffect)
 			{
 				const float cloakMult = m_stats.cloaked ? 0.5f : 1.f;
-				float       sizeScale = m_params.groundEffectBaseScale * cloakMult;
-				float       countScale = 1.f * cloakMult;
-				float       speedScale = 1.f * cloakMult;
+				float sizeScale = m_params.groundEffectBaseScale * cloakMult;
+				float countScale = 1.f * cloakMult;
+				float speedScale = 1.f * cloakMult;
 
 				if (m_params.groundEffectMaxSpeed != 0.f)
 				{
 					const static float minspeed = 1.f;
-					const float        speed = max(0.f, m_stats.speed + m_stats.angVelocity.len() - minspeed);
+					const float speed = max(0.f, m_stats.speed + m_stats.angVelocity.len() - minspeed);
 
 					speedScale = min(1.f, speed / m_params.groundEffectMaxSpeed);
 					sizeScale *= speedScale;
@@ -811,7 +823,7 @@ void CAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
 				m_pGroundEffect->Update();
 			}
 
-			//TheOtherSide
+			// TheOtherSide
 			UpdateEffects(frameTime);
 			//~TheOtherSide
 
@@ -819,7 +831,7 @@ void CAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
 				UpdateSearchBeam(frameTime);
 
 			if (m_pTurnSound && m_params.turnSoundMaxVel != 0.f && m_params.turnSoundBoneId != -1 && !m_pTurnSound->IsPlaying() && dist2 < sqr(60.f))
-				if (IPhysicalEntity* pPhysics = GetEntity()->GetPhysics())
+				if (IPhysicalEntity *pPhysics = GetEntity()->GetPhysics())
 				{
 					pe_status_dynamics dyn;
 					dyn.partid = m_params.turnSoundBoneId;
@@ -827,18 +839,18 @@ void CAlien::Update(SEntityUpdateContext& ctx, const int updateSlot)
 					{
 						const float speedRel = min(1.f, dyn.w.len() / m_params.turnSoundMaxVel);
 
-						auto* pSoundProxy = static_cast<IEntitySoundProxy*>(GetEntity()->CreateProxy(ENTITY_PROXY_SOUND));
+						auto *pSoundProxy = static_cast<IEntitySoundProxy *>(GetEntity()->CreateProxy(ENTITY_PROXY_SOUND));
 						pSoundProxy->PlaySound(m_pTurnSound);
 						pSoundProxy->SetStaticSound(m_pTurnSound->GetId(), true);
-						//CryLog("angSpeed %.2f (rel %.2f)", dyn.w.len(), speedRel);
+						// CryLog("angSpeed %.2f (rel %.2f)", dyn.w.len(), speedRel);
 					}
 				}
 		}
 	}
 
-	//update the character offset
+	// update the character offset
 	const Vec3 goal = m_stats.isRagDoll ? Vec3(0, 0, 0) : GetStanceInfo(m_stance)->modelOffset;
-	//if(!m_stats.isRagDoll)
+	// if(!m_stats.isRagDoll)
 	//	goal += m_stats.dynModelOffset;
 	Interpolate(m_modelOffset, goal, 5.0f, frameTime);
 
@@ -854,19 +866,19 @@ bool CAlien::CreatedTrailAttachments()
 
 	if (!m_pTrailAttachment && m_params.trailEffect[0] && gEnv->p3DEngine->FindParticleEffect(m_params.trailEffect))
 	{
-		if (ICharacterInstance* pCharInstance = GetEntity()->GetCharacter(0))
+		if (ICharacterInstance *pCharInstance = GetEntity()->GetCharacter(0))
 		{
-			IAttachmentManager* pAttachmentManager = pCharInstance->GetIAttachmentManager();
-			if (IAttachment* pAttachment = pAttachmentManager->GetInterfaceByName("trail_attachment"))
+			IAttachmentManager *pAttachmentManager = pCharInstance->GetIAttachmentManager();
+			if (IAttachment *pAttachment = pAttachmentManager->GetInterfaceByName("trail_attachment"))
 			{
 				pAttachment->ClearBinding();
-				CEffectAttachment* pEffectAttachment = new CEffectAttachment(m_params.trailEffect, Vec3(0, 0, 0), m_params.trailEffectDir.GetNormalized(), 1);
+				CEffectAttachment *pEffectAttachment = new CEffectAttachment(m_params.trailEffect, Vec3(0, 0, 0), m_params.trailEffectDir.GetNormalized(), 1);
 				pEffectAttachment->CreateEffect();
 				pAttachment->AddBinding(pEffectAttachment);
 
 				m_pTrailAttachment = pEffectAttachment;
 
-				//CryLogAlways("[%s] Saving m_pTrailAttachment as %p", GetEntity()->GetName(), static_cast<const void*>(m_pTrailAttachment));
+				// CryLogAlways("[%s] Saving m_pTrailAttachment as %p", GetEntity()->GetName(), static_cast<const void*>(m_pTrailAttachment));
 
 				m_trailSpeedScale = 0.f;
 			}
@@ -877,13 +889,13 @@ bool CAlien::CreatedTrailAttachments()
 
 	if (!m_pHealthTrailAttachment && m_params.healthTrailEffect[0] && gEnv->p3DEngine->FindParticleEffect(m_params.healthTrailEffect))
 	{
-		if (ICharacterInstance* pCharInstance = GetEntity()->GetCharacter(0))
+		if (ICharacterInstance *pCharInstance = GetEntity()->GetCharacter(0))
 		{
-			IAttachmentManager* pAttachmentManager = pCharInstance->GetIAttachmentManager();
-			if (IAttachment* pAttachment = pAttachmentManager->GetInterfaceByName("health_trail_attachment"))
+			IAttachmentManager *pAttachmentManager = pCharInstance->GetIAttachmentManager();
+			if (IAttachment *pAttachment = pAttachmentManager->GetInterfaceByName("health_trail_attachment"))
 			{
 				pAttachment->ClearBinding();
-				CEffectAttachment* pEffectAttachment = new CEffectAttachment(m_params.healthTrailEffect, Vec3(0, 0, 0), m_params.healthTrailEffectDir.GetNormalized(), 1);
+				CEffectAttachment *pEffectAttachment = new CEffectAttachment(m_params.healthTrailEffect, Vec3(0, 0, 0), m_params.healthTrailEffectDir.GetNormalized(), 1);
 				pEffectAttachment->CreateEffect();
 				pAttachment->AddBinding(pEffectAttachment);
 
@@ -934,7 +946,7 @@ void CAlien::UpdateEffects(const float frameTime)
 	}
 }
 
-void CAlien::UpdateView(SViewParams& viewParams)
+void CAlien::UpdateView(SViewParams &viewParams)
 {
 	viewParams.nearplane = 0.0f;
 	viewParams.fov = 90.0f * gf_PI / 180.0f;
@@ -957,10 +969,10 @@ void CAlien::UpdateView(SViewParams& viewParams)
 	viewParams.rotation = GetQuatFromMat33(viewMtx);
 }
 
-//FIXME:at some point, unify this with CPlayer via CActor
+// FIXME:at some point, unify this with CPlayer via CActor
 void CAlien::UpdateStats(float frameTime)
 {
-	IPhysicalEntity* pPhysEnt = GetEntity()->GetPhysics();
+	IPhysicalEntity *pPhysEnt = GetEntity()->GetPhysics();
 
 	if (!pPhysEnt)
 		return;
@@ -980,13 +992,13 @@ void CAlien::UpdateStats(float frameTime)
 		return;
 	}
 
-	//retrieve some information about the status of the player
+	// retrieve some information about the status of the player
 	pe_status_dynamics dynStat;
-	pe_status_living   livStat;
+	pe_status_living livStat;
 
-	m_stats.isFloating = false; //used only by trooper for now
+	m_stats.isFloating = false; // used only by trooper for now
 
-	//FIXME: temporary
+	// FIXME: temporary
 	if (InZeroG() || IsFlying())
 	{
 		pe_player_dynamics simParSet;
@@ -999,7 +1011,7 @@ void CAlien::UpdateStats(float frameTime)
 	if (!pPhysEnt->GetStatus(&dynStat) || !pPhysEnt->GetStatus(&livStat) || !pPhysEnt->GetParams(&simPar))
 		return;
 
-	//update status table
+	// update status table
 	if (livStat.bFlying)
 	{
 		if (m_stats.inAir < 0.001f)
@@ -1033,9 +1045,9 @@ void CAlien::UpdateStats(float frameTime)
 			m_stats.inAir = 0.0f;
 		}
 	}
-	else 
-	{ 
-		m_stats.inWaterTimer = 0.0f; 
+	else
+	{
+		m_stats.inWaterTimer = 0.0f;
 	}
 
 	m_oldGravity = simPar.gravity;
@@ -1055,7 +1067,7 @@ void CAlien::UpdateStats(float frameTime)
 
 	m_stats.mass = dynStat.mass;
 
-	//the alien is able to sprint for a bit right after being standing
+	// the alien is able to sprint for a bit right after being standing
 	if (m_stats.speed > m_stats.sprintTreshold)
 	{
 		m_stats.sprintLeft = max(0.0f, m_stats.sprintLeft - frameTime);
@@ -1071,8 +1083,8 @@ void CAlien::UpdateStats(float frameTime)
 		m_stats.sprintLeft = m_params.sprintDuration;
 	}
 
-	//misc things
-	Vec3 lookTarget(ZERO); //GetAIAttentionPos());
+	// misc things
+	Vec3 lookTarget(ZERO); // GetAIAttentionPos());
 	if (lookTarget.len2() < 0.01f)
 		lookTarget = GetEntity()->GetSlotWorldTM(0) * GetLocalEyePos() + m_eyeMtx.GetColumn(1) * 10.0f;
 
@@ -1081,13 +1093,13 @@ void CAlien::UpdateStats(float frameTime)
 	else
 		Interpolate(m_stats.lookTargetSmooth, lookTarget, 3.0f, frameTime);
 
-	//gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetWorldPos(), ColorB(255,0,0,255), m_stats.lookTargetSmooth, ColorB(255,0,0,255));
+	// gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetWorldPos(), ColorB(255,0,0,255), m_stats.lookTargetSmooth, ColorB(255,0,0,255));
 
 	//
 	UpdateFiringDir(frameTime);
-	//gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetWorldPos() + Vec3(0,0,5), ColorB(255,0,0,255), GetEntity()->GetWorldPos() + Vec3(0,0,5) + m_stats.fireDir * 20.0f, ColorB(255,0,0,255));
+	// gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetWorldPos() + Vec3(0,0,5), ColorB(255,0,0,255), GetEntity()->GetWorldPos() + Vec3(0,0,5) + m_stats.fireDir * 20.0f, ColorB(255,0,0,255));
 
-	//update some timers
+	// update some timers
 	m_stats.inFiring = max(0.0f, m_stats.inFiring - frameTime);
 
 	Interpolate(m_weaponOffset, GetStanceInfo(m_stance)->weaponOffset, 2.0f, frameTime);
@@ -1099,7 +1111,7 @@ void CAlien::UpdateStats(float frameTime)
 
 void CAlien::ProcessRotation(float frameTime)
 {
-	const IPhysicalEntity* pPhysEnt = GetEntity()->GetPhysics();
+	const IPhysicalEntity *pPhysEnt = GetEntity()->GetPhysics();
 
 	if (!pPhysEnt)
 		return;
@@ -1107,10 +1119,10 @@ void CAlien::ProcessRotation(float frameTime)
 	if (frameTime > 0.1f)
 		frameTime = 0.1f;
 
-	//rotation
-	//6 degree of freedom
-	//FIXME:put mouse sensitivity here!
-	//TODO:use radians
+	// rotation
+	// 6 degree of freedom
+	// FIXME:put mouse sensitivity here!
+	// TODO:use radians
 	const float rotSpeed(0.5f);
 
 	//	if (m_stats.inAir && IsZeroG())
@@ -1136,11 +1148,11 @@ void CAlien::ProcessRotation(float frameTime)
 			if (lookat.Dot(orient) < cosf(DEG2RAD(25.0f)) || m_forceOrient)
 				m_viewMtx.SetRotationVDir(m_input.viewVector.GetNormalizedSafe());
 		}
-		else //if (m_input.deltaRotation.len2()>0.001f)
+		else // if (m_input.deltaRotation.len2()>0.001f)
 		{
 			Ang3 desiredAngVel(m_input.deltaRotation.x * rotSpeed, 0, m_input.deltaRotation.z * rotSpeed);
 
-			//rollage
+			// rollage
 			if (m_input.actions & ACTION_LEANLEFT)
 				desiredAngVel.y -= 10.0f * rotSpeed;
 			if (m_input.actions & ACTION_LEANRIGHT)
@@ -1152,11 +1164,11 @@ void CAlien::ProcessRotation(float frameTime)
 			Matrix33 pitchMtx;
 			Matrix33 rollMtx;
 
-			//yaw
+			// yaw
 			yawMtx.SetRotationZ(m_angularVel.z * gf_PI / 180.0f);
-			//pitch
+			// pitch
 			pitchMtx.SetRotationX(m_angularVel.x * gf_PI / 180.0f);
-			//roll
+			// roll
 			if (fabs(m_angularVel.y) > 0.001f)
 				rollMtx.SetRotationY(m_angularVel.y * gf_PI / 180.0f);
 			else
@@ -1170,7 +1182,7 @@ void CAlien::ProcessRotation(float frameTime)
 	}
 }
 
-void CAlien::GetMovementVector(Vec3& move, float& speed, float& maxSpeed)
+void CAlien::GetMovementVector(Vec3 &move, float &speed, float &maxSpeed)
 {
 	maxSpeed = GetStanceInfo(m_stance)->maxSpeed;
 
@@ -1196,11 +1208,11 @@ void CAlien::GetMovementVector(Vec3& move, float& speed, float& maxSpeed)
 
 void CAlien::ProcessMovement(float frameTime)
 {
-	//FIXME:dont remove this yet
-	//ProcessMovement2(frameTime);
-	//return;
+	// FIXME:dont remove this yet
+	// ProcessMovement2(frameTime);
+	// return;
 
-	IPhysicalEntity* pPhysEnt = GetEntity()->GetPhysics();
+	IPhysicalEntity *pPhysEnt = GetEntity()->GetPhysics();
 
 	if (!pPhysEnt)
 		return;
@@ -1208,16 +1220,16 @@ void CAlien::ProcessMovement(float frameTime)
 	if (frameTime > 0.1f)
 		frameTime = 0.1f;
 
-	//movement
-	Vec3  move;
+	// movement
+	Vec3 move;
 	float reqSpeed, maxSpeed;
 	GetMovementVector(move, reqSpeed, maxSpeed);
 
 	float reqSpeedNormalized(reqSpeed);
 	reqSpeedNormalized /= maxSpeed;
 
-	//TheOtherSide sprint feature
-	//if (m_stats.sprintLeft)
+	// TheOtherSide sprint feature
+	// if (m_stats.sprintLeft)
 	//	move *= m_params.sprintMultiplier;
 	if (IsSlave())
 	{
@@ -1233,12 +1245,12 @@ void CAlien::ProcessMovement(float frameTime)
 	NETINPUT_TRACE(GetEntityId(), m_stats.sprintLeft);
 	NETINPUT_TRACE(GetEntityId(), m_params.speedMultiplier);
 	//~TheOtherSide
-	
-	//FIXME:testing
+
+	// FIXME:testing
 	Interpolate(m_stats.physicsAnimationRatio, min(reqSpeedNormalized * g_pGameCVars->g_alienPhysicsAnimRatio, 1.0f), 3.3f, frameTime, 1.0f);
 
 	Matrix33 velMtx(m_baseMtx);
-	Vec3     vecRefRoll(move);
+	Vec3 vecRefRoll(move);
 
 	// A little bit more workaround, need to aling the alien to some up vector too.
 	Vec3 up, right, forward;
@@ -1249,9 +1261,15 @@ void CAlien::ProcessMovement(float frameTime)
 		diff.NormalizeSafe();
 		up = diff;
 	}
-	else { up = m_viewMtx.GetColumn(2); }
+	else
+	{
+		up = m_viewMtx.GetColumn(2);
+	}
 
-	if (move.len2() > 0) { forward = move.GetNormalizedSafe(); }
+	if (move.len2() > 0)
+	{
+		forward = move.GetNormalizedSafe();
+	}
 	else
 	{
 		forward = m_viewMtx.GetColumn(1);
@@ -1272,7 +1290,7 @@ void CAlien::ProcessMovement(float frameTime)
 	right = (forward % up).GetNormalizedSafe();
 	velMtx.SetFromVectors(right, forward, right % forward);
 
-	//rollage
+	// rollage
 	if (m_input.upTarget.len2() > 0.0f)
 	{
 		// No rollage, when the up vector is forced!
@@ -1290,8 +1308,8 @@ void CAlien::ProcessMovement(float frameTime)
 	}
 
 	m_desiredVeloctyQuat = GetQuatFromMat33(velMtx);
-	const SStanceInfo* pStanceInfo = GetStanceInfo(m_stance);
-	float              rotScale = 1.0f;
+	const SStanceInfo *pStanceInfo = GetStanceInfo(m_stance);
+	float rotScale = 1.0f;
 	if (pStanceInfo)
 	{
 		const float speedRange = max(1.0f, pStanceInfo->maxSpeed - m_params.speed_min);
@@ -1302,7 +1320,7 @@ void CAlien::ProcessMovement(float frameTime)
 	Interpolate(m_turnSpeed, rotSpeed, 3.0f, frameTime);
 
 	float turnSlowDown = min(1.0f, max(0.0f, 1.0f - m_followEyesTime));
-	Quat  currQuat(m_baseMtx);
+	Quat currQuat(m_baseMtx);
 	m_baseMtx = Matrix33(Quat::CreateSlerp(currQuat.GetNormalized(), m_desiredVeloctyQuat, min(frameTime * m_turnSpeed * turnSlowDown, 1.0f)));
 	m_baseMtx.OrthonormalizeFast();
 
@@ -1312,7 +1330,7 @@ void CAlien::ProcessMovement(float frameTime)
 	if (speed > 0.0001f)
 	{
 		Vec3 moveNorm(move);
-		Vec3 forw(GetEntity()->GetRotation().GetColumn1()); //m_viewMtx.GetColumn(1);
+		Vec3 forw(GetEntity()->GetRotation().GetColumn1()); // m_viewMtx.GetColumn(1);
 		moveNorm.z = 0;
 		moveNorm.NormalizeSafe();
 		forw.z = 0;
@@ -1341,7 +1359,7 @@ void CAlien::ProcessMovement(float frameTime)
 		Interpolate(m_velocity, move, m_params.speedInertia, frameTime);
 
 	Quat modelRot(m_baseMtx);
-	modelRot = Quat::CreateSlerp(GetEntity()->GetRotation().GetNormalized(), modelRot, min(frameTime * 6.6f/*m_turnSpeed*/ /** (m_stats.speed/GetStanceInfo(m_stance)->maxSpeed)*/, 1.0f));
+	modelRot = Quat::CreateSlerp(GetEntity()->GetRotation().GetNormalized(), modelRot, min(frameTime * 6.6f /*m_turnSpeed*/ /** (m_stats.speed/GetStanceInfo(m_stance)->maxSpeed)*/, 1.0f));
 
 	assert(GetEntity()->GetRotation().IsValid());
 	assert(GetEntity()->GetRotation().GetInverted().IsValid());
@@ -1352,7 +1370,7 @@ void CAlien::ProcessMovement(float frameTime)
 	m_moveRequest.velocity = m_velocity;
 	m_moveRequest.type = eCMT_Fly;
 
-	//FIXME:sometime
+	// FIXME:sometime
 	m_stats.desiredSpeed = m_stats.speed;
 }
 
@@ -1361,18 +1379,18 @@ void CAlien::ProcessSwimming(float frameTime)
 	if (frameTime > 0.1f)
 		frameTime = 0.1f;
 
-	//movement
-	Vec3  move;
+	// movement
+	Vec3 move;
 	float reqSpeed, maxSpeed;
 	GetMovementVector(move, reqSpeed, maxSpeed);
 
 	if (m_stats.sprintLeft > 0.0f)
 		move *= m_params.sprintMultiplier;
 
-	//apply movement
+	// apply movement
 	Vec3 desiredVel(move);
 
-	//float up if no movement requested
+	// float up if no movement requested
 	if (move.z > -0.1f)
 		desiredVel.z += min(2.0f, -m_stats.relativeWaterLevel * 1.5f);
 
@@ -1385,7 +1403,7 @@ void CAlien::ProcessSwimming(float frameTime)
 	Interpolate(m_velocity, desiredVel, 3.0f, frameTime);
 
 	Quat modelRot(m_baseMtx);
-	modelRot = Quat::CreateSlerp(GetEntity()->GetRotation().GetNormalized(), modelRot, min(frameTime * 6.6f/*m_turnSpeed*/ /** (m_stats.speed/GetStanceInfo(m_stance)->maxSpeed)*/, 1.0f));
+	modelRot = Quat::CreateSlerp(GetEntity()->GetRotation().GetNormalized(), modelRot, min(frameTime * 6.6f /*m_turnSpeed*/ /** (m_stats.speed/GetStanceInfo(m_stance)->maxSpeed)*/, 1.0f));
 
 	m_moveRequest.rotation = GetEntity()->GetRotation().GetInverted() * modelRot;
 	m_moveRequest.type = eCMT_Fly;
@@ -1394,7 +1412,7 @@ void CAlien::ProcessSwimming(float frameTime)
 
 void CAlien::ProcessMovement2(float frameTime)
 {
-	IPhysicalEntity* pPhysEnt = GetEntity()->GetPhysics();
+	IPhysicalEntity *pPhysEnt = GetEntity()->GetPhysics();
 
 	if (!pPhysEnt)
 		return;
@@ -1402,7 +1420,7 @@ void CAlien::ProcessMovement2(float frameTime)
 	if (frameTime > 0.1f)
 		frameTime = 0.1f;
 
-	//movement
+	// movement
 	Vec3 move(m_input.movementVector);
 
 	move += m_viewMtx.GetColumn(0) * m_input.deltaMovement.x;
@@ -1411,7 +1429,7 @@ void CAlien::ProcessMovement2(float frameTime)
 
 	move += m_viewMtx.GetColumn(1) * m_params.approachLookat;
 
-	//cap the movement vector to max 1
+	// cap the movement vector to max 1
 	float moveModule(move.len());
 
 	if (moveModule > 1.0f)
@@ -1422,7 +1440,7 @@ void CAlien::ProcessMovement2(float frameTime)
 	if (m_stats.sprintLeft > 0)
 		move *= m_params.sprintMultiplier;
 
-	//FIXME:testing
+	// FIXME:testing
 	Interpolate(m_stats.physicsAnimationRatio, min(moveModule * g_pGameCVars->g_alienPhysicsAnimRatio, 1.0f), 3.3f, frameTime, 1.0f);
 
 	float color[] = {1, 1, 1, 0.5f};
@@ -1430,14 +1448,14 @@ void CAlien::ProcessMovement2(float frameTime)
 	//
 
 	Matrix33 velMtx;
-	Vec3     vecRefRoll;
+	Vec3 vecRefRoll;
 
 	Vec3 tempVel;
-	//a bit workaround: needed when the alien is forced to look in some direction
+	// a bit workaround: needed when the alien is forced to look in some direction
 	if (m_input.dirTarget.len2() > 0.0f)
 		tempVel = m_viewMtx.GetColumn(1);
 	else
-		tempVel = m_viewMtx.GetColumn(1) * max(0.1f, m_params.forceView) + m_stats.velocity; //move;
+		tempVel = m_viewMtx.GetColumn(1) * max(0.1f, m_params.forceView) + m_stats.velocity; // move;
 
 	// A little bit more workaround, need to aling the alien to some up vector too.
 	Vec3 up;
@@ -1447,7 +1465,10 @@ void CAlien::ProcessMovement2(float frameTime)
 		diff.NormalizeSafe();
 		up = diff;
 	}
-	else { up = m_viewMtx.GetColumn(2); }
+	else
+	{
+		up = m_viewMtx.GetColumn(2);
+	}
 
 	Vec3 forward = tempVel.GetNormalized();
 	Vec3 right = (forward % up).GetNormalized();
@@ -1460,7 +1481,7 @@ void CAlien::ProcessMovement2(float frameTime)
 	gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetWorldPos(), ColorB(0,0,255,255), GetEntity()->GetWorldPos() + velMtx.GetColumn(2), ColorB(0,0,255,255));
 	*/
 
-	//rollage
+	// rollage
 	if (m_input.upTarget.len2() > 0.0f)
 	{
 		// No rollage, when the up vector is forced!
@@ -1485,7 +1506,7 @@ void CAlien::ProcessMovement2(float frameTime)
 	m_baseMtx = Matrix33(Quat::CreateSlerp(currQuat.GetNormalized(), m_desiredVeloctyQuat, min(frameTime * m_turnSpeed, 1.0f)));
 	m_baseMtx.OrthonormalizeFast();
 
-	//a bit workaround: needed when the alien is forced to move in some position
+	// a bit workaround: needed when the alien is forced to move in some position
 	/*	if (m_input.posTarget.len2()>0.0f)
 			move = m_desiredVelocity;
 		else*/
@@ -1509,10 +1530,13 @@ void CAlien::ProcessMovement2(float frameTime)
 	if (velScale > 0)
 	{
 		move = m_velocity / velScale;
-		Vec3        forw = GetEntity()->GetRotation().GetColumn1(); //m_viewMtx.GetColumn(1);
-		float       dot = forw.Dot(move);
+		Vec3 forw = GetEntity()->GetRotation().GetColumn1(); // m_viewMtx.GetColumn(1);
+		float dot = forw.Dot(move);
 		const float treshold = cosf(DEG2RAD(15.0));
-		if (dot > treshold) { velScale = 1.0; }
+		if (dot > treshold)
+		{
+			velScale = 1.0;
+		}
 		else
 		{
 			if (dot < 0)
@@ -1533,26 +1557,26 @@ void CAlien::ProcessMovement2(float frameTime)
 		velScale *= m_curSpeed / speed;
 
 	pe_action_move actionMove;
-	//FIXME:wip
+	// FIXME:wip
 	actionMove.dir = m_velocity + m_stats.animationSpeedVec; // * velScale;
 	actionMove.iJump = 3;
 
-	//FIXME:sometime
+	// FIXME:sometime
 	m_stats.desiredSpeed = m_stats.speed;
 	//	m_stats.xDelta = m_stats.zDelta = 0.0f;
 
 	pPhysEnt->Action(&actionMove);
 }
 
-void CAlien::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
+void CAlien::ProcessAnimation(ICharacterInstance *pCharacter, float frameTime)
 {
 	if (m_linkStats.CanDoIK())
 	{
-		ISkeletonPose* pSkeletonPose = pCharacter ? pCharacter->GetISkeletonPose() : nullptr;
+		ISkeletonPose *pSkeletonPose = pCharacter ? pCharacter->GetISkeletonPose() : nullptr;
 		if (pSkeletonPose)
 		{
 			static const float customBlend[5] = {0.04f, 0.06f, 0.08f, 0.6f, 0.6f};
-			//update look ik	
+			// update look ik
 			if (!m_stats.isGrabbed)
 				pSkeletonPose->SetLookIK(true, gf_PI * 0.9f, m_stats.lookTargetSmooth, customBlend);
 			else
@@ -1561,11 +1585,11 @@ void CAlien::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 	}
 }
 
-void CAlien::ProcessBonesRotation(ICharacterInstance* pCharacter, const float frameTime)
+void CAlien::ProcessBonesRotation(ICharacterInstance *pCharacter, const float frameTime)
 {
 	CTOSActor::ProcessBonesRotation(pCharacter, frameTime);
 
-	//FIXME:testing
+	// FIXME:testing
 	if (pCharacter)
 	{
 		if (m_stats.physicsAnimationRatio > 0.001f)
@@ -1591,8 +1615,8 @@ void CAlien::ProcessBonesRotation(ICharacterInstance* pCharacter, const float fr
 
 	return;
 
-	//flat desired view direction
-	Matrix33 modelMtx(GetEntity()->GetRotation()/* * Matrix33::CreateRotationZ(-gf_PI * 0.5)*/);
+	// flat desired view direction
+	Matrix33 modelMtx(GetEntity()->GetRotation() /* * Matrix33::CreateRotationZ(-gf_PI * 0.5)*/);
 
 	Vec3 viewFlat(m_viewMtx.GetColumn(1) - m_viewMtx.GetColumn(1) * (modelMtx * Matrix33::CreateScale(Vec3(0, 0, 1))));
 	viewFlat.NormalizeSafe();
@@ -1608,7 +1632,7 @@ void CAlien::ProcessBonesRotation(ICharacterInstance* pCharacter, const float fr
 	float dotUp(m_viewMtx.GetColumn(1) * modelMtx.GetColumn(2));
 	float pitchDiff(cry_atan2f(dotUp,-dotForward));*/
 
-	//CryLogAlways("y:%.1f | p:%.1f",RAD2DEG(yawDiff),RAD2DEG(pitchDiff));
+	// CryLogAlways("y:%.1f | p:%.1f",RAD2DEG(yawDiff),RAD2DEG(pitchDiff));
 
 	if (yawDiff > 0.52f)
 		yawDiff = 0.52f;
@@ -1622,9 +1646,9 @@ void CAlien::ProcessBonesRotation(ICharacterInstance* pCharacter, const float fr
 	if (pitchDiff < -1.04f)
 		pitchDiff = -1.04f;
 
-	//IJoint *pBones[2];
-	//pBones[0] = pCharacter->GetISkeleton()->GetIJointByName("head");
-	//pBones[1] = pCharacter->GetISkeleton()->GetIJointByName("neck");
+	// IJoint *pBones[2];
+	// pBones[0] = pCharacter->GetISkeleton()->GetIJointByName("head");
+	// pBones[1] = pCharacter->GetISkeleton()->GetIJointByName("neck");
 
 	int16 id[2];
 	id[0] = pCharacter->GetISkeletonPose()->GetJointIDByName("head");
@@ -1644,36 +1668,36 @@ void CAlien::ProcessBonesRotation(ICharacterInstance* pCharacter, const float fr
 	{
 		if (id[i])
 		{
-			qtH.SetRotationAA(yawDiff, Vec3(0.0f, 0.0f, 1.0f)); //yaw
-			qtV.SetRotationAA(pitchDiff, Vec3(1.0f, 0.0f, 0.0f)); //pitch
-			qtR.SetRotationAA(0.0f, Vec3(0.0f, 1.0f, 0.0f)); //roll
+			qtH.SetRotationAA(yawDiff, Vec3(0.0f, 0.0f, 1.0f));	  // yaw
+			qtV.SetRotationAA(pitchDiff, Vec3(1.0f, 0.0f, 0.0f)); // pitch
+			qtR.SetRotationAA(0.0f, Vec3(0.0f, 1.0f, 0.0f));	  // roll
 
 			//	IJoint* pIJoint = pBones[i]->GetParent();
 			int16 parentID = pCharacter->GetISkeletonPose()->GetParentIDByID(id[i]);
-			Quat  wquat(IDENTITY);
+			Quat wquat(IDENTITY);
 			if (parentID >= 0)
 				//	wquat=!Quat(pCharacter->GetISkeleton()->GetAbsJMatrixByID(parentID));
 				wquat = !pCharacter->GetISkeletonPose()->GetAbsJointByID(parentID).q;
 
-			qtParent = wquat; //pBones[i]->GetParentWQuat();
+			qtParent = wquat; // pBones[i]->GetParentWQuat();
 			qtParentCnj = qtParent;
 			qtParentCnj.w = -qtParentCnj.w;
 			qtTotal = qtParent * qtR * qtV * qtH * qtParentCnj;
 
 			//	pBones[i]->SetPlusRotation( qtTotal );
-			//pCharacter->GetISkeleton()->SetPlusRotation( id[i], qtTotal );
+			// pCharacter->GetISkeleton()->SetPlusRotation( id[i], qtTotal );
 		}
 	}
 }
 
-//FIXME:tentacle testing
-void CAlien::SetTentacles(ICharacterInstance* pCharacter, const float animStiffness, const float mass, const float damping, const bool bRagdolize)
+// FIXME:tentacle testing
+void CAlien::SetTentacles(ICharacterInstance *pCharacter, const float animStiffness, const float mass, const float damping, const bool bRagdolize)
 {
-	//TODO:use the correct number, not an hardcoded "8", and make it faster by holding pointers and such.
-	pe_params_rope       pRope;
+	// TODO:use the correct number, not an hardcoded "8", and make it faster by holding pointers and such.
+	pe_params_rope pRope;
 	pe_simulation_params sp;
 	pe_action_target_vtx atv;
-	pe_params_flags      pf;
+	pe_params_flags pf;
 
 	pRope.stiffnessAnim = animStiffness;
 
@@ -1683,11 +1707,11 @@ void CAlien::SetTentacles(ICharacterInstance* pCharacter, const float animStiffn
 	else
 		pRope.jointLimit = DEG2RAD(m_params.tentaclesJointLimit);
 
-	//pRope.stiffnessDecayAnim = 10.1f;
+	// pRope.stiffnessDecayAnim = 10.1f;
 	if (bRagdolize)
 	{
 		pRope.bTargetPoseActive = 2, pRope.collDist = m_params.tentaclesRadius;
-		pf.flagsOR = rope_target_vtx_rel0 | rope_no_stiffness_when_colliding/*|rope_collides|rope_collides_with_terrain*/;
+		pf.flagsOR = rope_target_vtx_rel0 | rope_no_stiffness_when_colliding /*|rope_collides|rope_collides_with_terrain*/;
 		pf.flagsAND = ~(rope_findiff_attached_vel | rope_no_solver);
 		sp.minEnergy = sqr(0.03f);
 	}
@@ -1698,10 +1722,10 @@ void CAlien::SetTentacles(ICharacterInstance* pCharacter, const float animStiffn
 	if (mass > 0.001f)
 		pRope.mass = mass;
 
-	std::vector<IPhysicalEntity*>::iterator it;
+	std::vector<IPhysicalEntity *>::iterator it;
 	for (it = m_tentaclesProxy.begin(); it != m_tentaclesProxy.end(); ++it)
 	{
-		IPhysicalEntity* pT = *it;
+		IPhysicalEntity *pT = *it;
 		if (pT)
 		{
 			pT->SetParams(&pRope);
@@ -1718,7 +1742,7 @@ void CAlien::SetTentacles(ICharacterInstance* pCharacter, const float animStiffn
 
 	for (it = m_tentaclesProxyFullAnimation.begin(); it != m_tentaclesProxyFullAnimation.end(); ++it)
 	{
-		IPhysicalEntity* pT = *it;
+		IPhysicalEntity *pT = *it;
 		if (pT)
 			pT->SetParams(&pRope);
 	}
@@ -1738,13 +1762,13 @@ void CAlien::Draw(const bool draw)
 
 void CAlien::ResetAnimations()
 {
-	ICharacterInstance* character = GetEntity()->GetCharacter(0);
+	ICharacterInstance *character = GetEntity()->GetCharacter(0);
 
 	if (character)
 	{
 		if (m_pAnimatedCharacter)
 			m_pAnimatedCharacter->ClearForcedStates();
-			//m_pAnimatedCharacter->GetAnimationGraphState()->Pause(true, eAGP_StartGame);
+		// m_pAnimatedCharacter->GetAnimationGraphState()->Pause(true, eAGP_StartGame);
 
 		character->GetISkeletonAnim()->StopAnimationsAllLayers();
 		character->GetISkeletonPose()->SetLookIK(false, gf_PI * 0.9f, m_stats.lookTargetSmooth);
@@ -1760,20 +1784,20 @@ void CAlien::Reset(const bool toGame)
 
 void CAlien::Kill()
 {
-	//TheOtherSide
+	// TheOtherSide
 	CTOSActor::Kill();
 	//~TheOtherSide
 
 	ResetAnimations();
 
-	//FIXME:this stops the ground effect, maybe its better to directly remove the effect instead?
+	// FIXME:this stops the ground effect, maybe its better to directly remove the effect instead?
 	if (m_pGroundEffect)
 		m_pGroundEffect->Stop(true);
 
 	if (m_pBeamEffect)
 		m_pBeamEffect->Stop();
 
-	//if (m_pTrailAttachment)
+	// if (m_pTrailAttachment)
 	//	m_pTrailAttachment->ClearBinding();
 
 	m_pTrailAttachment = nullptr;
@@ -1781,7 +1805,7 @@ void CAlien::Kill()
 
 	if (m_pTurnSound)
 	{
-		auto* pSoundProxy = static_cast<IEntitySoundProxy*>(GetEntity()->CreateProxy(ENTITY_PROXY_SOUND));
+		auto *pSoundProxy = static_cast<IEntitySoundProxy *>(GetEntity()->CreateProxy(ENTITY_PROXY_SOUND));
 		pSoundProxy->SetStaticSound(m_pTurnSound->GetId(), false);
 		pSoundProxy->StopSound(m_pTurnSound->GetId(), ESoundStopMode_EventFade);
 		m_pTurnSound->Stop(ESoundStopMode_EventFade);
@@ -1791,7 +1815,7 @@ void CAlien::Kill()
 
 void CAlien::Revive(const bool fromInit)
 {
-	//TheOtherSide
+	// TheOtherSide
 	CTOSActor::Revive(fromInit);
 	//~TheOtherSide
 	m_stats = SAlienStats();
@@ -1828,7 +1852,7 @@ void CAlien::Revive(const bool fromInit)
 
 	ResetAnimations();
 
-	//initialize the ground effect
+	// initialize the ground effect
 	if (m_params.groundEffect[0])
 	{
 		if (!m_pGroundEffect)
@@ -1868,13 +1892,13 @@ void CAlien::RagDollize(const bool fallAndPlay)
 
 	assert(!fallAndPlay && "Fall and play not supported for aliens yet");
 
-	ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0);
+	ICharacterInstance *pCharacter = GetEntity()->GetCharacter(0);
 	if (pCharacter)
 		pCharacter->GetISkeletonPose()->SetRagdollDefaultPose();
 
 	CTOSActor::RagDollize(fallAndPlay);
 
-	IPhysicalEntity* pPhysEnt = GetEntity()->GetPhysics();
+	IPhysicalEntity *pPhysEnt = GetEntity()->GetPhysics();
 	if (pPhysEnt)
 	{
 		// Установка флагов для физической сущности
@@ -1884,15 +1908,15 @@ void CAlien::RagDollize(const bool fallAndPlay)
 
 		// Параметры симуляции
 		pe_simulation_params sp;
-		sp.damping = 1.0f; // Затухание
+		sp.damping = 1.0f;		   // Затухание
 		sp.dampingFreefall = 0.0f; // Затухание при свободном падении
-		sp.mass = m_stats.mass; // Масса, полученная из статистики
+		sp.mass = m_stats.mass;	   // Масса, полученная из статистики
 
 		// Проверка и корректировка массы
 		if (sp.mass <= 0)
 		{
 			CryWarning(VALIDATOR_MODULE_GAME, VALIDATOR_WARNING,
-				"Tried ragdollizing alien with 0 mass.");
+					   "Tried ragdollizing alien with 0 mass.");
 			sp.mass = 200.0f; // Установка дефолтной массы, если текущая масса <= 0
 		}
 		pPhysEnt->SetParams(&sp);
@@ -1904,9 +1928,8 @@ void CAlien::RagDollize(const bool fallAndPlay)
 		pPhysEnt->SetParams(&pa);
 	}
 
-
 	if (gEnv->pSystem->IsSerializingFile())
-		//the finish physicalization
+		// the finish physicalization
 		PostPhysicalize();
 
 	pCharacter = GetEntity()->GetCharacter(0);
@@ -1918,15 +1941,15 @@ void CAlien::RagDollize(const bool fallAndPlay)
 }
 
 // sets searchbeam goal dir in entity space
-void CAlien::SetSearchBeamGoal(const Vec3& dir) { m_searchbeam.goalQuat = Quat::CreateRotationVDir(dir); }
+void CAlien::SetSearchBeamGoal(const Vec3 &dir) { m_searchbeam.goalQuat = Quat::CreateRotationVDir(dir); }
 
 // returns searchbeam dir in entity space
 Quat CAlien::GetSearchBeamQuat() const { return Quat(GetEntity()->GetSlotLocalTM(0, false)) * m_searchbeam.pAttachment->GetAttModelRelative().q; }
 
 // sets searchbeam attachment to orientation given in entity space
-void CAlien::SetSearchBeamQuat(const Quat& rot)
+void CAlien::SetSearchBeamQuat(const Quat &rot)
 {
-	ICharacterInstance* pChar = GetEntity()->GetCharacter(0);
+	ICharacterInstance *pChar = GetEntity()->GetCharacter(0);
 	if (!pChar)
 		return;
 
@@ -1941,7 +1964,7 @@ void CAlien::SetSearchBeamQuat(const Quat& rot)
 
 void CAlien::UpdateSearchBeam(const float frameTime)
 {
-	const ICharacterInstance* pChar = GetEntity()->GetCharacter(0);
+	const ICharacterInstance *pChar = GetEntity()->GetCharacter(0);
 	if (!pChar)
 		return;
 
@@ -1954,14 +1977,14 @@ void CAlien::UpdateSearchBeam(const float frameTime)
 	SetSearchBeamQuat(beamQuat);
 }
 
-//this will convert the input into a structure the player will use to process movement & input
-void CAlien::OnAction(const ActionId& actionId, const int activationMode, const float value)
+// this will convert the input into a structure the player will use to process movement & input
+void CAlien::OnAction(const ActionId &actionId, const int activationMode, const float value)
 {
 	GetGameObject()->ChangedNetworkState(eEA_GameServerStatic | eEA_GameServerDynamic | eEA_GameClientStatic | eEA_GameClientDynamic);
 
-	//this tell if OnAction have to be forwarded to scripts
-	bool                filterOut(true);
-	const CGameActions& actions = g_pGame->Actions();
+	// this tell if OnAction have to be forwarded to scripts
+	bool filterOut(true);
+	const CGameActions &actions = g_pGame->Actions();
 
 	if (actions.rotateyaw == actionId)
 	{
@@ -1993,8 +2016,14 @@ void CAlien::OnAction(const ActionId& actionId, const int activationMode, const 
 		m_input.deltaMovement.y -= value;
 		filterOut = false;
 	}
-	else if (actions.jump == actionId) { m_input.actions |= ACTION_JUMP; }
-	else if (actions.crouch == actionId) { m_input.actions |= ACTION_CROUCH; }
+	else if (actions.jump == actionId)
+	{
+		m_input.actions |= ACTION_JUMP;
+	}
+	else if (actions.crouch == actionId)
+	{
+		m_input.actions |= ACTION_CROUCH;
+	}
 	else if (actions.prone == actionId)
 	{
 		if (!(m_input.actions & ACTION_PRONE))
@@ -2002,18 +2031,30 @@ void CAlien::OnAction(const ActionId& actionId, const int activationMode, const 
 		else
 			m_input.actions &= ~ACTION_PRONE;
 	}
-	else if (actions.sprint == actionId) { m_input.actions |= ACTION_SPRINT; }
-	else if (actions.leanleft == actionId) { m_input.actions |= ACTION_LEANLEFT; }
-	else if (actions.leanright == actionId) { m_input.actions |= ACTION_LEANRIGHT; }
-	else if (actions.thirdperson == actionId) { m_stats.isThirdPerson = !m_stats.isThirdPerson; }
+	else if (actions.sprint == actionId)
+	{
+		m_input.actions |= ACTION_SPRINT;
+	}
+	else if (actions.leanleft == actionId)
+	{
+		m_input.actions |= ACTION_LEANLEFT;
+	}
+	else if (actions.leanright == actionId)
+	{
+		m_input.actions |= ACTION_LEANRIGHT;
+	}
+	else if (actions.thirdperson == actionId)
+	{
+		m_stats.isThirdPerson = !m_stats.isThirdPerson;
+	}
 
-	//FIXME: this is duplicated from CPlayer.cpp, put it just once in CTOSActor.
-	//send the onAction to scripts, after filter the range of actions. for now just use and hold
+	// FIXME: this is duplicated from CPlayer.cpp, put it just once in CTOSActor.
+	// send the onAction to scripts, after filter the range of actions. for now just use and hold
 	if (filterOut)
 	{
 		HSCRIPTFUNCTION scriptOnAction(nullptr);
 
-		IScriptTable* scriptTbl = GetEntity()->GetScriptTable();
+		IScriptTable *scriptTbl = GetEntity()->GetScriptTable();
 
 		if (scriptTbl)
 		{
@@ -2021,7 +2062,7 @@ void CAlien::OnAction(const ActionId& actionId, const int activationMode, const 
 
 			if (scriptOnAction)
 			{
-				char* activation;
+				char *activation;
 
 				switch (activationMode)
 				{
@@ -2047,14 +2088,14 @@ void CAlien::OnAction(const ActionId& actionId, const int activationMode, const 
 	CTOSActor::OnAction(actionId, activationMode, value);
 }
 
-void CAlien::SetStats(SmartScriptTable& rTable) { CTOSActor::SetStats(rTable); }
+void CAlien::SetStats(SmartScriptTable &rTable) { CTOSActor::SetStats(rTable); }
 
-//fill the status table for the scripts
-void CAlien::UpdateScriptStats(SmartScriptTable& rTable) { CTOSActor::UpdateScriptStats(rTable); }
+// fill the status table for the scripts
+void CAlien::UpdateScriptStats(SmartScriptTable &rTable) { CTOSActor::UpdateScriptStats(rTable); }
 
-void CAlien::SetParams(SmartScriptTable& rTable, const bool resetFirst)
+void CAlien::SetParams(SmartScriptTable &rTable, const bool resetFirst)
 {
-	//not sure about this
+	// not sure about this
 	if (resetFirst)
 		m_params = SAlienParams();
 
@@ -2079,7 +2120,7 @@ void CAlien::SetParams(SmartScriptTable& rTable, const bool resetFirst)
 
 	rTable->GetValue("forceView", m_params.forceView);
 
-	const char* str;
+	const char *str;
 	if (rTable->GetValue("fullAnimationTentacles", str))
 		strncpy(m_params.fullAnimTentacles, str, 256);
 	else
@@ -2092,7 +2133,7 @@ void CAlien::SetParams(SmartScriptTable& rTable, const bool resetFirst)
 		m_params.tentaclesCollide = tentaclesCollide;
 
 	//
-	//rTable->GetValue("jumpTo",m_params.jumpTo);
+	// rTable->GetValue("jumpTo",m_params.jumpTo);
 
 	//
 	rTable->GetValue("tentaclesRadius", m_params.tentaclesRadius);
@@ -2157,16 +2198,19 @@ void CAlien::SetParams(SmartScriptTable& rTable, const bool resetFirst)
 		}
 
 		if (rTable->GetValue("turnSoundBone", str))
-			if (ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0))
+			if (ICharacterInstance *pCharacter = GetEntity()->GetCharacter(0))
 				m_params.turnSoundBoneId = pCharacter->GetISkeletonPose()->GetJointIDByName(str);
 
 		rTable->GetValue("turnSoundMaxVel", m_params.turnSoundMaxVel);
 	}
 }
 
-void CAlien::SetDesiredSpeed(const Vec3& desiredSpeed) { m_input.movementVector = desiredSpeed; }
+void CAlien::SetDesiredSpeed(const Vec3 &desiredSpeed)
+{
+	m_input.movementVector = desiredSpeed;
+}
 
-void CAlien::SetDesiredDirection(const Vec3& desiredDir)
+void CAlien::SetDesiredDirection(const Vec3 &desiredDir)
 {
 	if (desiredDir.len2() > 0.001f)
 	{
@@ -2174,11 +2218,11 @@ void CAlien::SetDesiredDirection(const Vec3& desiredDir)
 		m_eyeMtx = m_viewMtx;
 	}
 
-	//m_input.viewVector = desiredDir;
+	// m_input.viewVector = desiredDir;
 }
 
 // common functionality can go in here and called from subclasses that  SetActorMovement
-void CAlien::SetActorMovementCommon(SMovementRequestParams& control)
+void CAlien::SetActorMovementCommon(SMovementRequestParams &control)
 {
 	SMovementState state;
 	GetMovementController()->GetMovementState(state);
@@ -2191,23 +2235,23 @@ void CAlien::SetActorMovementCommon(SMovementRequestParams& control)
 		m_input.viewDir = GetEntity()->GetWorldRotation() * FORWARD_DIRECTION;
 	m_input.pathLength = control.fDistanceToPathEnd;
 
-	//TheOtherSide
+	// TheOtherSide
 	ApplyMasterMovement(control.vDeltaMovement);
 	//~TheOtherSide
 
 	// added bExactPos property for easier testing
 	SmartScriptTable props;
-	int              bExactPos = 0;
-	if (IScriptTable* pScriptTable = GetEntity()->GetScriptTable())
+	int bExactPos = 0;
+	if (IScriptTable *pScriptTable = GetEntity()->GetScriptTable())
 		if (pScriptTable->GetValue("Properties", props))
 			props->GetValue("bExactPos", bExactPos);
 
-	const int  nPoints = control.remainingPath.size();
+	const int nPoints = control.remainingPath.size();
 	bool exactActive = false;
 
 	control.eActorTargetPhase = eATP_None;
 	if (control.bExactPositioning || bExactPos)
-		// activate exact positioning    
+		// activate exact positioning
 		// todo: determine a better threshold
 		if (nPoints && (nPoints == 1 || GetEntity()->GetWorldPos().GetSquaredDistance(control.remainingPath[0].vPos) < 2.5f))
 		{
@@ -2237,23 +2281,23 @@ void CAlien::SetActorMovementCommon(SMovementRequestParams& control)
 	if (m_pAnimatedCharacter)
 		m_pAnimatedCharacter->GetAnimationGraphState()->SetInput(m_inputAiming, control.aimLook ? 1 : 0);
 
-	 //draw pathpoints
+	// draw pathpoints
 	if (nPoints)
-	{ 
+	{
 		IRenderAuxGeom *pGeom = gEnv->pRenderer->GetIRenderAuxGeom();
 		float size = 0.25f;
-  
+
 		for (PATHPOINTVECTOR::iterator it = control.remainingPath.begin(); it != control.remainingPath.end(); ++it)
-		{        
-			pGeom->DrawSphere((*it).vPos, size, ColorB(0,255,0,128));
+		{
+			pGeom->DrawSphere((*it).vPos, size, ColorB(0, 255, 0, 128));
 			size += 0.1f;
 		}
 	}
 }
 
 //---------------------------------
-//AI Specific
-void CAlien::SetActorMovement(SMovementRequestParams& control)
+// AI Specific
+void CAlien::SetActorMovement(SMovementRequestParams &control)
 {
 	SMovementState state;
 	GetMovementController()->GetMovementState(state);
@@ -2268,7 +2312,6 @@ void CAlien::SetActorMovement(SMovementRequestParams& control)
 		SetDesiredDirection(GetEntity()->GetWorldRotation() * FORWARD_DIRECTION);
 
 	SetDesiredSpeed(control.vMoveDir * control.fDesiredSpeed);
-
 
 	//	m_input.actions = control.m_desiredActions;
 	int actions;
@@ -2303,19 +2346,18 @@ void CAlien::SetActorMovement(SMovementRequestParams& control)
 
 	m_input.actions = actions;
 
-
 	//	GetEntity()->GetScriptTable()->SetValue( "fireDir", control.vFireDir );
 
 	//	CryLog( "mv: (%f, %f, %f)", m_input.movementVector.x, m_input.movementVector.y, m_input.movementVector.z );
 	//	CryLog( "desiredSpeed: %f (mv.len=%f)", control.m_desiredSpeed, control.m_movementVector.GetLength() );
 
-	//SetFiring(control.fire);
+	// SetFiring(control.fire);
 }
 
 void CAlien::SetFiring(const bool fire)
 {
-	//weapons
-	//FIXME:remove this weapon specific ASAP
+	// weapons
+	// FIXME:remove this weapon specific ASAP
 	if (fire)
 	{
 		if (!m_stats.isFiring)
@@ -2330,9 +2372,9 @@ void CAlien::SetFiring(const bool fire)
 	m_stats.isFiring = fire;
 }
 
-void CAlien::SetActorStance(SMovementRequestParams& control, int& actions)
+void CAlien::SetActorStance(SMovementRequestParams &control, int &actions)
 {
-	bool  atEndOfPath(false);
+	bool atEndOfPath(false);
 	float curSpeed(m_velocity.len());
 	if (curSpeed < 0.1f)
 		curSpeed = 0.1f;
@@ -2383,19 +2425,18 @@ void CAlien::SetActorStance(SMovementRequestParams& control, int& actions)
 	}
 }
 
-void CAlien::SetAnimTentacleParams(pe_params_rope& pRope, const float animBlend)
+void CAlien::SetAnimTentacleParams(pe_params_rope &pRope, const float animBlend)
 {
 	pRope.stiffnessDecayAnim = 0.75f;
 
-
 	if (animBlend < 0.001f)
 	{
-		pRope.stiffnessAnim = 0; // Special case, use full animation.
+		pRope.stiffnessAnim = 0;  // Special case, use full animation.
 		pRope.dampingAnim = 1.0f; // When stiffness is zero, this value does not really matter, set it to sane value anyway.
 	}
 	else
 	{
-		//FIXME:compatibility for old values
+		// FIXME:compatibility for old values
 		if (animBlend > 1.001f)
 		{
 			pRope.stiffnessAnim = animBlend;
@@ -2413,30 +2454,33 @@ void CAlien::SetAnimTentacleParams(pe_params_rope& pRope, const float animBlend)
 	}
 }
 
-void CAlien::GetActorInfo(SBodyInfo& bodyInfo)
+void CAlien::GetActorInfo(SBodyInfo &bodyInfo)
 {
 	bodyInfo.vEyePos = GetEntity()->GetSlotWorldTM(0) * m_eyeOffset;
 	bodyInfo.vFirePos = GetEntity()->GetSlotWorldTM(0) * m_weaponOffset;
 
-	bodyInfo.vEyeDir = m_viewMtx.GetColumn(1); //m_eyeMtx.GetColumn(1);
+	bodyInfo.vEyeDir = m_viewMtx.GetColumn(1); // m_eyeMtx.GetColumn(1);
 
 	const int headBoneID = GetBoneID(BONE_HEAD);
 	if (headBoneID > -1 && GetEntity()->GetCharacter(0))
 	{
-		//Matrix33 HeadMat(GetEntity()->GetCharacter(0)->GetISkeleton()->GetAbsJMatrixByID(headBoneID));
+		// Matrix33 HeadMat(GetEntity()->GetCharacter(0)->GetISkeleton()->GetAbsJMatrixByID(headBoneID));
 		const Matrix33 HeadMat(Matrix33(GetEntity()->GetCharacter(0)->GetISkeletonPose()->GetAbsJointByID(headBoneID).q));
 		bodyInfo.vEyeDirAnim = Matrix33(GetEntity()->GetSlotWorldTM(0) * HeadMat).GetColumn(1);
 	}
-	else { bodyInfo.vEyeDirAnim = bodyInfo.vEyeDir; }
+	else
+	{
+		bodyInfo.vEyeDirAnim = bodyInfo.vEyeDir;
+	}
 
-	//gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(bodyInfo.vEyePos, ColorB(0,255,0,100), bodyInfo.vEyePos + bodyInfo.vEyeDir * 10.0f, ColorB(255,0,0,100));
+	// gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(bodyInfo.vEyePos, ColorB(0,255,0,100), bodyInfo.vEyePos + bodyInfo.vEyeDir * 10.0f, ColorB(255,0,0,100));
 
-	bodyInfo.vFwdDir = GetEntity()->GetRotation().GetColumn1(); //m_viewMtx.GetColumn(1);
+	bodyInfo.vFwdDir = GetEntity()->GetRotation().GetColumn1(); // m_viewMtx.GetColumn(1);
 	bodyInfo.vUpDir = m_viewMtx.GetColumn(2);
 	bodyInfo.vFireDir = m_stats.fireDir;
-	//gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetWorldPos(), ColorB(0,255,0,100), GetEntity()->GetWorldPos() + bodyInfo.vFwdDir * 10, ColorB(255,0,0,100));
+	// gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetWorldPos(), ColorB(0,255,0,100), GetEntity()->GetWorldPos() + bodyInfo.vFwdDir * 10, ColorB(255,0,0,100));
 
-	const SStanceInfo* pStanceInfo = GetStanceInfo(m_stance);
+	const SStanceInfo *pStanceInfo = GetStanceInfo(m_stance);
 	bodyInfo.minSpeed = min(m_params.speed_min, pStanceInfo->maxSpeed * 0.01f);
 	bodyInfo.normalSpeed = pStanceInfo->normalSpeed;
 	bodyInfo.maxSpeed = pStanceInfo->maxSpeed;
@@ -2447,7 +2491,7 @@ void CAlien::GetActorInfo(SBodyInfo& bodyInfo)
 	bodyInfo.m_colliderSizeAABB = pStanceInfo->GetColliderBounds();
 }
 
-void CAlien::SetAngles(const Ang3& angles)
+void CAlien::SetAngles(const Ang3 &angles)
 {
 	const Matrix33 rot(Matrix33::CreateRotationXYZ(angles));
 	SetDesiredDirection(rot.GetColumn(1));
@@ -2472,7 +2516,7 @@ void CAlien::FullSerialize(TSerialize ser)
 {
 	CTOSActor::FullSerialize(ser);
 
-	ser.BeginGroup("CAlien"); //this serialization has to be redesigned to work properly in MP
+	ser.BeginGroup("CAlien"); // this serialization has to be redesigned to work properly in MP
 	ser.Value("modelQuat", m_modelQuat, 'ori1');
 	ser.Value("health", m_health);
 	// skip matrices
@@ -2503,7 +2547,7 @@ void CAlien::PostSerialize()
 {
 	CTOSActor::PostSerialize();
 
-	//temporary fix for non-physicalized scouts in fleet
+	// temporary fix for non-physicalized scouts in fleet
 	/*SActorStats *pStats = GetActorStats();
 	if(pStats && pStats->isRagDoll)	//fixes "frozen" scouts in fleet if Anton doesn't
 	{
@@ -2516,11 +2560,11 @@ void CAlien::PostSerialize()
 	}*/
 }
 
-void CAlien::SerializeXML(XmlNodeRef& node, bool bLoading) {}
+void CAlien::SerializeXML(XmlNodeRef &node, bool bLoading) {}
 
 void CAlien::SetAuthority(bool auth) {}
 
-IActorMovementController* CAlien::CreateMovementController() { return new CCompatibilityAlienMovementController(this); }
+IActorMovementController *CAlien::CreateMovementController() { return new CCompatibilityAlienMovementController(this); }
 
 void SAlienInput::Serialize(TSerialize ser)
 {
@@ -2575,7 +2619,7 @@ void SAlienStats::Serialize(TSerialize ser)
 	ser.Value("eyePos", eyePos);
 	ser.Value("eyeAngles", eyeAngles);
 	ser.Value("cloaked", cloaked);
-	//ser.Value("dynModelOffset",dynModelOffset);
+	// ser.Value("dynModelOffset",dynModelOffset);
 	ser.EndGroup();
 }
 
@@ -2583,8 +2627,8 @@ void CAlien::UpdateDebugGraphs()
 {
 	bool debug = g_pGameCVars->aln_debug_movement != 0;
 
-	const char* filter = g_pGameCVars->aln_debug_filter->GetString();
-	const char* name = GetEntity()->GetName();
+	const char *filter = g_pGameCVars->aln_debug_filter->GetString();
+	const char *name = GetEntity()->GetName();
 	if (strcmp(filter, "0") != 0 && strcmp(filter, name) != 0)
 		debug = false;
 
@@ -2608,7 +2652,7 @@ void CAlien::UpdateDebugGraphs()
 	m_pDebugHistoryManager->LayoutHelper("ReqRotZ", nullptr, showReqVelo, -360, 360, -5, 5, 4.0f, 0.0f);
 }
 
-void CAlien::DebugGraph_AddValue(const char* id, const float value) const
+void CAlien::DebugGraph_AddValue(const char *id, const float value) const
 {
 	if (m_pDebugHistoryManager == nullptr)
 		return;
@@ -2616,14 +2660,14 @@ void CAlien::DebugGraph_AddValue(const char* id, const float value) const
 	if (id == nullptr)
 		return;
 
-	// NOTE: It's alright to violate the const here. The player is a good common owner for debug graphs, 
+	// NOTE: It's alright to violate the const here. The player is a good common owner for debug graphs,
 	// but it's also not non-const in all places, even though graphs might want to be added from those places.
-	IDebugHistory* pDH = m_pDebugHistoryManager->GetHistory(id);
+	IDebugHistory *pDH = m_pDebugHistoryManager->GetHistory(id);
 	if (pDH != nullptr)
 		pDH->AddValue(value);
 }
 
-void CAlien::GetAlienMemoryStatistics(ICrySizer* s)
+void CAlien::GetAlienMemoryStatistics(ICrySizer *s)
 {
 	s->AddContainer(m_tentaclesProxy);
 	s->AddContainer(m_tentaclesProxyFullAnimation);
