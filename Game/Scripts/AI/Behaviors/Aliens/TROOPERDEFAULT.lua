@@ -1163,7 +1163,7 @@ AIBehaviour.TROOPERDEFAULT = {
 		if(entity.Behaviour.hasConversation and entity.cloaked~= 1) then 
 			local numMembers = AI.GetGroupCount(entity.id,GROUP_ENABLED,AIOBJECT_PUPPET);
 			local target = AI.GetAttentionTargetEntity(entity.id,true);
-			if(numMembers>1 and entity:GetDistance(target.id)>5 and 
+			if(numMembers>1 and target and entity:GetDistance(target.id)>5 and 
 				AIBlackBoard.trooper_ConversationState == TROOPER_CONV_REQUESTING) then
 				if(entity.Behaviour.search) then 
 					entity:Readibility("search_call");
