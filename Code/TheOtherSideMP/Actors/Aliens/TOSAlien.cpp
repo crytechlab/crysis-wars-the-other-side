@@ -88,17 +88,10 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 		{
 			CMovementRequest request;
 		
-			request.SetMoveTarget(GetEntity()->GetPos() + m_netBodyInfo.moveTarget);
-			request.SetLookTarget(m_netBodyInfo.lookTarget);
-			request.SetBodyTarget(m_netBodyInfo.bodyTarget);
-			request.SetFireTarget(m_netBodyInfo.fireTarget);
 			request.AddDeltaMovement(m_netBodyInfo.deltaMov);
-
 			request.SetDesiredSpeed(m_netBodyInfo.desiredSpeed);
-			m_stats.speed = m_netBodyInfo.desiredSpeed;
-			m_stats.fireDir = Vec3(ZERO);
-
 			request.SetStance(static_cast<EStance>(m_netBodyInfo.stance));
+			request.SetFireTarget(m_netBodyInfo.fireTarget);
 			
 			if (m_netBodyInfo.hasAimTarget)
 				request.SetAimTarget(m_netBodyInfo.aimTarget);
@@ -107,10 +100,13 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 
 			GetMovementController()->RequestMovement(request);
 
+			m_input.movementVector = m_netBodyInfo.movementVector;
+			
 			// Update view matrices
-			Vec3 viewDir = (m_netBodyInfo.lookTarget - GetEntity()->GetWorldPos()).GetNormalized();
-			Vec3 bodyDir = (m_netBodyInfo.bodyTarget - GetEntity()->GetWorldPos()).GetNormalized();
-			Vec3 aimDir = (m_netBodyInfo.aimTarget - GetEntity()->GetWorldPos()).GetNormalized();
+			Vec3 pos = GetEntity()->GetWorldPos();
+			Vec3 viewDir = (m_netBodyInfo.lookTarget - pos).GetNormalized();
+			Vec3 bodyDir = (m_netBodyInfo.bodyTarget - pos).GetNormalized();
+			Vec3 aimDir = (m_netBodyInfo.aimTarget - pos).GetNormalized();
 
 			if (viewDir.len2() > 0.001f)
 				m_viewMtx.SetRotationVDir(viewDir);
@@ -147,15 +143,17 @@ void CTOSAlien::ProcessEvent(SEntityEvent& event)
 void CTOSAlien::PrePhysicsUpdate()
 {
 	CAlien::PrePhysicsUpdate();
-
+	
 	const SMovementState currentState = static_cast<CTOSAlienMovementController*>(GetMovementController())->GetCurrentMovementState();
+	const Vec3 pos = GetEntity()->GetWorldPos();
 
-	m_netBodyInfo.moveTarget = GetEntity()->GetWorldPos() + currentState.movementDirection;
-	// m_netBodyInfo.aimTarget = currentState.eyePosition + currentState.aimDirection;
-	// m_netBodyInfo.lookTarget = currentState.eyePosition + currentState.eyeDirection;
-	// m_netBodyInfo.bodyTarget = currentState.eyePosition + currentState.bodyDirection;
+	m_netBodyInfo.moveTarget = pos + currentState.movementDirection;
+	m_netBodyInfo.lookTarget = pos + m_viewMtx.GetColumn(1) * 10.0f;
+	m_netBodyInfo.bodyTarget = pos + m_baseMtx.GetColumn(1) * 10.0f;
+	m_netBodyInfo.aimTarget = pos + m_eyeMtx.GetColumn(1) * 10.0f;
 	m_netBodyInfo.fireTarget = currentState.fireTarget;
 	m_netBodyInfo.deltaMov = m_input.deltaMovement;
+	m_netBodyInfo.movementVector = m_input.movementVector;
 
 	// Float
 	m_netBodyInfo.desiredSpeed = m_moveRequest.velocity.GetLength();
@@ -166,14 +164,8 @@ void CTOSAlien::PrePhysicsUpdate()
 	// Bool
 	m_netBodyInfo.hasAimTarget = currentState.isAiming;
 
-	// View direction sync
-	m_netBodyInfo.lookTarget = GetEntity()->GetWorldPos() + m_viewMtx.GetColumn(1) * 10.0f;
-	m_netBodyInfo.bodyTarget = GetEntity()->GetWorldPos() + m_baseMtx.GetColumn(1) * 10.0f;
-	m_netBodyInfo.aimTarget = GetEntity()->GetWorldPos() + m_eyeMtx.GetColumn(1) * 10.0f;
-
 	if (gEnv->bClient)
 	{
-		m_netBodyInfo.worldPos = GetEntity()->GetWorldPos();
 		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
 	}
 	else

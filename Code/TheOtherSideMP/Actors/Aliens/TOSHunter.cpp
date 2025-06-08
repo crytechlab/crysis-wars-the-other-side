@@ -74,10 +74,7 @@ void CTOSHunter::ProcessEvent(SEntityEvent& event)
 
 void CTOSHunter::PrePhysicsUpdate()
 {
-	SMovementState currMovement = static_cast<CTOSAlienMovementController*>(GetMovementController())->GetCurrentMovementState();
-
-	m_netBodyInfo.lookTarget = currMovement.eyePosition + currMovement.bodyDirection;
-	m_netBodyInfo.aimTarget = currMovement.eyePosition + currMovement.aimDirection;
+	CHunter::PrePhysicsUpdate();
 
 	if (gEnv->bClient)
 	{
@@ -93,48 +90,6 @@ bool CTOSHunter::NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profi
 {
 	if (!CHunter::NetSerialize(ser, aspect, profile, flags))
 		return false;
-
-	if (aspect == tos::net::SERVER_ASPECT_STATIC)
-	{
-		ser.Value("health", m_health);
-		ser.Value("maxHealth", m_maxHealth);
-	}
-
-	if (aspect == tos::net::CLIENT_ASPECT_DYNAMIC || aspect == tos::net::SERVER_ASPECT_DYNAMIC)
-	{
-		m_netBodyInfo.Serialize(GetEntity(), ser);// ок
-
-		if (ser.IsReading())
-		{
-			// Скопировано из CCoopAlien::UpdateMovementState()
-			CMovementRequest request;
-			request.AddDeltaMovement(m_netBodyInfo.deltaMov);// ок
-			request.SetBodyTarget(m_netBodyInfo.lookTarget); // не проверено вообще пришельцами не используется
-			request.SetLookTarget(m_netBodyInfo.lookTarget);// ок
-			request.SetAimTarget(m_netBodyInfo.aimTarget); // не проверено
-
-			GetMovementController()->RequestMovement(request);
-		}
-	}
-
-	if (aspect == tos::net::CLIENT_ASPECT_STATIC)
-	{
-		//Блок скопирован из CPlayer::NetSerialize()
-
-		const bool writing = ser.IsWriting();
-		bool	   hasWeapon = false;
-
-		if (writing)
-			hasWeapon = NetGetCurrentItem() != 0;
-
-		ser.Value("hasWeapon", hasWeapon, 'bool');
-		ser.Value("currentItemId", static_cast<CActor*>(this), &CActor::NetGetCurrentItem, &CActor::NetSetCurrentItem, 'eid');
-
-		if (!writing && hasWeapon && NetGetCurrentItem() == 0)
-			ser.FlagPartialRead();
-	}
-
-
 	return true;
 }
 

@@ -43,74 +43,32 @@ struct STOSSlaveStats
  */
 struct STOSNetBodyInfo
 {
-	STOSNetBodyInfo()
-		: moveTarget(ZERO),
-		aimTarget(ZERO),
-		lookTarget(ZERO),
-		bodyTarget(ZERO),
-		fireTarget(ZERO),
-		deltaMov(ZERO),
-		worldPos(ZERO),
-		//pseudoSpeed(ZERO), grunt штука
-		desiredSpeed(ZERO),
-		//alertness(ZERO), grunt штука
-		stance(ZERO),
-		//suitMode(ZERO),
-		hidden(false),
-		hasAimTarget(false)
-		//allowStrafing(false), grunt штука
-	{ }
+	explicit STOSNetBodyInfo() = default;
 
 	void Serialize(IEntity* pInfoOwnerEntity, TSerialize ser)
 	{
 		assert(pInfoOwnerEntity);
 
-		// GameServerDynamic в коопе был, может GameClientDynamic у меня?
+		ser.Value("movementVector", movementVector);
 		ser.Value("moveTarget", moveTarget, 'wrld');
 		ser.Value("aimTarget", aimTarget, 'wrld');
 		ser.Value("lookTarget", lookTarget, 'wrld');
 		ser.Value("bodyTarget", bodyTarget, 'wrld');
 		ser.Value("fireTarget", fireTarget, 'wrld');
-		ser.Value("world_position", worldPos, 'wrld');
 		ser.Value("deltaMov", deltaMov, 'pMov');
-		//ser.Value("pseudoSpeed", pseudoSpeed); grunt штука
 		ser.Value("desiredSpeed", desiredSpeed);
-		//~ GameServerDynamic
-
-		// GameServerStatic в коопе был
 		ser.Value("hidden", hidden, 'bool');
 		ser.Value("hasAimTarget", hasAimTarget, 'bool');
 
 		if (ser.IsReading())
 			pInfoOwnerEntity->Hide(hidden);
 
-		//ser.Value("nAlert", alertness, 'i8'); grunt штука
 		ser.Value("stance", stance, 'i8');
-		//ser.Value("nFlags", nMovementNetworkFlags, 'i8');
-		//ser.Value("nWep", nWeaponNetworkFlags, 'i8');
-		// ~GameServerStatic
 	}
 
 	void Reset()
 	{
-		moveTarget = Vec3(0, 0, 0);
-		aimTarget = Vec3(0, 0, 0);
-		lookTarget = Vec3(0, 0, 0);
-		bodyTarget = Vec3(0, 0, 0);
-		fireTarget = Vec3(0, 0, 0);
-		deltaMov = Vec3(0, 0, 0);
-		worldPos = Vec3(0, 0, 0);
-
-		//pseudoSpeed;
-		desiredSpeed = 0;
-
-		//alertness;
-		stance = 0;
-		//suitMode;
-
-		hidden = false;
-		//bool allowStrafing;
-		//bool hasAimTarget;
+		*this = STOSNetBodyInfo();
 	}
 
 	// Скопировано из CoopGrunt.h
@@ -120,20 +78,13 @@ struct STOSNetBodyInfo
 	Vec3 bodyTarget;
 	Vec3 fireTarget;
 	Vec3 deltaMov;
+	Vec3 movementVector;
 
-	Vec3 worldPos;
-
-	//float pseudoSpeed;
 	float desiredSpeed;
-
-	//int alertness;
 	int stance;
-	//int suitMode;
 
 	bool hidden;
 	bool hasAimTarget;
-	//bool m_allowStrafing;
-	//bool m_hasAimTarget;
 };
 
 class CTOSActor: 

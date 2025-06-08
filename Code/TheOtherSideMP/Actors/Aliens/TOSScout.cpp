@@ -78,33 +78,6 @@ void CTOSScout::Update(SEntityUpdateContext& ctx, int updateSlot)
 void CTOSScout::PrePhysicsUpdate()
 {
 	CTOSAlien::PrePhysicsUpdate();
-
-	const SMovementState currentState = static_cast<CTOSAlienMovementController*>(GetMovementController())->GetCurrentMovementState();
-
-	//m_netBodyInfo.moveTarget = GetEntity()->GetWorldPos() + currentState.movementDirection; // не проверено
-	//m_netBodyInfo.fireTarget = currentState.fireTarget; // не проверено
-
-	m_netBodyInfo.aimTarget = currentState.eyePosition + currentState.bodyDirection;
-	m_netBodyInfo.lookTarget = currentState.eyePosition + currentState.aimDirection;
-
-	// Float
-	//m_netBodyInfo.desiredSpeed = m_moveRequest.velocity.GetLength(); // не проверено
-
-	// Int
-	//m_netBodyInfo.stance = static_cast<int>(currentState.stance); // не проверено
-
-	// Bool
-	//m_netBodyInfo.hasAimTarget = currentState.isAiming;
-
-	if (gEnv->bClient)
-	{
-		m_netBodyInfo.worldPos = GetEntity()->GetWorldPos();
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
-	}
-	else
-	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
-	}
 }
 
 //void CTOSScout::UpdateMovementState()
@@ -125,7 +98,7 @@ void CTOSScout::ProcessEvent(SEntityEvent& event)
 
 bool CTOSScout::NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profile, int flags)
 {
-	if (!CTOSAlien::NetSerialize(ser, aspect, profile, flags))
+	if (!CScout::NetSerialize(ser, aspect, profile, flags))
 		return false;
 
 	return true;

@@ -141,37 +141,8 @@ void CTOSTrooper::Update(SEntityUpdateContext& ctx, const int updateSlot)
 
 bool CTOSTrooper::NetSerialize(TSerialize ser, const EEntityAspects aspect, const uint8 profile, const int flags)
 {
-	if (!CAlien::NetSerialize(ser, aspect, profile, flags))
+	if (!CTrooper::NetSerialize(ser, aspect, profile, flags))
 		return false;
-
-	if (aspect == tos::net::SERVER_ASPECT_STATIC)
-	{
-		ser.Value("health", m_health);
-		ser.Value("maxHealth", m_maxHealth);
-	}
-
-	if (aspect == tos::net::CLIENT_ASPECT_DYNAMIC || aspect == tos::net::SERVER_ASPECT_DYNAMIC)
-	{
-		m_netBodyInfo.Serialize(GetEntity(), ser);// ок
-
-		if (ser.IsReading())
-		{
-			// Скопировано из CCoopAlien::UpdateMovementState()
-			CMovementRequest request;
-			request.AddDeltaMovement(m_netBodyInfo.deltaMov);// ок
-			//request.SetBodyTarget(m_netBodyInfo.lookTarget); // вообще пришельцами не используется
-			request.SetLookTarget(m_netBodyInfo.lookTarget);// ок
-			request.SetAimTarget(m_netBodyInfo.aimTarget);
-			//request.SetFireTarget(m_netBodyInfo.fireTarget);// не нужен вроде
-
-			//Заставляет тушу двигаться самостоятельно
-			//request.SetMoveTarget(m_netBodyInfo.moveTarget);
-
-			request.SetStance(static_cast<EStance>(m_netBodyInfo.stance));// не проверено
-
-			GetMovementController()->RequestMovement(request);
-		}
-	}
 	return true;
 }
 
@@ -372,36 +343,7 @@ void CTOSTrooper::UpdateStats(float frameTime)
 
 void CTOSTrooper::PrePhysicsUpdate()
 {
-	CTOSAlien::PrePhysicsUpdate();
-
-	const SMovementState currentState = static_cast<CCompatibilityAlienMovementController*>(GetMovementController())->GetCurrentMovementState();
-
-	// Взято наглядно из CAlien::GetActorInfo()
-	// 10/18/2023, 18:36 мне удалось достичь очень плавного перемещения трупера у других клиентов.
-	// Практически неотличимо от локального управления.
-	// Единственное что меня волнует это прыжок.
-	// Чуть дольше чем момент начала прыжка трупер у других клиентов немного дёргается.
-	const Vec3 eyePos = GetEntity()->GetSlotWorldTM(0) * m_eyeOffset; // ок
-	const Vec3 weaponPos = GetEntity()->GetSlotWorldTM(0) * m_weaponOffset; // ок
-
-	// Принцип работы: m_viewMtx.GetColumn1() на владеющем клиенте ->
-	// serialize направление вперед(forward) (от владеющего к другим клиентам и серверу) ->
-	// m_viewMtx.SetRotationVDir()
-	const Vec3 eyeDir = m_viewMtx.GetColumn1(); // ок
-
-	m_netBodyInfo.lookTarget = eyePos + eyeDir * 10.0f;
-	m_netBodyInfo.fireTarget = weaponPos + eyeDir * 10.0f;
-	m_netBodyInfo.deltaMov = m_input.deltaMovement;
-	m_netBodyInfo.stance = static_cast<int>(currentState.stance); // не проверено
-
-	if (gEnv->bClient)
-	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
-	}
-	else
-	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
-	}
+	CTrooper::PrePhysicsUpdate();
 }
 
 void CTOSTrooper::UpdateMasterView(SViewParams& viewParams, Vec3& offsetX, Vec3& offsetY, Vec3& offsetZ, Vec3& target, Vec3& current, float& currentFov)
@@ -416,7 +358,7 @@ void CTOSTrooper::UpdateMasterView(SViewParams& viewParams, Vec3& offsetX, Vec3&
 
 bool CTOSTrooper::ApplyActions(int actions)
 {
-	CTOSAlien::ApplyActions(actions);
+	CTrooper::ApplyActions(actions);
 
 	return true;
 }
