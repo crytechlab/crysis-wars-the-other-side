@@ -96,20 +96,36 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 	if (pRenderProxy)
 		pRenderProxy->UpdateCharactersBeforePhysics(true);
 
-	// сохранение и применение модели персонажа
-	if (gEnv->bServer)
-	{
-		const char* model = 0;
-		tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
-		m_modelFilename = model;
-	}
-	else
+	// сохранение и применение свойств lua
+	// if (gEnv->bServer)
+	// {
+	// 	const char* model = 0;
+	// 	tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
+	// 	m_modelFilename = model;
+
+	// 	const char* soundPack = 0;
+	// 	tos::script::GetEntityProperty(GetEntity(), "SoundPack", soundPack);
+	// 	m_soundPack = soundPack;
+
+	// 	const char* equipmentPack = 0;
+	// 	tos::script::GetEntityProperty(GetEntity(), "equip_EquipmentPack", equipmentPack);
+	// 	m_equipmentPack = equipmentPack;
+	// }
+	if (gEnv->bClient)
 	{
 		if (m_modelFilename.length() > 0)
 		{
 			// предполагаем, что при спавне движок уже загрузил m_modelFilename из SpawnInfo
 			tos::script::SetEntityProperty(GetEntity(), "fileModel", m_modelFilename.c_str());
 			CActor::Physicalize();  // пересоздать физику под новую модель
+		}
+		if (m_soundPack.length() > 0)
+		{
+			tos::script::SetEntityProperty(GetEntity(), "SoundPack", m_soundPack.c_str());
+		}
+		if (m_equipmentPack.length() > 0)
+		{
+			tos::script::SetEntityProperty(GetEntity(), "equip_EquipmentPack", m_equipmentPack.c_str());
 		}
 	}
 }
@@ -224,6 +240,8 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		{
 			tos::inventory::SelectPrimary(this);
 			tos::ai::SetStance(this->GetEntity()->GetAI(), EStance::STANCE_STAND);
+			//GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
+			//GetGameObject()->RequestRemoteUpdate(eEA_GameClientDynamic | eEA_GameServerDynamic | eEA_GameClientStatic | eEA_GameServerStatic);
 		}
 		//else if (event.nParam[0] == eMPTIMER_RAGDOLL)
 		//{
@@ -703,8 +721,16 @@ void CTOSActor::SerializeSpawnInfo(TSerialize ser)
 	CActor::SerializeSpawnInfo(ser);
 
 	string model;
+	string soundPack;
+	string equipmentPack;
+
 	ser.Value("modelFilename", model, 'stab');
+	ser.Value("soundPack", soundPack, 'stab');
+	ser.Value("equipmentPack", equipmentPack, 'stab');
+
 	m_modelFilename = model;
+	m_soundPack = soundPack;
+	m_equipmentPack = equipmentPack;
 
 	// Клиент: таблица lua здесь ещё не создана
 }
@@ -715,10 +741,15 @@ ISerializableInfoPtr CTOSActor::GetSpawnInfo()
 	{
 		int teamId;
 		string modelFilename;
+		string soundPack;
+		string equipmentPack;
+
 		void SerializeWith(TSerialize ser)
 		{
 			ser.Value("teamId", teamId, 'team');
 			ser.Value("modelFilename", modelFilename, 'stab');
+			ser.Value("soundPack", soundPack, 'stab');
+			ser.Value("equipmentPack", equipmentPack, 'stab');
 		}
 	};
 
@@ -728,8 +759,16 @@ ISerializableInfoPtr CTOSActor::GetSpawnInfo()
 	p->teamId = pGameRules ? pGameRules->GetTeam(GetEntityId()) : 0;
 
 	const char* model = 0;
+	const char* soundPack = 0;
+	const char* equipmentPack = 0;
+
 	tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
+	tos::script::GetEntityProperty(GetEntity(), "SoundPack", soundPack);
+	tos::script::GetEntityProperty(GetEntity(), "equip_EquipmentPack", equipmentPack);
+
 	p->modelFilename = m_modelFilename = model;
+	p->soundPack = soundPack;
+	p->equipmentPack = equipmentPack;
 
 	return p;
 }
@@ -897,15 +936,6 @@ void CTOSActor::GiveEquipmentPack()
 		}
 	}
 }
-
-//void CTOSActor::NetSetActorModel(const char* model)
-//{
-//	m_modelFilename = model;
-//	if (gEnv->bClient)
-//		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
-//	else if (gEnv->bServer)
-//		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
-//}
 
 bool CTOSActor::HideMe(bool value)
 {

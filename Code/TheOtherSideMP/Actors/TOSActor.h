@@ -246,7 +246,11 @@ private:
 	bool m_isZeus;
 	bool m_isSlave; // сериализованное по сети значение, является ли актёр рабом
 	bool m_isMaster; // сериализованное по сети значение, является ли актёр мастером
+
+	// Сериализованные Lua свойства
 	string m_modelFilename;
+	string m_soundPack;
+	string m_equipmentPack;
 
 	DECLARE_CLIENT_RMI_NOATTACH_FAST(ClTOSJump, NoParams, eNRT_ReliableUnordered);
 	DECLARE_SERVER_RMI_NOATTACH_FAST(SvRequestTOSJump, NoParams, eNRT_ReliableUnordered);
