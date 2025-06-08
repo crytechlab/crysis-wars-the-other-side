@@ -469,7 +469,7 @@ function Scout_x:Expose()
 		Class = self,
 		ClientMethods =
 		{
-			ClKill = { RELIABLE_UNORDERED, POST_ATTACH, BOOL },
+			ClKill = { RELIABLE_UNORDERED, POST_ATTACH },
 		},
 		ServerMethods =
 		{
@@ -482,7 +482,7 @@ function Scout_x:Expose()
 	};
 end
 
-function Scout_x.Client:ClKill(bKill)
+function Scout_x.Client:ClKill()
 	self:InitiateAutoDestruction();
 	BasicAlien.StopSounds(self);
 end
@@ -622,7 +622,7 @@ function Scout_x:Kill(ragdoll, shooterId, weaponId)
 
 	--TheOtherSide
 	-- Отправляем всем клиентам сообщение о смерти
-	self.allClients:ClKill(true);
+	self.allClients:ClKill();
 	--~TheOtherSide
 
 	--kill the actor
