@@ -413,7 +413,7 @@ function Trooper_x:Expose()
 		ClientMethods =
 		{
 			ClKill = { RELIABLE_UNORDERED, POST_ATTACH, BOOL },
-			ClMeleeHit = { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID },
+			ClApplyMelee = { RELIABLE_ORDERED, POST_ATTACH, ENTITYID, VEC3, FLOAT, FLOAT },
 			ClWarmupAutoDestruct = { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID },
 		},
 		ServerMethods =
@@ -471,16 +471,16 @@ function Trooper_x.Client:ClKill(canSelfDestruct)
 	BasicAlien.StopSounds(self);
 end
 
-function Trooper_x.Client:ClMeleeHit(entityId, distance, radius)
+function Trooper_x.Client:ClApplyMelee(entityId, impulse, radius, distance)
+	self:PlayMeleeEffects(entityId)
+	self:ApplyMeleeImpulse(entityId, impulse, radius, distance)
+end
+
+function Trooper_x:PlayMeleeEffects(entityId)
 	if (entityId == g_localActor.id) then
-		self:PlaySoundEvent("sounds/physics:bullet_impact:mat_armor_fp", g_Vectors.v000, g_Vectors.v010, SOUND_2D,
+		g_localActor:PlaySoundEvent("sounds/physics:bullet_impact:mat_armor_fp", g_Vectors.v000, g_Vectors.v010, SOUND_2D,
 			SOUND_SEMANTIC_PLAYER_FOLEY);
-
-		local entity = g_localActor;
-
-		if (entity) then
-			entity.actor:CameraShake(45, 0.3, 0.13, g_Vectors.v000);
-		end
+		g_localActor.actor:CameraShake(45, 0.3, 0.13, g_Vectors.v000);
 	end
 end
 
@@ -1166,7 +1166,7 @@ function Trooper_x:MeleeDamage(impulse, meleeType)
 	local entity = self.AI.meleeTarget
 	local radius = 2.5
 
-	LogAlways("Trooper_x:MeleeDamage 1 entity: %s impulse: %s meleeType: %s", tostring(entity), tostring(impulse), tostring(meleeType))
+	-- LogAlways("Trooper_x:MeleeDamage 1 entity: %s impulse: %s meleeType: %s", tostring(entity), tostring(impulse), tostring(meleeType))
 
 	-- Если цель существует
 	if entity then
@@ -1192,7 +1192,7 @@ function Trooper_x:MeleeDamage(impulse, meleeType)
 		local pos = self:GetWorldPos()
 		local distance, angle = AI.CheckMeleeDamage(self.id, entity.id, radius, -1.3, 1.3, 150)
 
-		LogAlways("Trooper_x:MeleeDamage 2 distance: %s angle: %s", tostring(distance), tostring(angle))
+		-- LogAlways("Trooper_x:MeleeDamage 2 distance: %s angle: %s", tostring(distance), tostring(angle))
 
 		-- Если урон возможен
 		if distance then
@@ -1259,26 +1259,29 @@ function Trooper_x:MeleeDamage(impulse, meleeType)
 				g_gameRules.Server.OnHit(g_gameRules, hit, false)
 				g_gameRules.Client.OnHit(g_gameRules, hit, false)
 
-				-- TODO: отправить на клиент
-				-- Воспроизводим звук удара и вызываем эффекты
-				self:PlayMeleeSoundAndEffects(entity)
+				if (CryAction.IsServer()) then
 
-				if entity.actor then
+					local isLocalPlayer = g_localActor and entity.actor:IsPlayer() and entity.actor:GetChannel() == g_localActor.actor:GetChannel()
+					if (isLocalPlayer) then
+						self:ApplyMeleeImpulse(entity.id, impulse, radius, distance)
+						self:PlayMeleeEffects(entity.id)
+					elseif (entity.actor:IsPlayer()) then
+						self.onClient:ClApplyMelee(entity.actor:GetChannel(), entity.id, impulse, radius, distance)
+					else
+						self.allClients:ClApplyMelee(entity.id, impulse, radius, distance)
+					end
 
-					--TODO: отправить на клиент
-					--LogAlways("Trooper_x:MeleeDamage 4 entity.id: %s impulse: %s radius: %s distance: %s", tostring(entity.id), tostring(impulse), tostring(radius), tostring(distance))
-					self:ApplyActorImpulse(entity.id, impulse, radius, distance)
-
-				elseif entity.vehicle then
-					for i,seat in pairs(entity.Seats) do
-						if( seat.passengerId ) then
-							local passenger = System.GetEntity( seat.passengerId );
-							if passenger.actor and passenger.actor:IsPlayer() then
-								passenger.actor:CameraShake(random(20, 30), 0.2, 0.13, g_Vectors.v000)
+					if entity.vehicle then
+						for i,seat in pairs(entity.Seats) do
+							if( seat.passengerId ) then
+								local passenger = System.GetEntity( seat.passengerId );
+								if passenger.actor and passenger.actor:IsPlayer() then
+									self.onClient:ClApplyMelee(passenger.actor:GetChannel(), passenger.id, impulse, radius, distance)
+								end
 							end
 						end
-					end
-				end			
+					end	
+				end
 
 				-- Завершаем атаку
 				self:SelectPipe(0, "tr_end_melee")
@@ -1302,43 +1305,25 @@ function CalculatePlayerDamage(dot, melee, baseDamage)
 	end
 end
 
--- Вспомогательная функция для воспроизведения звука и эффектов удара
-function Trooper_x:PlayMeleeSoundAndEffects(entity)
-	if entity == g_localActor then
-		self:PlaySoundEvent("sounds/physics:bullet_impact:mat_armor_fp", g_Vectors.v000, g_Vectors.v010, SOUND_2D,
-			SOUND_SEMANTIC_PLAYER_FOLEY)
-	end
-end
-
--- Вспомогательная функция для применения импульса к игроку
-function Trooper_x:ApplyActorImpulse(entityId, impulse, radius, distance)
+-- Вспомогательная функция для применения импульса
+function Trooper_x:ApplyMeleeImpulse(entityId, impulse, radius, distance)
 	local entity = System.GetEntity(entityId);
-	if not entity or not entity.actor then
+	if not entity then
 		return
 	end
-
-	LogAlways("Trooper_x:ApplyActorImpulse 1 entity: %s impulse: %s radius: %s distance: %s", tostring(entity), tostring(impulse), tostring(radius), tostring(distance))
-
+	
 	local targetPos = g_Vectors.temp_v1;
 	CopyVector(targetPos, entity:GetWorldPos());
-
 	entity:AddImpulse(-1, targetPos, impulse, 300 + (radius - distance) * 100, 1)
 
-	local dotSide = dotproduct2d(impulse, entity:GetDirectionVector(0))
-	local angImp = g_Vectors.temp_v3
-	angImp.x = randomF(-0.3, -0.2)
-	angImp.y = 0
-	angImp.z = -dotSide * math.pi * (0.35 + 0.1 * distance / radius)
-	entity.actor:AddAngularImpulse(angImp, 0.0, 0.4)
-
-	if entity.actor:IsPlayer() then
-		entity.actor:CameraShake(45, 0.3, 0.13, g_Vectors.v000)
+	if entity.actor and entity.actor:IsPlayer() then
+		local dotSide = dotproduct2d(impulse, entity:GetDirectionVector(0))
+		local angImp = g_Vectors.temp_v3
+		angImp.x = randomF(-0.3, -0.2)
+		angImp.y = 0
+		angImp.z = -dotSide * math.pi * (0.35 + 0.1 * distance / radius)
+		entity.actor:AddAngularImpulse(angImp, 0.0, 0.4)
 	end
-
-	-- local energy = entity.actor:GetNanoSuitEnergy()
-	-- if energy ~= 0 then
-	-- 	entity.actor:SetNanoSuitEnergy(energy - 0.2 * NANOSUIT_ENERGY)
-	-- end
 end
 
 -- Функция вызывается при срабатывании таймера
