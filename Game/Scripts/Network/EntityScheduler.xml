@@ -228,6 +228,14 @@
 	<Class name="AIAnchor" policy="obj" />
 	<Class name="AIPoint" policy="obj" />
 
+	<!-- Weapons -->
+	<Class name="FastLightMOAC" policy="gun" />
+	<Class name="FastLightMOAR" policy="gun" />
+	<Class name="ScoutSingularity" policy="gun" />
+	<Class name="ScoutMOAC" policy="gun" />
+	<Class name="ScoutMOAR" policy="gun" />
+	<Class name="ScoutSearchBeam" policy="gun" />
+
 	<!-- Projectiles -->
 	<Class name="AIGrenades" policy="proj" />
 	<Class name="AISmokeGrenades" policy="proj" />
