@@ -261,9 +261,9 @@ public:
 
 	// bool ResetActorWeapons(int delayMilliseconds);
 
-	virtual Matrix33 GetViewMtx() { return Matrix33(); };
-	virtual Matrix33 GetBaseMtx() { return Matrix33(); };
-	virtual Matrix33 GetEyeMtx() { return Matrix33(); };
+	virtual Matrix33 &GetViewMtx() { return Matrix33(); }
+	virtual Matrix33 &GetBaseMtx() { return Matrix33(); }
+	virtual Matrix33 &GetEyeMtx() { return Matrix33(); }
 	
 	virtual bool ShouldUsePhysicsMovement();
 	virtual bool ApplyActions(int actions); // нужна для поддержки m_actions не только в игроке

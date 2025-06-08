@@ -315,27 +315,27 @@ void CTOSPlayer::LinkToMountedWeapon(EntityId weaponId)
 	CPlayer::LinkToMountedWeapon(weaponId);
 }
 
-Matrix33 CTOSPlayer::GetViewMtx()
+Matrix33& CTOSPlayer::GetViewMtx()
 {
 	//TODO: 10/05/2023, 15:56 проверить правильность конвертации
-	const auto mat33 = static_cast<Matrix33>(m_viewQuatFinal);
+	auto mat33 = static_cast<Matrix33>(m_viewQuatFinal);
 	assert(mat33.IsValid());
 
 	return mat33;
 }
 
-Matrix33 CTOSPlayer::GetBaseMtx()
+Matrix33& CTOSPlayer::GetBaseMtx()
 {
 	//TODO: 10/05/2023, 15:56 проверить правильность конвертации
-	const auto mat33 = static_cast<Matrix33>(m_baseQuat);
+	auto mat33 = static_cast<Matrix33>(m_baseQuat);
 	assert(mat33.IsValid());
 
 	return mat33;
 }
-Matrix33 CTOSPlayer::GetEyeMtx()
+Matrix33& CTOSPlayer::GetEyeMtx()
 {
 	//TODO: 10/05/2023, 15:56 проверить правильность конвертации
-	const auto mat33 = static_cast<Matrix33>(this->m_viewQuatFinal);
+	auto mat33 = static_cast<Matrix33>(this->m_viewQuatFinal);
 	assert(mat33.IsValid());
 
 	return mat33;

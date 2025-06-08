@@ -19,9 +19,9 @@ public:
 	void ProcessEvent(SEntityEvent& event) ;
 	void PrePhysicsUpdate();
 	void     SetHealth(int health) ;
-	Matrix33 GetViewMtx() ;
-	Matrix33 GetBaseMtx() ;
-	Matrix33 GetEyeMtx() ;
+	Matrix33 &GetViewMtx() override;
+	Matrix33 &GetBaseMtx() override;
+	Matrix33 &GetEyeMtx() override;
 	void	 Kill() ;
 	void	 Revive(bool fromInit) ;
 	bool	 ApplyActions(int actions);

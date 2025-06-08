@@ -54,9 +54,9 @@ public:
 	//~CPlayer
 
 	//CTOSActor
-	Matrix33 GetViewMtx() ;
-	Matrix33 GetBaseMtx() ;
-	Matrix33 GetEyeMtx() ;
+	Matrix33 &GetViewMtx() override;
+	Matrix33 &GetBaseMtx() override;
+	Matrix33 &GetEyeMtx() override;
 	bool	 ApplyActions(int actions);
 	//~CTOSActor
 

@@ -192,16 +192,16 @@ void CTOSAlien::SetHealth(const int health)
 	}
 }
 
-Matrix33 CTOSAlien::GetViewMtx()
+Matrix33 &CTOSAlien::GetViewMtx()
 {
 	return m_viewMtx;
 }
 
-Matrix33 CTOSAlien::GetBaseMtx()
+Matrix33 &CTOSAlien::GetBaseMtx()
 {
 	return m_baseMtx;
 }
-Matrix33 CTOSAlien::GetEyeMtx()
+Matrix33 &CTOSAlien::GetEyeMtx()
 {
 	return m_eyeMtx;
 }
