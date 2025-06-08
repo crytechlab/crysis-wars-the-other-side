@@ -7,7 +7,7 @@ $DateTime$
 
 -------------------------------------------------------------------------
 History:
-- 18:10:2005   14:14 : Created by Márcio Martins
+- 18:10:2005   14:14 : Created by Mï¿½rcio Martins
 
 *************************************************************************/
 #include "StdAfx.h"
@@ -96,7 +96,10 @@ void CBullet::HandleEvent(const SGameObjectEvent &event)
 				pGameRules->ClientHit(hitInfo);
 
 				// Notify AI
-				if (gEnv->pAISystem && !gEnv->bMultiplayer)
+				//TheOtherSide
+				//if (gEnv->pAISystem && !gEnv->bMultiplayer)
+				if (gEnv->pAISystem)
+				//~TheOtherSide
 				{
 					IEntity* pShooter = gEnv->pEntitySystem->GetEntity(m_ownerId);
 					if (pShooter)
@@ -119,7 +122,10 @@ void CBullet::HandleEvent(const SGameObjectEvent &event)
 		{
 			// Notify AI
 			// The above case only catches entity vs. entity hits, the AI is interested in all hits.
-			if (gEnv->pAISystem && !gEnv->bMultiplayer)
+			//TheOtherSide
+			//if (gEnv->pAISystem && !gEnv->bMultiplayer)
+			if (gEnv->pAISystem)
+			//~TheOtherSide
 			{
 				IEntity* pShooter = gEnv->pEntitySystem->GetEntity(m_ownerId);
 				if (pShooter)
