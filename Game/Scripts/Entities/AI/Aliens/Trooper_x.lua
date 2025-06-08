@@ -944,6 +944,8 @@ function Trooper_x:MakeParalyzed(dir, strength)
 
 	-- Push the entity around (this may not make any movememnt, depends on the game code).
 	local stats = self:GetPhysicalStats();
+	local pos = self:GetWorldPos();
+	
 	self:AddImpulse(-1, pos, dir, stats.mass * 2, 1);
 	AI.Signal(SIGNALFILTER_SENDER, 0, "GO_TO_DUMB", self.id);
 end
