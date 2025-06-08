@@ -1056,8 +1056,8 @@ void CAlien::UpdateStats(float frameTime)
 	m_stats.angVelocity = dynStat.w;
 
 	// Crysis Co-op :: stops the client from overriding server value
-	if (!gEnv->bClient && gEnv->bServer)
-		m_stats.speed = m_stats.speedFlat = m_stats.velocity.len();
+	// if (!gEnv->bClient && gEnv->bServer)
+	m_stats.speed = m_stats.speedFlat = m_stats.velocity.len();
 	// ~Crysis Co-op
 
 	// [Mikko] The velocity from the physics in some weird cases have been #INF because of the player

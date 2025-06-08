@@ -7,15 +7,6 @@
 #include <TheOtherSideMP/Helpers/TOS_NET.h>
 #include <NetInputChainDebug.h>
 
-
-CTOSScout::CTOSScout()
-{
-}
-
-CTOSScout::~CTOSScout()
-{
-}
-
 bool CTOSScout::Init(IGameObject* pGameObject)
 {
 	CScout::Init(pGameObject);

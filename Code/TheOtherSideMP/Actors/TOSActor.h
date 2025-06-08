@@ -15,11 +15,7 @@ class CTOSEnergyManager;
 
 struct STOSSlaveStats
 {
-	STOSSlaveStats()
-		: lookAtFriend(false),
-		jumpCount(0),
-		chargingJumpPressDur(0)
-	{ }
+	explicit STOSSlaveStats() = default;
 
 	//TODO: 10/15/2023, 20:26 нужно добавить механики
 	//CCoherentValue<bool> canShoot;
@@ -30,7 +26,6 @@ struct STOSSlaveStats
 	//CCoherentValue<bool> isUsingBinocular;
 
 	CCoherentValue<bool> lookAtFriend;
-
 	uint jumpCount;
 	float chargingJumpPressDur;
 };

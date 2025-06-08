@@ -27,9 +27,7 @@ void CTOSAlien::PostInit(IGameObject* pGameObject)
 
 	IEntityRenderProxy* pRenderProxy = (IEntityRenderProxy*)(GetEntity()->GetProxy(ENTITY_PROXY_RENDER));
 	if (pRenderProxy)
-	{
 		pRenderProxy->UpdateCharactersBeforePhysics(false);
-	}
 }
 
 void CTOSAlien::PostPhysicalize()
@@ -117,7 +115,7 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 		}
 	}
 
-	if (aspect == tos::net::CLIENT_ASPECT_STATIC)
+	if (aspect == tos::net::CLIENT_ASPECT_STATIC || aspect == tos::net::SERVER_ASPECT_STATIC)
 	{
 		const bool writing = ser.IsWriting();
 		bool	   hasWeapon = false;

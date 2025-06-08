@@ -425,7 +425,7 @@ IEntity* CTOSEntitySpawnModule::SpawnAndInit(IEntitySystem* pEntitySystem, STOSE
     IEntity* pSpawned = pEntitySystem->SpawnEntity(params.vanilla, false);
 
     if (pArchetype)
-        tos::script::SetEntityValue(pSpawned, "Properties", pArchetype->GetProperties());;
+        tos::script::SetEntityValue(pSpawned, "Properties", pArchetype->GetProperties());
 
     auto& props = params.properties;
     auto& propsInstance = params.propertiesInstance;
