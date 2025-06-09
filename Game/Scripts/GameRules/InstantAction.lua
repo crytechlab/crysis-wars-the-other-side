@@ -1358,7 +1358,7 @@ function InstantAction:ProcessDeath(hit)
 
 	-- замена раба на мастера
 	if self.isServer then
-		if hit.shooter.actor:IsSlave() then	
+		if hit.shooter.actor and hit.shooter.actor:IsSlave() then	
 			local masterId = hit.shooter.actor:GetMasterId()
 			local master = System.GetEntity(masterId)
 	

@@ -226,7 +226,7 @@ function DestroyableObject:OnReset()
 	self:RemoveEffect();
 	if(self.timerShooterId)then
 		--Log("self.timerShooterId: "..self.timerShooterId);
-	end;
+	end
 	
 	if (self:GetState() ~= "Alive") then
 		self:Reload();
@@ -454,7 +454,7 @@ function DestroyableObject.Server:OnHit(hit)
 	pass = pass and damage > self.Properties.fDamageTreshold;	-- damage needs to be higher than treshold
 	--Log("%s != %s", tostring(hit.shooterId), tostring(g_localActorId));
 	
-	if (pass and NumberToBool(self.Properties.bPlayerOnly) and (hit.shooterId and (not hit.shooter.actor:IsPlayer()))) then -- damage must come from player
+	if (pass and NumberToBool(self.Properties.bPlayerOnly) and (hit.shooterId and (not (hit.shooter.actor and hit.shooter.actor:IsPlayer())))) then -- damage must come from player
 		pass=false;
 	end
 	
