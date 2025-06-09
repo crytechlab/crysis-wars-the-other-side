@@ -71,7 +71,7 @@ void CTOSEnergyManager::FullSerialize(TSerialize ser)
 
 bool CTOSEnergyManager::NetSerialize(TSerialize ser, const EEntityAspects aspect, uint8 profile, int flags)
 {
-	if (aspect == tos::net::SERVER_ASPECT_STATIC)
+	if (aspect == EEntityAspects::eEA_GameServerStatic)
 	{
 		ser.Value("energy", m_energy);
 		ser.Value("maxEnergy", m_maxEnergy);
@@ -118,7 +118,7 @@ bool CTOSEnergyManager::AddEnergy(const float value)
 	if (gEnv->bServer)
 	{
 		SetEnergy(m_energy + value);
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 	else if (gEnv->bClient)
 	{
@@ -152,7 +152,7 @@ bool CTOSEnergyManager::SetEnergy(float value, const bool initiated)
 
 		m_energy = value;
 
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 	else if (gEnv->bClient)
 	{
@@ -172,7 +172,7 @@ bool CTOSEnergyManager::SetEnergyForced(const float value)
 	if (gEnv->bServer)
 	{
 		m_energy = value;
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 	else if (gEnv->bClient)
 	{

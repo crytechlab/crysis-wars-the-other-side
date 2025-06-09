@@ -17,7 +17,6 @@ bool CTOSScout::Init(IGameObject* pGameObject)
 void CTOSScout::PostInit(IGameObject* pGameObject)
 {
 	CScout::PostInit(pGameObject);
-	pGameObject->SetAIActivation(eGOAIAM_Always);
 }
 
 void CTOSScout::Update(SEntityUpdateContext& ctx, int updateSlot)
@@ -35,11 +34,9 @@ void CTOSScout::Update(SEntityUpdateContext& ctx, int updateSlot)
 	NETINPUT_TRACE(GetEntityId(), m_netBodyInfo.desiredSpeed);
 	NETINPUT_TRACE(GetEntityId(), m_netBodyInfo.deltaMov);
 	NETINPUT_TRACE(GetEntityId(), m_netBodyInfo.lookTarget);
-	NETINPUT_TRACE(GetEntityId(), GetEntity()->GetWorldPos());
 	NETINPUT_TRACE(GetEntityId(), m_stats.inAir);
 	NETINPUT_TRACE(GetEntityId(), m_stats.onGround);
 	NETINPUT_TRACE(GetEntityId(), InZeroG());
-	NETINPUT_TRACE(GetEntityId(), IsSlave());
 
 	EAutoDisablePhysicsMode adpm = eADPM_WhenAIDeactivated; // Значение по умолчанию
 

@@ -30,8 +30,6 @@ bool CTOSHunter::Init(IGameObject* pGameObject)
 void CTOSHunter::PostInit(IGameObject* pGameObject)
 {
 	CHunter::PostInit(pGameObject);
-
-	pGameObject->SetAIActivation(eGOAIAM_Always);
 }
 
 void CTOSHunter::Update(SEntityUpdateContext& ctx, int updateSlot)
@@ -78,11 +76,11 @@ void CTOSHunter::PrePhysicsUpdate()
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameClientDynamic);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerDynamic);
 	}
 }
 

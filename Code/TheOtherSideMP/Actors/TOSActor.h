@@ -17,14 +17,6 @@ struct STOSSlaveStats
 {
 	explicit STOSSlaveStats() = default;
 
-	//TODO: 10/15/2023, 20:26 нужно добавить механики
-	//CCoherentValue<bool> canShoot;
-	//CCoherentValue<bool> canMove;
-	//CCoherentValue<bool> canLookAtCamera;
-	//CCoherentValue<bool> isAiming;
-	//CCoherentValue<bool> isShooting;
-	//CCoherentValue<bool> isUsingBinocular;
-
 	CCoherentValue<bool> lookAtFriend;
 	uint jumpCount;
 	float chargingJumpPressDur;

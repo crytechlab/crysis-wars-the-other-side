@@ -66,9 +66,6 @@ bool CTOSActor::Init(IGameObject* pGameObject)
 
 void CTOSActor::PostInit(IGameObject* pGameObject)
 {
-	//CryLogAlways("[%s][%s][CTOSActor::PostInit] Actor: %s|%i",
-	//	tos::debug::GetEnv(), tos::debug::GetAct(1), GetEntity()->GetName(), GetEntity()->GetId());
-
 	m_debugName = GetEntity()->GetName();
 	TOS_RECORD_EVENT(GetEntityId(), STOSGameEvent(eEGE_ActorPostInit, m_debugName, true));
 
@@ -96,21 +93,6 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 	if (pRenderProxy)
 		pRenderProxy->UpdateCharactersBeforePhysics(true);
 
-	// сохранение и применение свойств lua
-	// if (gEnv->bServer)
-	// {
-	// 	const char* model = 0;
-	// 	tos::script::GetEntityProperty(GetEntity(), "fileModel", model);
-	// 	m_modelFilename = model;
-
-	// 	const char* soundPack = 0;
-	// 	tos::script::GetEntityProperty(GetEntity(), "SoundPack", soundPack);
-	// 	m_soundPack = soundPack;
-
-	// 	const char* equipmentPack = 0;
-	// 	tos::script::GetEntityProperty(GetEntity(), "equip_EquipmentPack", equipmentPack);
-	// 	m_equipmentPack = equipmentPack;
-	// }
 	if (gEnv->bClient)
 	{
 		if (m_modelFilename.length() > 0)
@@ -151,10 +133,11 @@ void CTOSActor::PostInitClient(const int channelId)
 	//}
 
 	// Для обновления состояния во время подключения клиента
-	GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC |
-		tos::net::SERVER_ASPECT_STATIC |
-		tos::net::CLIENT_ASPECT_DYNAMIC |
-		tos::net::CLIENT_ASPECT_STATIC
+	GetGameObject()->RequestRemoteUpdate(
+		EEntityAspects::eEA_GameServerDynamic |
+		EEntityAspects::eEA_GameServerStatic |
+		EEntityAspects::eEA_GameClientDynamic |
+		EEntityAspects::eEA_GameClientStatic
 	);
 }
 
@@ -177,7 +160,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		{
 			GetInventory()->Clear();
 			m_isEntityHidden = true;
-			GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+			GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 		}
 
 		break;
@@ -188,7 +171,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		{
 			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
 			m_isEntityHidden = false;
-			GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+			GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 		}
 
 		break;
@@ -199,7 +182,7 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		{
 			GetEntity()->SetTimer(eMPTIMER_GIVEWEAPONDELAY, 1000);
 			m_isEntityHidden = false;
-			GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+			GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 		}
 
 		break;
@@ -268,7 +251,7 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 	if (!CActor::NetSerialize(ser,aspect,profile,flags))
 		return false;
 
-	if (aspect == tos::net::SERVER_ASPECT_STATIC)
+	if (aspect == EEntityAspects::eEA_GameServerStatic)
 	{
 		// Персонаж мастера всегда должен быть невидим
 		ser.Value("is_master", m_isMaster, 'bool');
@@ -286,7 +269,7 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 
 	if (!IsPlayer())
 	{
-		if (aspect == tos::net::SERVER_ASPECT_STATIC)
+		if (aspect == EEntityAspects::eEA_GameServerStatic)
 		{
 			ser.Value("bHide", m_isEntityHidden, 'bool');
 
@@ -298,8 +281,8 @@ bool CTOSActor::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 
 		}
 
-		if (aspect == tos::net::CLIENT_ASPECT_STATIC ||
-			aspect == tos::net::SERVER_ASPECT_STATIC)
+		if (aspect == EEntityAspects::eEA_GameServerStatic ||
+			aspect == EEntityAspects::eEA_GameClientStatic)
 		{
 			// Current Weapon Serialize
 			const bool writing = ser.IsWriting();
@@ -332,11 +315,11 @@ void CTOSActor::SelectNextItem(const int direction, const bool keepHistory, cons
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameClientStatic);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 }
 
@@ -346,11 +329,11 @@ void CTOSActor::HolsterItem(const bool holster)
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameClientStatic);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 }
 
@@ -360,11 +343,11 @@ void CTOSActor::SelectLastItem(const bool keepHistory, const bool forceNext /* =
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameClientStatic);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 
 }
@@ -375,11 +358,11 @@ void CTOSActor::SelectItemByName(const char* name, const bool keepHistory)
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameClientStatic);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 
 }
@@ -390,11 +373,11 @@ void CTOSActor::SelectItem(const EntityId itemId, const bool keepHistory)
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameClientStatic);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 }
 
@@ -402,32 +385,6 @@ void CTOSActor::SelectItem(const EntityId itemId, const bool keepHistory)
 void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 {
 	CActor::Update(ctx, updateSlot);
-
-	//Отладка потребителя энергии в виде вывода инф. на экран
-	//if (gEnv->bClient && IsClient())
-	//{
-	//	const char* debugName = CTOSEnergyManager::s_debugEntityName;
-	//	const auto pDebugEntity = gEnv->pEntitySystem->FindEntityByName(debugName);
-	//	if (pDebugEntity)
-	//	{
-	//		const auto pDebugActor = static_cast<CTOSActor*>(TOS_GET_ACTOR(pDebugEntity->GetId()));
-	//		if (pDebugActor)
-	//		{
-	//			const auto pEnergyConsumer = pDebugActor->GetEnergyManager();
-	//			const float energy    = pEnergyConsumer->GetEnergy();
-	//			const float maxEnergy = pEnergyConsumer->GetMaxEnergy();
-	//			const float drain	  = pEnergyConsumer->GetDrainValue();
-	//			const bool  updating  = pEnergyConsumer->IsUpdating();
-
-	//			DRAW_2D_TEXT(40, 200, 1.3f, "--- Energy Consumer (%s) ---", 
-	//				pDebugEntity->GetName());
-	//			DRAW_2D_TEXT(40, 215, 1.3f, "Updating:   %i", updating);
-	//			DRAW_2D_TEXT(40, 230, 1.3f, "Energy:     %1.f", energy);
-	//			DRAW_2D_TEXT(40, 245, 1.3f, "MaxEnergy:  %1.f", maxEnergy);
-	//			DRAW_2D_TEXT(40, 260, 1.3f, "DrainValue: %1.f", drain);
-	//		}
-	//	}
-	//}
 
 	NETINPUT_TRACE(GetEntityId(), m_isMaster);
 	NETINPUT_TRACE(GetEntityId(), m_isSlave);
@@ -449,20 +406,18 @@ void CTOSActor::Update(SEntityUpdateContext& ctx, const int updateSlot)
 			{
 				auto pEntity = TOS_GET_ENTITY(pEntityAttachment->GetEntityId());
 				rightHandAttachedName = pEntity ? string(pEntity->GetName()) : "NULL";
-				if (pEntity)
-				{
-					CWeapon *pWeapon = static_cast<CWeapon*>(g_pGame->GetIGameFramework()->GetIItemSystem()->GetItem(pEntity->GetId()));
-					if (pWeapon)
-					{
-						auto id = pWeapon->GetEntityId();
-					}
-				}
 			}
 		}
 	}
 
+	const IEntity* pNetItem = TOS_GET_ENTITY(CActor::NetGetCurrentItem());
+	const string netItemName = pNetItem ? pNetItem->GetName() : "";
+	const EntityId netItemId = pNetItem ? pNetItem->GetId() : 0;
+
+	NETINPUT_TRACE(GetEntityId(), netItemId);
+	NETINPUT_TRACE(GetEntityId(), netItemName.c_str());
 	NETINPUT_TRACE(GetEntityId(), haveRightHandAttachment);
-	NETINPUT_TRACE(GetEntityId(), rightHandAttachedName); 
+	NETINPUT_TRACE(GetEntityId(), rightHandAttachedName.c_str()); 
 }
 
 void CTOSActor::Release()
@@ -847,13 +802,14 @@ void CTOSActor::RemoveAllItems()
 	if (pInv)
 	{
 		g_pGame->GetIGameFramework()->GetIItemSystem()->SetActorItem(this, EntityId(0));
-		// pInv->HolsterItem(true); //FIXME 04.12.2024 возможно это причина того, почему у зевса видно пистолет в кобуре
+		// pInv->HolsterItem(true); 
+		CRY_FIXME(9,6,2025,"возможно это причина того, почему у зевса видно пистолет в кобуре");
 		pInv->RemoveAllItems();
 	}
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameClientStatic);
 	}
 }
 
@@ -978,6 +934,6 @@ bool CTOSActor::SetMeMaster(bool value)
 bool CTOSActor::SetMeZeus(bool value)
 {
 	m_isZeus = value;
-	GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+	GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	return true;
 }

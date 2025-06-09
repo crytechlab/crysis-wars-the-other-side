@@ -549,7 +549,7 @@ void CTOSMasterModule::MasterAdd(const IEntity* pMasterEntity, const char* slave
 			if (pActor)
 			{
 				pActor->SetMeMaster(true);
-				pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+				pActor->GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 			}
 
 			TOS_RECORD_EVENT(id, STOSGameEvent(eEGE_MasterAdd, "", true));
@@ -561,7 +561,7 @@ void CTOSMasterModule::MasterAdd(const IEntity* pMasterEntity, const char* slave
 			if (pActor)
 			{
 				pActor->SetMeMaster(true);
-				pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+				pActor->GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 			}
 		}
 	}
@@ -581,7 +581,7 @@ void CTOSMasterModule::MasterRemove(const IEntity* pMasterEntity)
 			if (pActor)
 			{
 				pActor->SetMeMaster(false);
-				pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+				pActor->GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 			}
 
 
@@ -640,7 +640,7 @@ void CTOSMasterModule::SetCurrentSlave(const IEntity* pMasterEntity, const IEnti
 	if (pActor)
 	{
 		pActor->SetMeSlave(true);
-		pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		pActor->GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 }
 
@@ -657,7 +657,7 @@ void CTOSMasterModule::ClearCurrentSlave(const IEntity* pMasterEntity)
 	if (pActor)
 	{
 		pActor->SetMeSlave(false);
-		pActor->GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		pActor->GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 
 	m_masters[pMasterEntity->GetId()]->slaveId = 0;

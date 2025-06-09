@@ -72,13 +72,13 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 	if (!CAlien::NetSerialize(ser,aspect,profile,flags))
 		return false;
 
-	if (aspect == tos::net::SERVER_ASPECT_STATIC)
+	if (aspect == EEntityAspects::eEA_GameServerStatic)
 	{
 		ser.Value("health", m_health);
 		ser.Value("maxHealth", m_maxHealth);
 	}
 
-	if (aspect == tos::net::CLIENT_ASPECT_DYNAMIC || aspect == tos::net::SERVER_ASPECT_DYNAMIC)
+	if (aspect == EEntityAspects::eEA_GameClientDynamic || aspect == EEntityAspects::eEA_GameServerDynamic)
 	{
 		m_netBodyInfo.Serialize(GetEntity(), ser);
 
@@ -115,21 +115,6 @@ bool CTOSAlien::NetSerialize(TSerialize ser, const EEntityAspects aspect, const 
 		}
 	}
 
-	if (aspect == tos::net::CLIENT_ASPECT_STATIC || aspect == tos::net::SERVER_ASPECT_STATIC)
-	{
-		const bool writing = ser.IsWriting();
-		bool	   hasWeapon = false;
-
-		if (writing)
-			hasWeapon = NetGetCurrentItem() != 0;
-
-		ser.Value("hasWeapon", hasWeapon, 'bool');
-		ser.Value("currentItemId", static_cast<CActor*>(this), &CActor::NetGetCurrentItem, &CActor::NetSetCurrentItem, 'eid');
-
-		if (!writing && hasWeapon && NetGetCurrentItem() == 0)
-			ser.FlagPartialRead();
-	}
-
 	return true;
 }
 
@@ -164,11 +149,11 @@ void CTOSAlien::PrePhysicsUpdate()
 
 	if (gEnv->bClient)
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::CLIENT_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameClientDynamic);
 	}
 	else
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerDynamic);
 	}
 }
 
@@ -178,7 +163,7 @@ void CTOSAlien::SetHealth(const int health)
 
 	if (gEnv->bServer)
 	{
-		GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_STATIC);
+		GetGameObject()->ChangedNetworkState(EEntityAspects::eEA_GameServerStatic);
 	}
 }
 
