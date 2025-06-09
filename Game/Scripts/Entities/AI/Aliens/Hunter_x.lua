@@ -1432,8 +1432,50 @@ function Hunter_x.Server:OnHit(hit)
 	end
 
 	self.actor:SetHealth(health);
-
 	self:HealthChanged();
+
+	-- Обработка сигналов при получении урона
+	if (hit.shooter) then
+		g_SignalData.id = hit.shooter.id
+		g_SignalData.fValue = hit.damage * damageMult
+		CopyVector(g_SignalData.point, hit.shooter:GetWorldPos())
+
+		-- Проверяем принадлежность к разным видам
+		if (self.Properties.species ~= hit.shooter.Properties.species) then
+			-- Если это игрок
+			if (self == g_localActor) then
+				AI.Signal(SIGNALFILTER_LEADER, 0, "ORD_ATTACK", self.id, g_SignalData)
+			else
+				-- Если хантер уязвим
+				if (self.isVulnerable) then
+					self:StopEvent("all")
+					self:PushEvent("shield_up")
+					AI.Signal(SIGNALFILTER_SENDER, 0, "OnSoreDamage", self.id, g_SignalData)
+				else
+					AI.Signal(SIGNALFILTER_SENDER, 0, "OnEnemyDamage", self.id, g_SignalData)
+				end
+			end
+			-- Урон от союзника
+		elseif (self.Behaviour.OnFriendlyDamage) then
+			AI.Signal(SIGNALFILTER_SENDER, 0, "OnFriendlyDamage", self.id, g_SignalData)
+		else
+			AI.Signal(SIGNALFILTER_SENDER, 0, "OnDamage", self.id, g_SignalData)
+		end
+	else
+		-- Обработка урона без стрелявшего
+		g_SignalData.id = 0
+		g_SignalData.fValue = hit.damage
+		CopyVector(g_SignalData.point, g_Vectors.v000)
+
+		if (self.isVulnerable) then
+			self:StopEvent("all")
+			self:PushEvent("shield_up")
+			AI.Signal(SIGNALFILTER_SENDER, 0, "OnSoreDamage", self.id, g_SignalData)
+		else
+			AI.Signal(SIGNALFILTER_SENDER, 0, "OnDamage", self.id, g_SignalData)
+		end
+	end	
+
 	return (health < 1.0);
 end
 
@@ -1456,6 +1498,9 @@ end
 ------------------------------------------------------------------------------
 function Hunter_x.Client:OnTimer(timerId, mSec)
 	--Log("hunter OnTimer (%i): %i msec", timerId, mSec);
+
+	--09.06.2025 TODO: на клиенте hunter не исчезает
+	--09.06.2025 TODO: на клиенте hunter не хватает игрока
 
 	if (timerId == HUNTER_DEATH_EFFECT_TIMER) then
 		--Log ("Hunter: death effect timer fired")		
@@ -1589,48 +1634,6 @@ function Hunter_x.Client:OnHit(hit, remote)
 	-- Накапливаем урон за короткий промежуток времени
 	if (self.damageTimer >= 0) then
 		self.damageTimer = self.damageTimer + hit.damage * damageMult * 0.066
-	end
-
-	-- Обработка сигналов при получении урона
-	if (hit.shooter) then
-		g_SignalData.id = hit.shooter.id
-		g_SignalData.fValue = hit.damage * damageMult
-		CopyVector(g_SignalData.point, hit.shooter:GetWorldPos())
-
-		-- Проверяем принадлежность к разным видам
-		if (self.Properties.species ~= hit.shooter.Properties.species) then
-			-- Если это игрок
-			if (self == g_localActor) then
-				AI.Signal(SIGNALFILTER_LEADER, 0, "ORD_ATTACK", self.id, g_SignalData)
-			else
-				-- Если хантер уязвим
-				if (self.isVulnerable) then
-					self:StopEvent("all")
-					self:PushEvent("shield_up")
-					AI.Signal(SIGNALFILTER_SENDER, 0, "OnSoreDamage", self.id, g_SignalData)
-				else
-					AI.Signal(SIGNALFILTER_SENDER, 0, "OnEnemyDamage", self.id, g_SignalData)
-				end
-			end
-			-- Урон от союзника
-		elseif (self.Behaviour.OnFriendlyDamage) then
-			AI.Signal(SIGNALFILTER_SENDER, 0, "OnFriendlyDamage", self.id, g_SignalData)
-		else
-			AI.Signal(SIGNALFILTER_SENDER, 0, "OnDamage", self.id, g_SignalData)
-		end
-	else
-		-- Обработка урона без стрелявшего
-		g_SignalData.id = 0
-		g_SignalData.fValue = hit.damage
-		CopyVector(g_SignalData.point, g_Vectors.v000)
-
-		if (self.isVulnerable) then
-			self:StopEvent("all")
-			self:PushEvent("shield_up")
-			AI.Signal(SIGNALFILTER_SENDER, 0, "OnSoreDamage", self.id, g_SignalData)
-		else
-			AI.Signal(SIGNALFILTER_SENDER, 0, "OnDamage", self.id, g_SignalData)
-		end
 	end
 end
 
