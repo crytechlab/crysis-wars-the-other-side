@@ -918,9 +918,6 @@
     <ClCompile Include="TheOtherSideMP\Nodes\FlowAINodes.cpp">
       <Filter>TheOtherSideMP\Nodes</Filter>
     </ClCompile>
-    <ClCompile Include="TheOtherSideMP\Actors\TOSActorRMI.cpp">
-      <Filter>TheOtherSideMP\Actors</Filter>
-    </ClCompile>
     <ClCompile Include="Coop\CoopCutsceneSystem.cpp">
       <Filter>Coop</Filter>
     </ClCompile>
@@ -1010,6 +1007,9 @@
     </ClCompile>
     <ClCompile Include="TheOtherSideMP\Game\Modules\Zeus\ZeusInput.cpp">
       <Filter>TheOtherSideMP\Game\Modules\Zeus</Filter>
+    </ClCompile>
+    <ClCompile Include="TheOtherSideMP\Actors\TOSActorClientServer.cpp">
+      <Filter>TheOtherSideMP\Actors</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
