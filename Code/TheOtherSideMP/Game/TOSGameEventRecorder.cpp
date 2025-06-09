@@ -214,7 +214,7 @@ void CTOSGame::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEvent& event
 
 
 		//Case 2
-		//CryLogAlways("<C++>%s[FUNC CALL][CTOSGame::OnExtraGameplayEvent]", envName);
+		//CryLogAlways("%s[FUNC CALL][CTOSGame::OnExtraGameplayEvent]", envName);
 		//CryLogAlways("	Event: %s", eventName);
 		//CryLogAlways("	Entity: %s", entName);
 		//CryLogAlways("	Desc: %s", eventDesc);

@@ -286,7 +286,7 @@ bool CTOSZeusModule::ClientServer::ServerEnterVehicle(IActor *pActor, IVehicle *
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 {
-	CryLog("<C++>[%s][%s][SvRequestMakeZeus]",
+	CryLog("[%s][%s][SvRequestMakeZeus]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	return CTOSZeusModule::ClientServer::ServerMakeZeus(
@@ -298,7 +298,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestMakeZeus)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClMakeZeus)
 {
-	CryLog("<C++>[%s][%s][ClMakeZeus]",
+	CryLog("[%s][%s][ClMakeZeus]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	return CTOSZeusModule::ClientServer::ClientMakeZeus(params.bMake);
@@ -309,7 +309,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestSpawnEntity)
 {
 	if (gEnv->bServer)
 	{
-		CryLog("<C++>[%s][%s][SvRequestSpawnEntity]",
+		CryLog("[%s][%s][SvRequestSpawnEntity]",
 			   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 		auto pZeusModule = g_pTOSGame->GetZeusModule();
@@ -366,7 +366,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClSpawnEntity)
 {
 	// Здесь пишем всё, что должно выполниться на клиенте
 
-	CryLog("<C++>[%s][%s][ClSpawnEntity] %s",
+	CryLog("[%s][%s][ClSpawnEntity] %s",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3), TOS_GET_ENTITY(params.spawnedId)->GetName());
 
 	auto pZeusModule = g_pTOSGame->GetZeusModule();
@@ -388,7 +388,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClCopyEntity)
 {
 	// Здесь пишем всё, что должно выполниться на клиенте
 
-	CryLog("<C++>[%s][%s][ClCopyEntity] %s",
+	CryLog("[%s][%s][ClCopyEntity] %s",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3), TOS_GET_ENTITY(params.copiedId)->GetName());
 
 	auto pZeusModule = g_pTOSGame->GetZeusModule();
@@ -405,7 +405,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClCopyEntity)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestTransformEntity)
 {
-	CryLog("<C++>[%s][%s][SvRequestTransformEntity]",
+	CryLog("[%s][%s][SvRequestTransformEntity]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
@@ -433,7 +433,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestTransformEntity)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClTransformEntity)
 {
-	CryLog("<C++>[%s][%s][SvRequestTransformEntity]",
+	CryLog("[%s][%s][SvRequestTransformEntity]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
@@ -459,7 +459,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClTransformEntity)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestRemoveEntity)
 {
-	CryLog("<C++>[%s][%s][SvRequestRemoveEntity]",
+	CryLog("[%s][%s][SvRequestRemoveEntity]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pActor = TOS_GET_ACTOR(params.id);
@@ -487,7 +487,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestRemoveEntity)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestKillEntity)
 {
-	CryLog("<C++>[%s][%s][SvRequestKillEntity]",
+	CryLog("[%s][%s][SvRequestKillEntity]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	string hitType = "event";
@@ -510,7 +510,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestKillEntity)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestExecuteOrder)
 {
-	CryLog("<C++>[%s][%s][SvRequestExecuteOrder]",
+	CryLog("[%s][%s][SvRequestExecuteOrder]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	IScriptSystem *pSS = gEnv->pScriptSystem;
@@ -542,7 +542,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestExecuteOrder)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestHideEntity)
 {
-	CryLog("<C++>[%s][%s][SvRequestHideEntity]",
+	CryLog("[%s][%s][SvRequestHideEntity]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
@@ -559,7 +559,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestHideEntity)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, ClHideEntity)
 {
-	CryLog("<C++>[%s][%s][ClHideEntity]",
+	CryLog("[%s][%s][ClHideEntity]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
@@ -575,7 +575,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, ClHideEntity)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestAIMakeHostile)
 {
-	CryLog("<C++>[%s][%s][SvRequestAIMakeHostile]",
+	CryLog("[%s][%s][SvRequestAIMakeHostile]",
 		   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 	auto pEntity = TOS_GET_ENTITY(params.id);
@@ -594,7 +594,7 @@ IMPLEMENT_RMI(CTOSZeusSynchronizer, SvRequestCopyEntity)
 {
 	if (gEnv->bServer)
 	{
-		CryLog("<C++>[%s][%s][SvRequestCopyEntity]",
+		CryLog("[%s][%s][SvRequestCopyEntity]",
 			   tos::debug::GetEnv(), tos::debug::GetAct(3));
 
 		auto pZeusModule = g_pTOSGame->GetZeusModule();

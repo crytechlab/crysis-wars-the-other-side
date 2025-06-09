@@ -29,14 +29,14 @@ int CScriptBind_GameRules::ReviveSlaveOfPlayer(IFunctionHandler* pH, int playerC
 	const IActor* const pPlayer = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActorByChannelId(playerChannelId);
 	if (!pPlayer)
 	{
-		CryLog("<C++> Cant revive slave for player %i, player not exist", playerChannelId);
+		CryLog(" Cant revive slave for player %i, player not exist", playerChannelId);
 		return pH->EndFunction();
 	}
 
 	const IEntity* const pSlave = g_pTOSGame->GetMasterModule()->GetCurrentSlave(pPlayer->GetEntity());
 	if (!pSlave)
 	{
-		CryLog("<C++> Cant revive slave for player %i, player not have a slave", playerChannelId);
+		CryLog(" Cant revive slave for player %i, player not have a slave", playerChannelId);
 		return pH->EndFunction();
 	}
 
@@ -51,14 +51,14 @@ int CScriptBind_GameRules::SpawnAndAssignSlaveToPlayer(IFunctionHandler* pH, int
 	const IActor* const pPlayer = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActorByChannelId(playerChannelId);
 	if (!pPlayer)
 	{
-		CryLog("<C++> Cant spawn slave for player %i, player not exist", playerChannelId);
+		CryLog(" Cant spawn slave for player %i, player not exist", playerChannelId);
 		return pH->EndFunction();
 	}
 
 	IEntityClass* const pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(slaveClassName);
 	if (!pClass)
 	{
-		CryLog("<C++> Cant spawn slave for player% i, slave class is undefined", playerChannelId);
+		CryLog(" Cant spawn slave for player% i, slave class is undefined", playerChannelId);
 		return pH->EndFunction();
 	}
 
@@ -67,7 +67,7 @@ int CScriptBind_GameRules::SpawnAndAssignSlaveToPlayer(IFunctionHandler* pH, int
 
 	if (pSlave)
 	{
-		CryLog("<C++> Cant spawn slave for player %i, player already have a slave", playerChannelId);
+		CryLog(" Cant spawn slave for player %i, player already have a slave", playerChannelId);
 		return pH->EndFunction();
 	}
 

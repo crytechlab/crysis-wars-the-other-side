@@ -184,7 +184,7 @@ void CTOSMasterModule::OnExtraGameplayEvent(IEntity* pEntity, const STOSGameEven
 					assert(pClass);
 					if (!pClass)
 					{
-						CryLogAlways("<C++>[%s][%s] Class %s not found",
+						CryLogAlways("[%s][%s] Class %s not found",
 									 tos::debug::GetEnv(),
 									 tos::debug::GetAct(1),
 									 slaveClsName.c_str());
