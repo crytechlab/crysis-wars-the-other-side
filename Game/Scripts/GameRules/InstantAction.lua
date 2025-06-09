@@ -1367,7 +1367,7 @@ function InstantAction:ProcessDeath(hit)
 			hit.shooter = master
 			hit.shooterId = masterId
 	
-		elseif hit.target.actor:IsSlave() then
+		elseif hit.target.actor and hit.target.actor:IsSlave() then
 			local masterId = hit.target.actor:GetMasterId()
 			local master = System.GetEntity(masterId)
 
@@ -1381,7 +1381,7 @@ function InstantAction:ProcessDeath(hit)
 	end
 	
 	-- Игроки
-	if hit.target.actor:IsPlayer() then
+	if  hit.target.actor and hit.target.actor:IsPlayer() then
 		self.Server.OnPlayerKilled(self, hit)
 		Log("<lua> Process player '"..hit.target:GetName().."' death")
 	-- НИПы
