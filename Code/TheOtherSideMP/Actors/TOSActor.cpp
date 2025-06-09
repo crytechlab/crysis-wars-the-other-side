@@ -110,6 +110,8 @@ void CTOSActor::PostInit(IGameObject* pGameObject)
 			tos::script::SetEntityProperty(GetEntity(), "equip_EquipmentPack", m_equipmentPack.c_str());
 		}
 	}
+
+	CreateGrabHanlder();
 }
 
 void CTOSActor::InitClient(const int channelId)
