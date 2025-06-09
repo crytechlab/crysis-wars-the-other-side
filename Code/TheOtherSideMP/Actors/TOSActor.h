@@ -170,6 +170,23 @@ public:
 		}
 	};
 
+	struct NetSelectItemParams
+	{
+		EntityId itemEntityId{};
+
+		NetSelectItemParams() = default;
+
+		explicit NetSelectItemParams(const EntityId _itemEntityId) :
+			itemEntityId(_itemEntityId)
+		{
+		}
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("itemEntityId", itemEntityId, 'eid');
+		}
+	};
+
 	CTOSActor();
 	~CTOSActor() ;
 
@@ -259,6 +276,7 @@ private:
 	DECLARE_SERVER_RMI_POSTATTACH(SvRequestAttachChild, NetAttachChild, eNRT_ReliableUnordered);
 
 	DECLARE_CLIENT_RMI_PREATTACH(ClClearInventory, NoParams, eNRT_ReliableOrdered);
+	DECLARE_CLIENT_RMI_POSTATTACH(ClSelectItem, NetSelectItemParams, eNRT_ReliableOrdered);
 
 protected:
 	bool m_chargingJump;///< Если *true, то высота прыжка зависит от длительности нажатия на дейсвие прыжка [jump]

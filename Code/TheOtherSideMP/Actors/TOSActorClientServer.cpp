@@ -69,3 +69,10 @@ IMPLEMENT_RMI(CTOSActor, ClClearInventory)
 	RemoveAllItems();
 	return true;
 }
+
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CTOSActor, ClSelectItem)
+{
+	SelectItem(params.itemEntityId, false);
+	return true;
+}

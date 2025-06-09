@@ -240,8 +240,13 @@ void CTOSActor::ProcessEvent(SEntityEvent& event)
 		{
 			tos::inventory::SelectPrimary(this);
 			tos::ai::SetStance(this->GetEntity()->GetAI(), EStance::STANCE_STAND);
-			//GetGameObject()->ChangedNetworkState(tos::net::SERVER_ASPECT_DYNAMIC);
-			//GetGameObject()->RequestRemoteUpdate(eEA_GameClientDynamic | eEA_GameServerDynamic | eEA_GameClientStatic | eEA_GameServerStatic);
+			
+			// TheOtherSide: исправление случая когда между удаленным сервером и клиентом
+			// нет синхронизации текущего оружия
+			if (gEnv->bServer && !gEnv->bClient)
+			{
+				GetGameObject()->InvokeRMI(ClSelectItem(), NetSelectItemParams(GetInventory()->GetCurrentItem()), eRMI_ToAllClients);
+			}
 		}
 		//else if (event.nParam[0] == eMPTIMER_RAGDOLL)
 		//{
