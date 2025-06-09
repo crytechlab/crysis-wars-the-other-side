@@ -443,7 +443,7 @@ void CWeapon::RequestStartSecondaryFire()
 	{
 		if (IsServer())
 		{
-			//FIXME: здесь не уверен на счет eRMI_ToAllClients
+			CRY_FIXME(9,6,2025,"здесь не уверен на счет eRMI_ToAllClients");
 			GetGameObject()->InvokeRMI(CWeapon::ClStartSecondaryFire(), EmptyParams(), eRMI_ToAllClients);
 		}
 		else 

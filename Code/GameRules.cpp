@@ -1320,6 +1320,8 @@ EntityId CGameRules::GetPlayer(const int idx)
 //------------------------------------------------------------------------
 void CGameRules::GetPlayers(TPlayers& players) const
 {
+	//TheOtherSide TODO: нужно добавить ИИ игроков
+	CRY_TODO(9,6,2025,"нужно добавить ИИ игроков");
 	players.resize(0);
 	players.reserve(m_channelIds.size());
 

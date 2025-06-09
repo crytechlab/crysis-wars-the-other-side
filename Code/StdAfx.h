@@ -19,7 +19,10 @@
 
 
 //#define _CRTDBG_MAP_ALLOC
+//TheOtherSide
 #define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
+#include <TheOtherSideMP/Utilities/CryMacros.h>
+//~TheOtherSide
 
 #if _MSC_VER > 1000
 #pragma once

@@ -1772,6 +1772,9 @@
     <ClInclude Include="TheOtherSideMP\Game\ScriptBinds\ScriptBind_ItemSystem.h">
       <Filter>TheOtherSideMP\Game\ScriptBinds</Filter>
     </ClInclude>
+    <ClInclude Include="TheOtherSideMP\Utilities\CryMacros.h">
+      <Filter>TheOtherSideMP\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="GameActions.actions">

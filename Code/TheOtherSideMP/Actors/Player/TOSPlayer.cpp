@@ -317,7 +317,7 @@ void CTOSPlayer::LinkToMountedWeapon(EntityId weaponId)
 
 Matrix33& CTOSPlayer::GetViewMtx()
 {
-	//TODO: 10/05/2023, 15:56 проверить правильность конвертации
+	CRY_FIXME(9,6,2025,"проверить правильность конвертации");
 	auto mat33 = static_cast<Matrix33>(m_viewQuatFinal);
 	assert(mat33.IsValid());
 
@@ -326,7 +326,7 @@ Matrix33& CTOSPlayer::GetViewMtx()
 
 Matrix33& CTOSPlayer::GetBaseMtx()
 {
-	//TODO: 10/05/2023, 15:56 проверить правильность конвертации
+	CRY_FIXME(9,6,2025,"проверить правильность конвертации");
 	auto mat33 = static_cast<Matrix33>(m_baseQuat);
 	assert(mat33.IsValid());
 
@@ -334,7 +334,7 @@ Matrix33& CTOSPlayer::GetBaseMtx()
 }
 Matrix33& CTOSPlayer::GetEyeMtx()
 {
-	//TODO: 10/05/2023, 15:56 проверить правильность конвертации
+	CRY_FIXME(9,6,2025,"проверить правильность конвертации");
 	auto mat33 = static_cast<Matrix33>(this->m_viewQuatFinal);
 	assert(mat33.IsValid());
 

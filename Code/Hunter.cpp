@@ -666,6 +666,7 @@ void CHunter::PlayFootliftEffects(const int tentacle) const
 
 			pEffectAttachment->CreateEffect();
 			m_footAttachments[tentacle]->AddBinding(pEffectAttachment);
+			CRY_FIXME(9,6,2025,"вылет на клиенте, когда этот код выполняется");
 		}
 	}
 }

@@ -79,7 +79,7 @@ bool CCompatibilityAlienMovementController::RequestMovement( CMovementRequest& r
 
 		request.ClearJump();
 
-		//TODO: обработать прыжок как движение вверх у Scout и Alien
+		CRY_TODO(9,6,2025,"обработать прыжок как движение вверх у Scout и Alien");
 	}
 	//~TheOtherSide
 
@@ -260,7 +260,7 @@ void CCompatibilityAlienMovementController::UpdateCurMovementState(const SActorF
 	// Проверка, жив ли пришелец
 	state.isAlive = (m_pAlien->GetHealth() > 0);
 
-	// FIXME: Состояние прицеливания всегда истинно - возможно, это временная заглушка
+	CRY_FIXME(9,6,2025,"Состояние прицеливания всегда истинно - возможно, это временная заглушка");
 	state.isAiming = true;
 
 	// Проверка, стреляет ли пришелец

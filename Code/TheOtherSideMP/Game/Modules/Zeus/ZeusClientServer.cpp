@@ -20,7 +20,7 @@ void CTOSZeusModule::ClientServer::SetPP(int amount)
 	IScriptTable *pScriptTable = pGameRules->GetEntity()->GetScriptTable();
 	if (pScriptTable)
 	{
-		// FIXME: НУЖНО СИНХРОНИТЬ И НЕ ИСПОЛЬЗОВТАЬ ЛОК. АКТЕРА
+		CRY_FIXME(9,6,2025,"НУЖНО СИНХРОНИТЬ И НЕ ИСПОЛЬЗОВТАЬ ЛОК. АКТЕРА");
 		pGameRules->SetSynchedEntityValue(
 			pParent->GetPlayer()->GetEntityId(),
 			TSynchedKey(ZEUS_PP_AMOUNT_KEY),

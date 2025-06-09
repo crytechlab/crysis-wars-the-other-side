@@ -463,7 +463,7 @@ void CTOSZeusModule::Local::UpdateUnitIcons(IActor* pClientActor)
 			IVehicle* pVehicle = TOS_GET_VEHICLE(id);
 			if (pVehicle)
 			{
-				//TODO Танк, VTOL!
+				CRY_TODO(9,6,2025,"Танк, VTOL!");
 				const auto movType = pVehicle->GetMovement()->GetMovementType();
 				if (movType == IVehicleMovement::eVMT_Land)
 					icon = EIcon::Car;

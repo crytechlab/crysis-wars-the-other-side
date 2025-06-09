@@ -1428,7 +1428,7 @@ void CNanoSuit::PlaySound(const ENanoSound sound, const float param, const bool 
 			playLoopModeSound = true;
 			loopMode = NANOMODE_CLOAK;
 			break;
-		case ESound_SuitCloakFeedback: //TODO 24/11/2023 РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р… РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р… РїС—Р…РїС—Р…РїС—Р… РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р… 2.0
+		case ESound_SuitCloakFeedback:
 			soundName = "sounds/interface:hud:cloak_feedback";
 			eSemantic = eSoundSemantic_NanoSuit;
 			force3DSound = true;
