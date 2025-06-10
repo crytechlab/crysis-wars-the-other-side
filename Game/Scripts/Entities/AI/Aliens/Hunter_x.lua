@@ -743,6 +743,9 @@ function Hunter_x:Expose()
 		ClientMethods =
 		{
 			ClKill = { RELIABLE_UNORDERED, POST_ATTACH },
+			ClGrabObject = { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID, BOOL},
+			ClSetGrabbingScheme = { RELIABLE_UNORDERED, POST_ATTACH, STRING},
+			ClDropObject = { RELIABLE_UNORDERED, POST_ATTACH, BOOL, VEC3, FLOAT},
 		},
 		ServerMethods =
 		{
@@ -1422,10 +1425,6 @@ function Hunter_x.Server:OnHit(hit)
 	self:ProcessHighPose(hit, damageMult)
 
 	local fDamage = hit.damage * damageMult;
-
-	self:ProcessVulnerableSpots(hit);
-	self:ProcessDetachableSpots(hit);
-
 	local health = self.actor:GetHealth() - fDamage;
 	if (health < 1.0) then
 		health = 0;
@@ -1631,6 +1630,9 @@ function Hunter_x.Client:OnHit(hit, remote)
 	-- Обрабатываем высокую стойку при получении урона
 	self:ProcessHighPose(hit, damageMult)
 
+	self:ProcessVulnerableSpots(hit);
+	self:ProcessDetachableSpots(hit);
+
 	-- Накапливаем урон за короткий промежуток времени
 	if (self.damageTimer >= 0) then
 		self.damageTimer = self.damageTimer + hit.damage * damageMult * 0.066
@@ -1805,6 +1807,8 @@ end
 
 ------------------------------------------------------------------------------
 function Hunter_x:SetGrabbingScheme(scheme)
+	LogAlways("[%s] set grabbing scheme to [%s]", self:GetName(), scheme)
+
 	if (scheme and scheme == "Left") then
 		self.grabParams.limbs = { "frontLeftTentacle", };
 		self.grabParams.holdPos = { x = 23, y = -10, z = 18 };
@@ -1835,6 +1839,22 @@ function Hunter_x:SetGrabbingScheme(scheme)
 		self.grabParams.animation.releaseIKTime = 2.0;
 		self.grabParams.animation.grabbedObjOfs = { x = 9.69, y = 17.75, z = 0.0 };
 	end
+
+	--TheOtherSide: дублирование на клиенты
+	if CryAction.IsServer() then
+
+		if scheme == nil then
+			scheme = ""
+		end
+
+		if not CryAction.IsClient() then
+			self.allClients:ClSetGrabbingScheme(scheme)
+		else
+			local channelId = g_gameRules.game:GetChannelId(g_localActor.id)
+			self.otherClients:ClSetGrabbingScheme(channelId, scheme)
+		end		
+	end
+	--~TheOtherSide
 end
 
 function Hunter_x:GrabObject(object, query)
@@ -1842,6 +1862,25 @@ function Hunter_x:GrabObject(object, query)
 	--	if (grabbed and grabbed.actor and not grabbed.actor:IsPlayer()) then
 	--		g_gameRules:CreateHit(grabbed.id,self.id,self.id,100000,nil,nil,nil,"event");
 	--	end
+
+	if object == nil then
+		return 0
+	end
+
+	if query == nil then
+		query = false
+	end
+
+	--TheOtherSide: дублирование на клиенты
+	if CryAction.IsServer() then
+		if not CryAction.IsClient() then
+			self.allClients:ClGrabObject(object.id, query)
+		else
+			local channelId = g_gameRules.game:GetChannelId(g_localActor.id)
+			self.otherClients:ClGrabObject(channelId, object.id, query)
+		end		
+	end
+	--~TheOtherSide
 
 	return BasicActor.GrabObject(self, object, query)
 end
@@ -2001,3 +2040,44 @@ Hunter_x.FlowEvents =
 }
 
 InitScriptEvents(Hunter_x);
+
+--TheOtherSide	
+function Hunter_x:DropObject(throw, throwVec, throwDelay)
+
+	throw = throw or false
+	throwVec = throwVec or g_Vectors.v000
+	throwDelay = throwDelay or 0
+
+	LogAlways("[%s] drop object throwVec: %s, throwDelay: %s", self:GetName(), Vec2Str(throwVec), tostring(throwDelay))
+	BasicActor.DropObject(self, throw, throwVec, throwDelay)
+
+	--дублирование на клиенты
+	if CryAction.IsServer() then
+		if not CryAction.IsClient() then
+			self.allClients:ClDropObject(throw, throwVec, throwDelay)
+		else
+			local channelId = g_gameRules.game:GetChannelId(g_localActor.id)
+			self.otherClients:ClDropObject(channelId, throw, throwVec, throwDelay)
+		end
+	end
+	--~TheOtherSide
+end
+
+function Hunter_x.Client:ClDropObject(throw, throwVec, throwDelay)
+	BasicActor.DropObject(self, throw, throwVec, throwDelay)
+end
+
+function Hunter_x.Client:ClGrabObject(objectId, query)
+	local object = System.GetEntity(objectId)
+	if object == nil then
+		return true
+	end
+
+	BasicActor.GrabObject(self, object, query)
+	return true
+end
+
+function Hunter_x.Client:ClSetGrabbingScheme(scheme)
+	self:SetGrabbingScheme(scheme)
+end
+--~TheOtherSide	

@@ -81,7 +81,8 @@ Net.Expose {
 		ClClientDisconnect		= { RELIABLE_UNORDERED, POST_ATTACH, STRING, },
 		ClClientEnteredGame		= { RELIABLE_UNORDERED, POST_ATTACH, STRING, },
 		ClTimerAlert					= { RELIABLE_UNORDERED, POST_ATTACH, INT8 },
-	},
+		ClClientViewShake				= { RELIABLE_UNORDERED, POST_ATTACH, VEC3, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT },
+	},	
 	ServerMethods = {
 		RequestRevive		 			= { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID, },
 		RequestSpawnGroup			= { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID, ENTITYID },
@@ -2291,3 +2292,31 @@ function InstantAction.Client:ClTimerAlert(time)
 		self:PlayRadioAlert("timer5s", teamId);
 	end
 end
+
+--TheOtherSide
+function InstantAction.Client:ClClientViewShake(pos, radius, amount, duration, frequency, source)
+	self:ClientViewShake(pos, radius, amount, duration, frequency, source)
+end
+
+function InstantAction:ClientViewShake(pos, radius, amount, duration, frequency, source)
+
+	duration = duration or 0
+	amount = amount or 0
+	radius = radius or 0
+	frequency = frequency or 0
+	source = source or 0
+	
+	SinglePlayer:ClientViewShake(pos, radius, amount, duration, frequency, source);
+	
+	--дублирование на клиенты
+	if CryAction.IsServer() then
+		if not CryAction.IsClient() then
+			self.allClients:ClClientViewShake(pos, radius, amount, duration, frequency, source)
+		else
+			local channelId = self.game:GetChannelId(g_localActor.id)
+			self.otherClients:ClClientViewShake(channelId, pos, radius, amount, duration, frequency, source)
+		end
+	end
+end
+
+--~TheOtherSide

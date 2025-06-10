@@ -2397,6 +2397,15 @@ function BasicActor:InternalSpawnAtSpawnPoint(spawnPoint)
 end
 
 function BasicActor:CanGrabObject(object)  
+
+	--TheOtherSide
+	if (object and object.actor) then
+		if not (object:IsHidden() or object:IsDead() or object.actor:GetSpectatorMode() ~= 0) then
+			return 1;
+		end
+	end
+	--~TheOtherSide
+
 	--FIXME:
 	return 0;
 	
@@ -2408,14 +2417,24 @@ function BasicActor:CanGrabObject(object)
 end
 
 function BasicActor:GrabObject(object, query)
-	--FIXME:
+	--TheOtherSide
+	if (self:CanGrabObject(object) ~= 1) then
+		return 0
+	end
+	--~TheOtherSide
+
 	if (query and self.actor:IsPlayer()) then
 		return 0;
 	end
+
+	LogAlways("[%s] grab object %s", self:GetName(), object:GetName())
 	
 	self.grabParams.entityId = object.id;
 	local grabParams = new(self.grabParams);
 	grabParams.event = "grabObject";
+
+	LogAlways("[%s] grab params of %s", self:GetName(), object:GetName())
+	LogAlways(" "..table.dump(grabParams))
 	
 	if (self.actor:CreateCodeEvent(grabParams)) then
 		return 1;
