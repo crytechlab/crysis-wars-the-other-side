@@ -81,7 +81,7 @@ Net.Expose {
 		ClClientDisconnect		= { RELIABLE_UNORDERED, POST_ATTACH, STRING, },
 		ClClientEnteredGame		= { RELIABLE_UNORDERED, POST_ATTACH, STRING, },
 		ClTimerAlert					= { RELIABLE_UNORDERED, POST_ATTACH, INT8 },
-		ClClientViewShake				= { RELIABLE_UNORDERED, POST_ATTACH, VEC3, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT },
+		ClClientViewShake				= { RELIABLE_UNORDERED, POST_ATTACH, VEC3, FLOAT, FLOAT, FLOAT, FLOAT, STRING },
 	},	
 	ServerMethods = {
 		RequestRevive		 			= { RELIABLE_UNORDERED, POST_ATTACH, ENTITYID, },
@@ -2304,7 +2304,7 @@ function InstantAction:ClientViewShake(pos, radius, amount, duration, frequency,
 	amount = amount or 0
 	radius = radius or 0
 	frequency = frequency or 0
-	source = source or 0
+	source = source or ""
 	
 	SinglePlayer:ClientViewShake(pos, radius, amount, duration, frequency, source);
 	
@@ -2318,5 +2318,5 @@ function InstantAction:ClientViewShake(pos, radius, amount, duration, frequency,
 		end
 	end
 end
-
+`
 --~TheOtherSide

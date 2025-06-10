@@ -1566,8 +1566,7 @@ end
 ----------------------------------------------------------------------------------------------------
 function SinglePlayer.Client:OnExplosion(explosion)
 	local mult = tonumber(System.GetCVar("g_explosionScreenShakeMultiplier")) or 1;
-	self:ClientViewShake(explosion.pos, mult * math.min(3 * explosion.radius, 30),
-		mult * math.min(explosion.pressure / 1500, 10), mult * 2, 0.02, "explosion");
+	self:ClientViewShake(explosion.pos, mult * math.min(3 * explosion.radius, 30), mult * math.min(explosion.pressure / 1500, 10), mult * 2, 0.02, "explosion");
 end
 
 ----------------------------------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 
 	-------------------------------------------------------------------------
 	History:
-	- 7:2:2006   15:38 : Created by Mбrcio Martins
+	- 7:2:2006   15:38 : Created by M�rcio Martins
 
 *************************************************************************/
 #ifndef __GAMERULES_H__
@@ -139,7 +139,7 @@ extern DbgPlotter	g_dbgPlotter;
 } \
 
 
-class CGameRules :	public CGameObjectExtensionHelper<CGameRules, IGameRules, 64>, 
+class CGameRules :	public CGameObjectExtensionHelper<CGameRules, IGameRules, 128>, 
 										public IActionListener,
 										public IViewSystemListener
 {
