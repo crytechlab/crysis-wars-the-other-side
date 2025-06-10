@@ -235,6 +235,9 @@
 	<Class name="ScoutMOAC" policy="gun" />
 	<Class name="ScoutMOAR" policy="gun" />
 	<Class name="ScoutSearchBeam" policy="gun" />
+	<Class name="MOAR" policy="gun" />
+	<Class name="SingularityCannon" policy="gun" />
+	<Class name="HunterSweepMOAR" policy="gun" />
 
 	<!-- Projectiles -->
 	<Class name="AIGrenades" policy="proj" />

@@ -197,7 +197,8 @@ function Hazard:HandleEntity(ent)
 		--~TheOtherSide
 
         -- Наносим урон, если он больше нуля
-        if dmg > 0 then
+		--TheOtherSide: добавил проверку на ent
+        if dmg > 0 and ent then
             g_gameRules:CreateHit(ent.id, self.id, self.id, dmg, nil, nil, nil, "fire")
         end
     end
