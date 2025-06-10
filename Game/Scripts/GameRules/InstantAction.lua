@@ -2318,5 +2318,5 @@ function InstantAction:ClientViewShake(pos, radius, amount, duration, frequency,
 		end
 	end
 end
-`
+
 --~TheOtherSide
