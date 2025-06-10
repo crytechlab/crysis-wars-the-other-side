@@ -294,22 +294,21 @@ void CBaseGrabHandler::Reset()
 
 void CBaseGrabHandler::UpdatePosVelRot(float frameTime)
 {
-	IEntity *pGrab = gEnv->pEntitySystem->GetEntity(m_grabStats.grabId);
-
-	if (!pGrab)
+	IEntity *pGrabbedEntity = gEnv->pEntitySystem->GetEntity(m_grabStats.grabId);
+	if (!pGrabbedEntity)
 		return;
 
-	IEntity *pEnt = m_pActor->GetEntity();
+	IEntity *pOwnerEntity = m_pActor->GetEntity();
 
 	// NOTE Dez 14, 2006: <pvl> fade away the initial difference between
 	// orientations of grabber and grabbed entities, so that they're
 	// the same finally.
 	m_grabStats.additionalRotation = Quat::CreateSlerp(m_grabStats.additionalRotation, IDENTITY, frameTime * 3.3f);
-	pGrab->SetRotation(pEnt->GetRotation() * m_grabStats.additionalRotation, ENTITY_XFORM_USER);
+	pGrabbedEntity->SetRotation(pOwnerEntity->GetRotation() * m_grabStats.additionalRotation, ENTITY_XFORM_USER);
 
 	AABB bbox;
-	pGrab->GetLocalBounds(bbox);
-	Vec3 grabCenter(pGrab->GetWorldTM() * ((bbox.max + bbox.min) * 0.5f));
+	pGrabbedEntity->GetLocalBounds(bbox);
+	Vec3 grabCenter(pGrabbedEntity->GetWorldTM() * ((bbox.max + bbox.min) * 0.5f));
 
 	Vec3 grabWPos(GetGrabWPos());
 	Vec3 setGrabVel(0, 0, 0);
@@ -344,10 +343,10 @@ void CBaseGrabHandler::UpdatePosVelRot(float frameTime)
 	// NOTE Dez 14, 2006: <pvl> grabCenter is where the grabbed object's
 	// AABB's center is, grabWPos is where it should be.  Use physics
 	// to set the grabbed object's speed towards grabWPos.
-	if (pEnt->GetPhysics() && pGrab->GetPhysics())
+	if (pOwnerEntity->GetPhysics() && pGrabbedEntity->GetPhysics())
 	{
 		pe_status_dynamics dyn;
-		pEnt->GetPhysics()->GetStatus(&dyn);
+		pOwnerEntity->GetPhysics()->GetStatus(&dyn);
 
 		pe_action_set_velocity asv;
 		if (setGrabVel.len2() > 0.01f)
@@ -356,7 +355,7 @@ void CBaseGrabHandler::UpdatePosVelRot(float frameTime)
 			asv.v = dyn.v + (grabWPos - grabCenter) * m_grabStats.followSpeed;
 		asv.w.Set(0, 0, 0);
 
-		pGrab->GetPhysics()->Action(&asv);
+		pGrabbedEntity->GetPhysics()->Action(&asv);
 	}
 }
 
@@ -465,6 +464,8 @@ void CBaseGrabHandler::DisableGrabbedAnimatedCharacter(bool enable) const
 //
 bool CAnimatedGrabHandler::SetGrab(SmartScriptTable &rParams)
 {
+	CRY_TODO(09, 06, 2025, "Придумать синхронизацию параметров запуска хватания")
+
 	// NOTE Aug 16, 2007: <pvl> if there's another grab action under way, this one fails
 	// first the cheaper check (should also cover the case when output is not yet set because of longer transition time)
 	if (m_grabStats.IKActive == true)
@@ -500,6 +501,7 @@ bool CAnimatedGrabHandler::SetGrab(SmartScriptTable &rParams)
 		}
 
 		limbsTable->EndIteration(iter);
+
 	}
 
 	m_grabStats.usingAnimation = false;
@@ -622,6 +624,8 @@ bool CAnimatedGrabHandler::SetGrab(SmartScriptTable &rParams)
 	}
 
 	m_grabStats.maxDelay = m_grabStats.throwDelay = savedThrowDelay;
+
+
 
 	return true;
 }
