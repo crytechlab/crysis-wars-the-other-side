@@ -4,7 +4,7 @@
  -------------------------------------------------------------------------
   $Id$
   $DateTime$
-  
+
  -------------------------------------------------------------------------
   History:
   - 27:4:2004: Created by Filippo De Luca
@@ -28,17 +28,17 @@
 const float CHunter::s_turnThreshIdling = cry_cosf(DEG2RAD(30.0f));
 const float CHunter::s_turnThreshTurning = cry_cosf(DEG2RAD(5.0f));
 
-//Just for getting water surface id
+// Just for getting water surface id
 #include "Bullet.h"
 
 class CHunterBlending : public IAnimationBlending
 {
 public:
-	CHunterBlending() { }
+	CHunterBlending() {}
 
-	~CHunterBlending()  { }
+	~CHunterBlending() {}
 
-	SAnimationBlendingParams* Update(IEntity* pIEntity, Vec3 DesiredBodyDirection, Vec3 DesiredMoveDirection, f32 fDesiredMovingSpeed) 
+	SAnimationBlendingParams *Update(IEntity *pIEntity, Vec3 DesiredBodyDirection, Vec3 DesiredMoveDirection, f32 fDesiredMovingSpeed)
 	{
 		m_params.m_yawAngle = 0;
 		m_params.m_speed = 0;
@@ -47,32 +47,32 @@ public:
 		m_params.m_diffBodyMove = 0;
 		m_params.m_fBlendedDesiredSpeed = 0;
 
-		ICharacterInstance* pCharacter = pIEntity->GetCharacter(0);
+		ICharacterInstance *pCharacter = pIEntity->GetCharacter(0);
 		if (!pCharacter)
 			return &m_params;
 
 		const Quat rot = pIEntity->GetRotation();
 		const Vec3 upVector = rot.GetColumn2();
-		//Vec3 pos = pEnt->GetWorldPos();
+		// Vec3 pos = pEnt->GetWorldPos();
 
-		//changed by ivo: most likely this doesn't work any more
+		// changed by ivo: most likely this doesn't work any more
 		//		Vec3 absCurrentBodyDirection(rot * pCharacter->GetISkeleton()->GetCurrentBodyDirection());
 		const Vec3 absCurrentBodyDirection(rot * Vec3(0, 1, 0));
 
 		Vec3 absCurrentMoveDirection(rot * pCharacter->GetISkeletonAnim()->GetCurrentVelocity().GetNormalizedSafe(Vec3(0, 1, 0)));
 
-		//body-radiant 
+		// body-radiant
 		const Vec3 bforward(absCurrentBodyDirection.GetNormalized());
 		const Vec3 bup(upVector);
-		Vec3       bright(bforward % bup);
-		//Matrix33 currBodyDirectionMatrix(Matrix33::CreateFromVectors(bforward, bup%bforward, bup));	
+		Vec3 bright(bforward % bup);
+		// Matrix33 currBodyDirectionMatrix(Matrix33::CreateFromVectors(bforward, bup%bforward, bup));
 		const Matrix33 currBodyDirectionMatrix(Matrix33::CreateFromVectors(bforward % bup, bforward, bup));
-		const Vec3     newBodyDirLocal(currBodyDirectionMatrix.GetInverted() * DesiredBodyDirection);
-		f32            bodyRadiant = cry_atan2f(-newBodyDirLocal.x, newBodyDirLocal.y);
+		const Vec3 newBodyDirLocal(currBodyDirectionMatrix.GetInverted() * DesiredBodyDirection);
+		f32 bodyRadiant = cry_atan2f(-newBodyDirLocal.x, newBodyDirLocal.y);
 		if (fabsf(bodyRadiant) < 0.01f)
 			bodyRadiant = 0;
 
-		m_params.m_yawAngle = 0.0f; //body_radiant;		
+		m_params.m_yawAngle = 0.0f; // body_radiant;
 		m_params.m_turnAngle = max(-1.0f, min(1.0f, bodyRadiant * 5.0f));
 
 		return &m_params;
@@ -84,23 +84,22 @@ protected:
 
 CHunter::CHunter()
 	: m_zDelta(0),
-	m_turning(false),
-	//m_IKLimbIndex{},
-	//m_footGroundSurface{},
-	//m_footTouchesGround{},
-	//m_footTouchesGroundSmooth{},
-	//m_footTouchesGroundSmoothRate{},
-	//m_footAttachments{},
-	m_IKLook(false),
-	m_nextStopCheck(0),
-	//m_footSoundTime{},
-	m_smoothZ(0),
-	m_zOffset(0) 
+	  m_turning(false),
+	  // m_IKLimbIndex{},
+	  // m_footGroundSurface{},
+	  // m_footTouchesGround{},
+	  // m_footTouchesGroundSmooth{},
+	  // m_footTouchesGroundSmoothRate{},
+	  // m_footAttachments{},
+	  m_IKLook(false),
+	  m_nextStopCheck(0),
+	  // m_footSoundTime{},
+	  m_smoothZ(0),
+	  m_zOffset(0)
 {
-
 }
 
-IGrabHandler* CHunter::CreateGrabHanlder()
+IGrabHandler *CHunter::CreateGrabHanlder()
 {
 	m_pGrabHandler = new CAnimatedGrabHandler(this);
 	return m_pGrabHandler;
@@ -117,8 +116,8 @@ void CHunter::PostPhysicalize()
 {
 	CAlien::PostPhysicalize();
 
-	ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0);
-	IPhysicalEntity*    pPhysEnt = pCharacter ? pCharacter->GetISkeletonPose()->GetCharacterPhysics(-1) : nullptr;
+	ICharacterInstance *pCharacter = GetEntity()->GetCharacter(0);
+	IPhysicalEntity *pPhysEnt = pCharacter ? pCharacter->GetISkeletonPose()->GetCharacterPhysics(-1) : nullptr;
 
 	if (pPhysEnt)
 	{
@@ -144,14 +143,14 @@ void CHunter::PostPhysicalize()
 	*/
 }
 
-bool CHunter::CreateCodeEvent(SmartScriptTable& rTable)
+bool CHunter::CreateCodeEvent(SmartScriptTable &rTable)
 {
-	const char* event = nullptr;
+	const char *event = nullptr;
 	rTable->GetValue("event", event);
 
 	if (event && !strcmp(event, "IKLook"))
 	{
-		
+
 		rTable->GetValue("activate", m_IKLook);
 
 		return true;
@@ -166,14 +165,14 @@ bool CHunter::CreateCodeEvent(SmartScriptTable& rTable)
 	return CAlien::CreateCodeEvent(rTable);
 }
 
-void CHunter::ProcessEvent(SEntityEvent& event)
+void CHunter::ProcessEvent(SEntityEvent &event)
 {
 	switch (event.event)
 	{
 	case ENTITY_EVENT_UNHIDE:
 	{
-		ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0);
-		IPhysicalEntity*    pPhysEnt = pCharacter ? pCharacter->GetISkeletonPose()->GetCharacterPhysics(-1) : nullptr;
+		ICharacterInstance *pCharacter = GetEntity()->GetCharacter(0);
+		IPhysicalEntity *pPhysEnt = pCharacter ? pCharacter->GetISkeletonPose()->GetCharacterPhysics(-1) : nullptr;
 
 		if (pPhysEnt)
 		{
@@ -187,8 +186,7 @@ void CHunter::ProcessEvent(SEntityEvent& event)
 		}
 		break;
 	}
-	default: 
-		;
+	default:;
 	}
 	CAlien::ProcessEvent(event);
 }
@@ -226,27 +224,26 @@ void CHunter::Revive(const bool fromInit)
 
 	m_walkEventFlags.reset();
 
-	//FIXME:
+	// FIXME:
 	if (m_pAnimatedCharacter)
 	{
 		SAnimatedCharacterParams params = m_pAnimatedCharacter->GetParams();
 
-		params.flags &= ~(eACF_NoTransRot2k | eACF_ConstrainDesiredSpeedToXY/* | eACF_NoLMErrorCorrection*/);
-		params.flags |= eACF_ImmediateStance | eACF_ConstrainDesiredSpeedToXY | eACF_ZCoordinateFromPhysics/* | eACF_NoLMErrorCorrection*/;
+		params.flags &= ~(eACF_NoTransRot2k | eACF_ConstrainDesiredSpeedToXY /* | eACF_NoLMErrorCorrection*/);
+		params.flags |= eACF_ImmediateStance | eACF_ConstrainDesiredSpeedToXY | eACF_ZCoordinateFromPhysics /* | eACF_NoLMErrorCorrection*/;
 
-		//if (!params.pAnimationBlending)
+		// if (!params.pAnimationBlending)
 		//	params.pAnimationBlending = new CHunterBlending();
 
 		m_pAnimatedCharacter->SetParams(params);
 	}
 
-
-	ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0);
+	ICharacterInstance *pCharacter = GetEntity()->GetCharacter(0);
 	if (pCharacter)
 	{
 		pCharacter->SetFlags(pCharacter->GetFlags() | CS_FLAG_UPDATE_ALWAYS);
 
-		//TODO:this is temporary: remove it once the anim sys supports keyframe events
+		// TODO:this is temporary: remove it once the anim sys supports keyframe events
 		if (m_IKLimbIndex[0] < 0)
 			m_IKLimbIndex[0] = GetIKLimbIndex("frontLeftTentacle");
 		if (m_IKLimbIndex[1] < 0)
@@ -257,21 +254,21 @@ void CHunter::Revive(const bool fromInit)
 			m_IKLimbIndex[3] = GetIKLimbIndex("backRightTentacle");
 
 		// create attachments for footstep fx
-		IAttachmentManager* pAttMan = pCharacter->GetIAttachmentManager();
+		IAttachmentManager *pAttMan = pCharacter->GetIAttachmentManager();
 		for (int i = 0; i < 4; ++i)
 		{
 			if (m_IKLimbIndex[i] == -1)
 				continue;
 
-			SIKLimb*    pLimb = &m_IKLimbs[m_IKLimbIndex[i]];
-			const char* boneName = pCharacter->GetISkeletonPose()->GetJointNameByID(pLimb->endBoneID);
+			SIKLimb *pLimb = &m_IKLimbs[m_IKLimbIndex[i]];
+			const char *boneName = pCharacter->GetISkeletonPose()->GetJointNameByID(pLimb->endBoneID);
 			if (boneName && boneName[0])
 			{
 				char attName[128];
 				_snprintf(attName, sizeof(attName), "%s_effect_attach", boneName);
 				attName[sizeof(attName) - 1] = 0;
 
-				IAttachment* pAttachment = pAttMan->GetInterfaceByName(attName);
+				IAttachment *pAttachment = pAttMan->GetInterfaceByName(attName);
 				if (!pAttachment)
 					pAttachment = pAttMan->CreateAttachment(attName, CA_BONE, boneName);
 				else
@@ -279,7 +276,7 @@ void CHunter::Revive(const bool fromInit)
 
 				m_footAttachments[i] = pAttachment;
 
-				//before we use CCD-IK the first time, we have to initialize the limp-position to the current FK-position
+				// before we use CCD-IK the first time, we have to initialize the limp-position to the current FK-position
 				pLimb->Update(GetEntity(), 0.000001f);
 				Vec3 lPos(pLimb->lAnimPos.x, pLimb->lAnimPos.y, 0);
 				m_footGroundPos[i] = GetEntity()->GetSlotWorldTM(pLimb->characterSlot) * lPos;
@@ -290,12 +287,12 @@ void CHunter::Revive(const bool fromInit)
 
 void CHunter::UpdateFiringDir(float frameTime)
 {
-	m_stats.fireDir = m_viewMtx.GetColumn(1); //Vec3::CreateSlerp(m_stats.fireDir,m_viewMtx.GetColumn(1),1.9f*frameTime);
+	m_stats.fireDir = m_viewMtx.GetColumn(1); // Vec3::CreateSlerp(m_stats.fireDir,m_viewMtx.GetColumn(1),1.9f*frameTime);
 }
 
 void CHunter::ProcessRotation(float frameTime)
 {
-	const IPhysicalEntity* pPhysEnt = GetEntity()->GetPhysics();
+	const IPhysicalEntity *pPhysEnt = GetEntity()->GetPhysics();
 
 	if (!pPhysEnt)
 		return;
@@ -315,12 +312,13 @@ void CHunter::ProcessRotation(float frameTime)
 	// NOTE Sep 13, 2007: <pvl> I suspect the turn speed has no influence on the hunter
 	const Vec3 forward(m_viewMtx.GetColumn(1));
 
-	// pvl Check if the hunter is looking directly up or down.	
+	// pvl Check if the hunter is looking directly up or down.
 	if (Vec3(forward.x, forward.y, 0).len2() > 0.001f)
 	{
 		const float rotSpeed = m_params.rotSpeed_min + (1.0f - (max(
-			GetStanceInfo(m_stance)->maxSpeed - max(m_stats.speed - m_params.speed_min, 0.0f), 0.0f) / 
-			GetStanceInfo(m_stance)->maxSpeed)) * (m_params.rotSpeed_max - m_params.rotSpeed_min);
+																	GetStanceInfo(m_stance)->maxSpeed - max(m_stats.speed - m_params.speed_min, 0.0f), 0.0f) /
+																GetStanceInfo(m_stance)->maxSpeed)) *
+														   (m_params.rotSpeed_max - m_params.rotSpeed_min);
 
 		Interpolate(m_turnSpeed, rotSpeed, 3.0f / 100.0f, frameTime);
 	}
@@ -328,7 +326,7 @@ void CHunter::ProcessRotation(float frameTime)
 
 void CHunter::ProcessMovement(float frameTime)
 {
-	const IPhysicalEntity* pPhysEnt = GetEntity()->GetPhysics();
+	const IPhysicalEntity *pPhysEnt = GetEntity()->GetPhysics();
 
 	if (!pPhysEnt)
 		return;
@@ -336,22 +334,22 @@ void CHunter::ProcessMovement(float frameTime)
 	if (frameTime > 0.1f)
 		frameTime = 0.1f;
 
-	//movement
-	Vec3  reqMove;
+	// movement
+	Vec3 reqMove;
 	float reqSpeed, maxSpeed;
 	GetMovementVector(reqMove, reqSpeed, maxSpeed);
 
 	Interpolate(m_smoothMovementVec, reqMove, 1.0f, frameTime);
 
-	Vec3 move(m_smoothMovementVec); //usually 0, except AIs
-	move -= move * (m_baseMtx * Matrix33::CreateScale(Vec3(0, 0, 1))); //make it flat
+	Vec3 move(m_smoothMovementVec);									   // usually 0, except AIs
+	move -= move * (m_baseMtx * Matrix33::CreateScale(Vec3(0, 0, 1))); // make it flat
 
 	if (m_stats.sprintLeft > 0.0f)
 		move *= m_params.sprintMultiplier;
 
 	m_moveRequest.velocity = move;
 	m_moveRequest.type = eCMT_Normal;
-	//m_moveRequest.turn = GetEntity()->GetRotation().GetInverted() * Quat(m_baseMtx);
+	// m_moveRequest.turn = GetEntity()->GetRotation().GetInverted() * Quat(m_baseMtx);
 
 	Vec3 viewFwd(m_viewMtx.GetColumn1() + m_moveRequest.velocity * 10);
 	viewFwd.z = 0.0f;
@@ -376,13 +374,13 @@ void CHunter::ProcessMovement(float frameTime)
 		if (cross > 0.0f)
 		{
 			PlayAction("turnleft", nullptr, true);
-			//m_pAnimatedCharacter->GetAnimationGraphState()->SetInput("Action", "turnleft");
+			// m_pAnimatedCharacter->GetAnimationGraphState()->SetInput("Action", "turnleft");
 			m_moveRequest.rotation.SetRotationZ(DEG2RAD(25) * frameTime);
 		}
 		else
 		{
 			PlayAction("turnright", nullptr, true);
-			//m_pAnimatedCharacter->GetAnimationGraphState()->SetInput("Action", "turnright");
+			// m_pAnimatedCharacter->GetAnimationGraphState()->SetInput("Action", "turnright");
 			m_moveRequest.rotation.SetRotationZ(-DEG2RAD(25) * frameTime);
 		}
 		m_turning = true;
@@ -396,11 +394,11 @@ void CHunter::ProcessMovement(float frameTime)
 
 	m_moveRequest.prediction.nStates = 0;
 
-	//FIXME:sometime
+	// FIXME:sometime
 	m_stats.desiredSpeed = m_stats.speed;
 }
 
-void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
+void CHunter::ProcessAnimation(ICharacterInstance *pCharacter, float frameTime)
 {
 	GetISystem()->GetIRenderer()->GetIRenderAuxGeom()->SetRenderFlags(e_Def3DPublicRenderflags);
 	//	GetISystem()->GetIRenderer()->GetIRenderAuxGeom()->DrawAABB(AABB (Vec3 (0,0,0), Vec3 (0.5,0.5,0.5)), true, ColorB(255,0,0,255), eBBD_Faceted);
@@ -408,17 +406,17 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 	if (!pCharacter)
 		return;
 
-	//update look ik
-	//gEnv->pRenderer->GetIRenderAuxGeom()->DrawSphere(lookTarget,0.25f,ColorB(255,255,0,255));
-	//gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetWorldPos(), ColorB(255,255,0,255), lookTarget, ColorB(255,255,0,255));
+	// update look ik
+	// gEnv->pRenderer->GetIRenderAuxGeom()->DrawSphere(lookTarget,0.25f,ColorB(255,255,0,255));
+	// gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetWorldPos(), ColorB(255,255,0,255), lookTarget, ColorB(255,255,0,255));
 	bool lookIk = (!m_pGrabHandler || m_pGrabHandler->GetStats()->grabId < 1);
 	lookIk &= !Airborne();
 
 	// FIXME Dez 20, 2006: <pvl> disabled lookIK temporarily
 	pCharacter->GetISkeletonPose()->SetLookIK(lookIk, gf_PI * 0.9f, m_stats.lookTargetSmooth);
 
-	int   feetOnGround(0);
-	Vec3  balancePoint(0, 0, 0);
+	int feetOnGround(0);
+	Vec3 balancePoint(0, 0, 0);
 	float highestLegZ(0);
 	float lowestLegZ(10000);
 
@@ -427,7 +425,7 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 		if (m_IKLimbIndex[i] == -1)
 			continue;
 
-		SIKLimb* pLimb = &m_IKLimbs[m_IKLimbIndex[i]];
+		SIKLimb *pLimb = &m_IKLimbs[m_IKLimbIndex[i]];
 
 		// NOTE Jul 31, 2007: <pvl> the second part of this condition is a guard against
 		// spurious "tentacle down" animation events.  Those can occur in presence of
@@ -443,15 +441,15 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 				m_footGroundPos[i] = GetEntity()->GetSlotWorldTM(pLimb->characterSlot) * lPos;
 
 				ray_hit hit;
-				int     rayFlags = (COLLISION_RAY_PIERCABILITY & rwi_pierceability_mask);
+				int rayFlags = (COLLISION_RAY_PIERCABILITY & rwi_pierceability_mask);
 				if (GetISystem()->GetIPhysicalWorld()->RayWorldIntersection(m_footGroundPos[i] + Vec3(0, 0, 30.0f), Vec3(0, 0, -60.0f), ent_terrain | ent_static | ent_water, rayFlags, &hit, 1))
 				{
-					//m_footGroundPos[i] = hit.pt;
-					//fix problem with hunter tantacles
+					// m_footGroundPos[i] = hit.pt;
+					// fix problem with hunter tantacles
 					if (i == 0 || i == 1)
-						m_footGroundPos[i] = Vec3(hit.pt.x, hit.pt.y, hit.pt.z + 0.20f); //front tentacles
+						m_footGroundPos[i] = Vec3(hit.pt.x, hit.pt.y, hit.pt.z + 0.20f); // front tentacles
 					else
-						m_footGroundPos[i] = Vec3(hit.pt.x, hit.pt.y, hit.pt.z + 0.60f); //back tentacles
+						m_footGroundPos[i] = Vec3(hit.pt.x, hit.pt.y, hit.pt.z + 0.60f); // back tentacles
 
 					m_footGroundSurface[i] = hit.surface_idx;
 				}
@@ -473,8 +471,8 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 					{
 						// in case surface is queried the 1st time
 						ray_hit hit;
-						int     rayFlags = (COLLISION_RAY_PIERCABILITY & rwi_pierceability_mask);
-						Vec3    pos = GetEntity()->GetSlotWorldTM(pLimb->characterSlot) * pLimb->lAnimPos;
+						int rayFlags = (COLLISION_RAY_PIERCABILITY & rwi_pierceability_mask);
+						Vec3 pos = GetEntity()->GetSlotWorldTM(pLimb->characterSlot) * pLimb->lAnimPos;
 						if (gEnv->pPhysicalWorld->RayWorldIntersection(pos + Vec3(0, 0, 5.0f), Vec3(0, 0, -15.0f), ent_terrain | ent_static | ent_water, rayFlags, &hit, 1))
 							m_footGroundSurface[i] = hit.surface_idx;
 					}
@@ -482,21 +480,21 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 					PlayFootliftEffects(i);
 				}
 
-				m_footGroundPos[i].Set(0, 0, 0); // the limb is lifting, reset its ground pos so that IK doesn't act on it	
+				m_footGroundPos[i].Set(0, 0, 0); // the limb is lifting, reset its ground pos so that IK doesn't act on it
 				m_footTouchesGround[i] = false;
 			}
 		}
 
-		//if (Airborne ())
+		// if (Airborne ())
 		//	m_footGroundPos[i].Set(0,0,0);
 
 		// transform lAnimPos (which is in model local space) to the world space
 		Vec3 vLimbWorldPos = GetEntity()->GetSlotWorldTM(pLimb->characterSlot) * pLimb->lAnimPos;
 
-		//Vec3 delta(vLimbWorldPos - m_footGroundPos[i]); // check for IK stretching the limb too much
-		//delta.z = 0;
+		// Vec3 delta(vLimbWorldPos - m_footGroundPos[i]); // check for IK stretching the limb too much
+		// delta.z = 0;
 
-		//if (delta.len2()>/*10.0f*10.0f*/ 500.0f)
+		// if (delta.len2()>/*10.0f*10.0f*/ 500.0f)
 		//	m_footGroundPos[i].Set(0,0,0);// = limbPos;
 
 		bool footOnGround = m_footGroundPos[i].len2() > 0.01f;
@@ -508,12 +506,12 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 			SmoothCD(m_footTouchesGroundSmooth[i], m_footTouchesGroundSmoothRate[i], frameTime, static_cast<f32>(footOnGround), 0.10f);
 
 		ray_hit hit;
-		Vec3    checkDir(0, 0, -60.0f);
-		Vec3    vFinalLimbPos = vLimbWorldPos;
-		Vec3    checkFrom(vLimbWorldPos);
+		Vec3 checkDir(0, 0, -60.0f);
+		Vec3 vFinalLimbPos = vLimbWorldPos;
+		Vec3 checkFrom(vLimbWorldPos);
 		checkFrom.z += 30.0f; // make sure the position from which we'll check is above the terrain
 
-		int  rayFlags = (COLLISION_RAY_PIERCABILITY & rwi_pierceability_mask);
+		int rayFlags = (COLLISION_RAY_PIERCABILITY & rwi_pierceability_mask);
 
 		int32 intersection = GetISystem()->GetIPhysicalWorld()->RayWorldIntersection(checkFrom, checkDir, ent_terrain | ent_static, rayFlags, &hit, 1);
 		if (intersection)
@@ -538,8 +536,8 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 		if (fDistance < 30.0f)
 			vFinalLimbPosition = m_footGroundPosLast[i] * t0 + vFinalLimbPos * t1;
 
-		//float fColor[4] = {1,1,0,1};
-		//GetISystem()->GetIRenderer()->Draw2dLabel( 1,40+16*i, 1.3f, fColor, false,"leg: %f %f %f   OnGround: %d  fDistance:%f",m_footGroundPos[i].x,m_footGroundPos[i].y,m_footGroundPos[i].z, footOnGround,fDistance );	
+		// float fColor[4] = {1,1,0,1};
+		// GetISystem()->GetIRenderer()->Draw2dLabel( 1,40+16*i, 1.3f, fColor, false,"leg: %f %f %f   OnGround: %d  fDistance:%f",m_footGroundPos[i].x,m_footGroundPos[i].y,m_footGroundPos[i].z, footOnGround,fDistance );
 
 		if (g_pGameCVars->h_useIK)
 			pLimb->SetWPos(GetEntity(), vFinalLimbPosition, Vec3(0, 0, -1), 1.0f, 1.0f, 100); // a call to IK
@@ -561,7 +559,7 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 			float distToGround = (pLimb->currentWPos - pLimb->goalWPos).len2();
 			if (distToGround < 0.01f && !m_footTouchesGround[i])
 			{
-				//GetISystem()->GetIRenderer()->GetIRenderAuxGeom()->DrawSphere(pLimb->currentWPos,1.0f,ColorB(0,0,255,255));
+				// GetISystem()->GetIRenderer()->GetIRenderAuxGeom()->DrawSphere(pLimb->currentWPos,1.0f,ColorB(0,0,255,255));
 				CreateScriptEvent("footstep", i + 1);
 				m_footSoundTime[i] = 0.35f;
 				PlayFootstepEffects(i);
@@ -581,7 +579,7 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 		m_footSoundTime[i] -= frameTime;
 
 		//
-		//GetISystem()->GetIRenderer()->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetSlotWorldTM(0).GetTranslation(), ColorB(255,255,0,255), m_footGroundPos[i], ColorB(255,255,0,255));
+		// GetISystem()->GetIRenderer()->GetIRenderAuxGeom()->DrawLine(GetEntity()->GetSlotWorldTM(0).GetTranslation(), ColorB(255,255,0,255), m_footGroundPos[i], ColorB(255,255,0,255));
 	}
 
 	//
@@ -608,19 +606,18 @@ void CHunter::ProcessAnimation(ICharacterInstance* pCharacter, float frameTime)
 	{
 	  if (m_footAttachments[i])
 	  {
-	    Matrix34 boneLocalTM(GetEntity()->GetCharacter(0)->GetISkeleton()->GetAbsJointByID(m_footAttachments[i]->GetBoneID()));
-	    Matrix34 tm = GetEntity()->GetSlotWorldTM(0) * boneLocalTM;
-	    gEnv->pRenderer->GetIRenderAuxGeom()->DrawSphere(tm.GetTranslation(), 1.f, ColorB(0,255,0,255));
+		Matrix34 boneLocalTM(GetEntity()->GetCharacter(0)->GetISkeleton()->GetAbsJointByID(m_footAttachments[i]->GetBoneID()));
+		Matrix34 tm = GetEntity()->GetSlotWorldTM(0) * boneLocalTM;
+		gEnv->pRenderer->GetIRenderAuxGeom()->DrawSphere(tm.GetTranslation(), 1.f, ColorB(0,255,0,255));
 	  }
 	}*/
 }
 
 void CHunter::PlayFootstepEffects(int tentacle) const
 {
-	IMaterialEffects* pMaterialEffects = g_pGame->GetIGameFramework()->GetIMaterialEffects();
+	IMaterialEffects *pMaterialEffects = g_pGame->GetIGameFramework()->GetIMaterialEffects();
 	const float footWaterLevel = gEnv->p3DEngine->GetWaterLevel(&m_footGroundPos[tentacle]);
 	TMFXEffectId effectId = InvalidEffectId;
-
 
 	if (footWaterLevel > m_footGroundPos[tentacle].z)
 	{
@@ -642,10 +639,9 @@ void CHunter::PlayFootstepEffects(int tentacle) const
 
 void CHunter::PlayFootliftEffects(const int tentacle) const
 {
-	IMaterialEffects* pMaterialEffects = g_pGame->GetIGameFramework()->GetIMaterialEffects();
+	IMaterialEffects *pMaterialEffects = g_pGame->GetIGameFramework()->GetIMaterialEffects();
 	const float footWaterLevel = gEnv->p3DEngine->GetWaterLevel(&m_footGroundPos[tentacle]);
 	TMFXEffectId effectId = InvalidEffectId;
-
 
 	if (footWaterLevel > m_footGroundPos[tentacle].z)
 	{
@@ -661,17 +657,17 @@ void CHunter::PlayFootliftEffects(const int tentacle) const
 		const SMFXResourceListPtr pList = pMaterialEffects->GetResources(effectId);
 		if (pList && pList->m_particleList)
 		{
-			const char* effect = pList->m_particleList->m_particleParams.name;
-			const auto  pEffectAttachment = new CEffectAttachment(effect, Vec3Constants<float>::fVec3_Zero, Vec3Constants<float>::fVec3_OneY, 1.f);
+			const char *effect = pList->m_particleList->m_particleParams.name;
+			const auto pEffectAttachment = new CEffectAttachment(effect, Vec3Constants<float>::fVec3_Zero, Vec3Constants<float>::fVec3_OneY, 1.f);
 
 			pEffectAttachment->CreateEffect();
 			m_footAttachments[tentacle]->AddBinding(pEffectAttachment);
-			CRY_FIXME(9,6,2025,"вылет на клиенте, когда этот код выполняется");
+			CRY_FIXME(9, 6, 2025, "вылет на клиенте, когда этот код выполняется");
 		}
 	}
 }
 
-void CHunter::UpdateAnimGraph(IAnimationGraphState* pState)
+void CHunter::UpdateAnimGraph(IAnimationGraphState *pState)
 {
 	CAlien::UpdateAnimGraph(pState);
 }
@@ -691,7 +687,7 @@ int CHunter::GetBoneID(int ID, int slot) const
 {
 	if (m_boneIDs[ID] < 0)
 	{
-		ICharacterInstance* pCharacter = GetEntity()->GetCharacter(slot);
+		ICharacterInstance *pCharacter = GetEntity()->GetCharacter(slot);
 		if (!pCharacter)
 			return -1;
 
@@ -718,7 +714,7 @@ int CHunter::GetBoneID(int ID, int slot) const
 	return CActor::GetBoneID(ID, slot);
 }
 
-void CHunter::GetActorInfo(SBodyInfo& bodyInfo)
+void CHunter::GetActorInfo(SBodyInfo &bodyInfo)
 {
 	CAlien::GetActorInfo(bodyInfo);
 
@@ -734,25 +730,25 @@ void CHunter::GetActorInfo(SBodyInfo& bodyInfo)
 
 	bodyInfo.vFireDir = bodyInfo.vEyeDir = m_viewMtx.GetColumn(1);
 
-	//gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(bodyInfo.vEyePos, ColorB(0,255,0,100), bodyInfo.vEyePos + bodyInfo.vEyeDir * 10.0f, ColorB(255,255,0,100));
+	// gEnv->pRenderer->GetIRenderAuxGeom()->DrawLine(bodyInfo.vEyePos, ColorB(0,255,0,100), bodyInfo.vEyePos + bodyInfo.vEyeDir * 10.0f, ColorB(255,255,0,100));
 }
 
-bool CHunter::SetAnimationInput(const char* inputID, const char* value)
+bool CHunter::SetAnimationInput(const char *inputID, const char *value)
 {
-	ICharacterInstance* pCharacter = GetEntity()->GetCharacter(0);
+	ICharacterInstance *pCharacter = GetEntity()->GetCharacter(0);
 	if (pCharacter && pCharacter->GetISkeletonAnim()->GetTrackViewStatus())
 		return false;
 
 	return CActor::SetAnimationInput(inputID, value);
 }
 
-void CHunter::GetMemoryStatistics(ICrySizer* s)
+void CHunter::GetMemoryStatistics(ICrySizer *s)
 {
 	s->Add(*this);
 	GetAlienMemoryStatistics(s);
 }
 
-void CHunter::AnimationEvent(ICharacterInstance* pCharacter, const AnimEventInstance& event)
+void CHunter::AnimationEvent(ICharacterInstance *pCharacter, const AnimEventInstance &event)
 {
 	// NOTE Dez 19, 2006: <pvl> grabbing events
 	if (strcmp(event.m_EventName, "ObjectGrabbed") == 0)
@@ -765,7 +761,7 @@ void CHunter::AnimationEvent(ICharacterInstance* pCharacter, const AnimEventInst
 	}
 	else if (strcmp(event.m_EventName, "StartIK") == 0)
 	{
-		(static_cast<CAnimatedGrabHandler*>(m_pGrabHandler))->ActivateIK();
+		(static_cast<CAnimatedGrabHandler *>(m_pGrabHandler))->ActivateIK();
 
 		// NOTE Dez 19, 2006: <pvl> walking events
 		//
@@ -822,7 +818,7 @@ void CHunter::AnimationEvent(ICharacterInstance* pCharacter, const AnimEventInst
 	}
 }
 
-void CHunter::PlayAction(const char* action, const char* extension, bool looping)
+void CHunter::PlayAction(const char *action, const char *extension, bool looping)
 {
 	if (!m_pAnimatedCharacter)
 		return;
@@ -834,10 +830,10 @@ void CHunter::PlayAction(const char* action, const char* extension, bool looping
 }
 
 template <typename T>
-static void SerializeArray(TSerialize ser, T* arr, int elemCount, const string& label)
+static void SerializeArray(TSerialize ser, T *arr, int elemCount, const string &label)
 {
 	const int labelBufSize = label.length() + 32;
-	char*     labelBuf = new char [labelBufSize];
+	char *labelBuf = new char[labelBufSize];
 
 	string labelFmt(label);
 	labelFmt += "%d";
@@ -848,7 +844,7 @@ static void SerializeArray(TSerialize ser, T* arr, int elemCount, const string& 
 		ser.Value(labelBuf, arr[i]);
 	}
 
-	delete [] labelBuf;
+	delete[] labelBuf;
 }
 
 void CHunter::FullSerialize(TSerialize ser)
