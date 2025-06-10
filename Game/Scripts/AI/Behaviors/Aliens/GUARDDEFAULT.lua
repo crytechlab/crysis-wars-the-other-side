@@ -713,7 +713,9 @@ AIBehaviour.GUARDDEFAULT = {
 --		entity:Readibility("MELEE_ACCELERATE",1, 4);
 
 		local sound = GetRandomSound(entity.voiceTable.accelerate);
-		entity:PlaySoundEvent(sound[1], g_Vectors.v000, g_Vectors.v010, SOUND_DEFAULT_3D, SOUND_SEMANTIC_LIVING_ENTITY);
+		if sound ~= nil then
+			entity:PlaySoundEvent(sound[1], g_Vectors.v000, g_Vectors.v010, SOUND_DEFAULT_3D, SOUND_SEMANTIC_LIVING_ENTITY);
+		end
 
 	end,
 
@@ -721,7 +723,9 @@ AIBehaviour.GUARDDEFAULT = {
 	OnChargeHit = function(self, entity, sender, data)
 
 		local sound = GetRandomSound(entity.voiceTable.melee);
-		entity:PlaySoundEvent(sound[1], g_Vectors.v000, g_Vectors.v010, SOUND_DEFAULT_3D, SOUND_SEMANTIC_WEAPON);
+		if sound ~= nil then
+			entity:PlaySoundEvent(sound[1], g_Vectors.v000, g_Vectors.v010, SOUND_DEFAULT_3D, SOUND_SEMANTIC_WEAPON);
+		end
 
 		-- the charge has hit the enemy, do damage.
 		local enemy = System.GetEntity(data.id);

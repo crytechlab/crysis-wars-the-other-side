@@ -180,8 +180,10 @@ AIBehaviour.HunterNewAttack = {
 		
 		entity.AI.lastSeenName = AI.GetAttentionTargetOf(entity.id);
 
-		--local nearestVehicleName = AI.FindObjectOfType(entity.id,30,AIOBJECT_VEHICLE,AIFAF_VISIBLE_TARGET);
-		local nearestVehicle = System.GetEntityByName("Asian_ltv11");
+		-- TheOtherSide FIXME: не уверен что этот метод AI.FindObjectOfType работает
+		local nearestVehicleName = AI.FindObjectOfType(entity.id, 30, AIOBJECT_VEHICLE, AIFAF_VISIBLE_TARGET);
+		-- ~TheOtherSide
+		local nearestVehicle = System.GetEntityByName(nearestVehicleName);
 		if (nearestVehicle) then		
 			local targetPos = {};
 			local hunterPos = {};
@@ -201,13 +203,8 @@ AIBehaviour.HunterNewAttack = {
 			FastScaleVector(targetPos,targetPos,len);
 
 			entity:SetGrabbingScheme("Right");
-			
-			
-
 			entity:GrabObject(nearestVehicle,nil);	
 			entity:DropObject( true, targetPos, 2 );
-			
-			--System.LogAlways("HunterAttack: SetGrabbingScheme")
 		end
 	end,	
 }

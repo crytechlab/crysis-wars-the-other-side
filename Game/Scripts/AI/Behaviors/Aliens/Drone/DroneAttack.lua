@@ -2230,7 +2230,7 @@ AIBehaviour.DroneAttack = {
 					entity.AI.bFlg = true;
 
 					if ( entity.AI.bAnimation == false ) then
-						entity.AI.bAnimation =ture;
+						entity.AI.bAnimation = true;
 						if ( entity.AI.bRvs == true ) then
 							AI.Animation(entity.id,AIANIM_SIGNAL,"rotateLeft");
 						else

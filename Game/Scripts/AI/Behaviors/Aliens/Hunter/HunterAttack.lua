@@ -51,7 +51,6 @@ AIBehaviour.HunterAttack = {
 		--~TheOtherSide
 		
 		if(entity.grabParams.entityId and entity.grabParams.entityId~= NULL_ENTITY) then 
-			System.Log("HUNTER THROWING OBJECT!");
 			local pos = g_Vectors.temp;
 			AI.GetAttentionTargetPosition(entity.id, pos);
 				pos.z = pos.z - 1.65;
