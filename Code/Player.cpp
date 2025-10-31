@@ -5057,7 +5057,7 @@ void CPlayer::UpdateFootSteps(float frameTime)
 	if (normalizedtime > 0.0f && normalizedtime <= 0.5f)
 		footID = BONE_FOOT_R;
 
-	if (footID == m_currentFootID) // don't play the same sound twice ...
+	if (gEnv->bClient && footID == m_currentFootID) // don't play the same sound twice ...
 		return;
 
 	float relativeSpeed = pSkeletonAnim->GetCurrentVelocity().GetLength() / 7.0f; // hardcoded :-( 7m/s max speed

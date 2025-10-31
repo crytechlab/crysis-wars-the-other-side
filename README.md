@@ -12,7 +12,7 @@
 
 ## Технологии
 - [CryENGINE 2](https://www.cryengine.com/)
-- [C++ 14](https://isocpp.org/)
+- [C++ 11](https://isocpp.org/)
 - [Git](https://git-scm.com/)
 - [Trello](https://trello.com/)
 

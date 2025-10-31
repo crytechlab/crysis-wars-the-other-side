@@ -29,6 +29,7 @@ History:
 
 // TheOtherSide
 #include "TheOtherSideMP/HUD/TOSCrosshair.h"
+#include "Game.h"
 //~TheOtherSide
 
 const float KILL_NPC_TIMEOUT = 7.25f;
@@ -644,10 +645,10 @@ void COffHand::UpdateFPView(float frameTime)
 
 	if (m_currentState == eOHS_INIT_STATE)
 	{
-		if (!gEnv->bMultiplayer)
+		//if (!gEnv->bMultiplayer)
 			UpdateCrosshairUsabilitySP();
-		else
-			UpdateCrosshairUsabilityMP();
+		//else
+			//UpdateCrosshairUsabilityMP();
 
 		m_weaponLowered = false;
 
@@ -938,6 +939,36 @@ void COffHand::UpdateHeldObject()
 		finalMatrix.SetTranslation(GetSlotHelperPos(id, "item_attachment", true));
 		finalMatrix = finalMatrix * m_holdOffset;
 
+		//TheOtherSide: правильная отрисовка поднятых предметов от третьего лица
+		if (!m_stats.fp && !g_pGame->GetIGameFramework()->GetIItemSystem()->GetItem(m_heldEntityId))
+		{
+			DrawNear(false);
+
+			if (auto pOwner = GetOwnerActor())
+			{
+				auto pCharacter = pOwner->GetEntity()->GetCharacter(0);
+				if (pCharacter)
+				{
+					auto pSkeletonPose = pCharacter->GetISkeletonPose();
+					if (pSkeletonPose)
+					{
+						const Matrix34 ownerWorldTM = pOwner->GetEntity()->GetWorldTM();
+						const Vec3 ownerWorldPos = ownerWorldTM.GetTranslation();
+						const Vec3 ownerDir = ownerWorldTM.GetColumn1();
+
+						const int boneId = pOwner->GetBoneID(BONE_BIP01);
+						const Vec3 boneLocalPos = pSkeletonPose->GetAbsJointByID(boneId).t;
+
+						const Vec3 localOffset = Vec3(0, 0, 0.5);
+						const float distance = 0.8;
+						
+						finalMatrix.SetIdentity();
+						finalMatrix.SetTranslation(ownerWorldPos + boneLocalPos + localOffset + ownerDir * distance);
+					}
+				}
+			}
+		}
+		//~TheOtherSide
 		// This is need it for breakable/joint-constraints stuff
 		if (IPhysicalEntity *pPhys = pEntity->GetPhysics())
 		{
@@ -1898,8 +1929,10 @@ int COffHand::CanPerformPickUp(CActor *pActor, IPhysicalEntity *pPhysicalEntity 
 	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
 	//~Crysis Co-op
 
-	if (gEnv->bMultiplayer && !bIsCoop)
-		return CheckItemsInProximity(info.eyePosition, info.eyeDirection, getEntityInfo);
+	//TheOtherSide
+	//if (gEnv->bMultiplayer && !bIsCoop)
+		//return CheckItemsInProximity(info.eyePosition, info.eyeDirection, getEntityInfo);
+	//~TheOtherSide
 
 	EStance playerStance = pActor->GetStance();
 
@@ -2388,8 +2421,8 @@ void COffHand::SelectGrabType(IEntity *pEntity)
 	bool bIsCoop = CCoopSystem::GetInstance()->IsCoop();
 	//~Crysis Co-op
 
-	if (gEnv->bMultiplayer && !bIsCoop)
-		return;
+	//if (gEnv->bMultiplayer && !bIsCoop)
+		//return;
 
 	CActor *pActor = GetOwnerActor();
 
